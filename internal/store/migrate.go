@@ -90,8 +90,9 @@ type migrateOptions struct {
 // its former text passes only while a migration is pending. Before
 // applying anything to a store at a version above 0, it takes a
 // verified copy of the store as snapshots/pre-migrate-v<N>.db,
-// replacing an existing copy of the same version, and then applies the
-// amendments in their own transaction.
+// replacing an existing copy of the same version. The amendments apply
+// inside the first file's transaction, so a store whose first file
+// fails keeps its former ledger row and schema.
 //
 // Each file applies in its own IMMEDIATE transaction that also sets
 // user_version and inserts the file's ledger row, so a file that fails
@@ -124,16 +125,21 @@ func migrate(ctx context.Context, h *Handle, l leaf, files []migration, opts mig
 		return nil
 	}
 
+	due, err := dueRepairs(ctx, h.write, files, current)
+	if err != nil {
+		return fmt.Errorf("migrate %s: %w", h.path, err)
+	}
 	if current > 0 {
 		if err := takeSnapshot(ctx, l, opts.busyTimeout, preMigrateName(current), current); err != nil {
 			return fmt.Errorf("migrate %s: %w", h.path, err)
 		}
 	}
-	if err := amend(ctx, h, files, current); err != nil {
-		return fmt.Errorf("migrate %s: %w", h.path, err)
-	}
-	for _, m := range files[current:] {
-		if err := applyMigration(ctx, h, m, opts.busyTimeout); err != nil {
+	for i, m := range files[current:] {
+		var repairs []repair
+		if i == 0 {
+			repairs = due
+		}
+		if err := applyMigration(ctx, h, m, repairs, opts.busyTimeout); err != nil {
 			return fmt.Errorf("migrate %s: %w", h.path, err)
 		}
 	}
@@ -258,17 +264,18 @@ func checkLedger(ctx context.Context, db *sql.DB, files []migration, current int
 	return nil
 }
 
-// applyMigration applies m in its own transaction, on the write pool
-// or, for a rebuild, on a maintenance connection with foreign keys off.
-func applyMigration(ctx context.Context, h *Handle, m migration, busyTimeout time.Duration) error {
+// applyMigration applies repairs and then m in one transaction, on the
+// write pool or, for a rebuild, on a maintenance connection with
+// foreign keys off.
+func applyMigration(ctx context.Context, h *Handle, m migration, repairs []repair, busyTimeout time.Duration) error {
 	if m.rebuild {
-		return applyRebuild(ctx, h.path, m, busyTimeout)
+		return applyRebuild(ctx, h.path, m, repairs, busyTimeout)
 	}
 	tx, err := h.write.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("apply %s: begin: %w", m.name, classifyErr(err))
 	}
-	if err := applyInTx(ctx, tx, h.path, m); err != nil {
+	if err := applyInTx(ctx, tx, h.path, m, repairs); err != nil {
 		return rollbackMigration(tx, err)
 	}
 	return commitMigration(tx, h.path, m)
@@ -280,7 +287,7 @@ func applyMigration(ctx context.Context, h *Handle, m migration, busyTimeout tim
 // or disabled when there is no pending BEGIN or SAVEPOINT"). It refuses
 // to commit when PRAGMA foreign_key_check reports any row, and closes
 // the connection either way, so enforcement off never reaches a pool.
-func applyRebuild(ctx context.Context, dbPath string, m migration, busyTimeout time.Duration) (err error) {
+func applyRebuild(ctx context.Context, dbPath string, m migration, repairs []repair, busyTimeout time.Duration) (err error) {
 	db, err := openMaintenanceConn(dbPath, busyTimeout)
 	if err != nil {
 		return fmt.Errorf("apply %s: %w", m.name, err)
@@ -300,7 +307,7 @@ func applyRebuild(ctx context.Context, dbPath string, m migration, busyTimeout t
 	if err != nil {
 		return fmt.Errorf("apply %s: begin: %w", m.name, classifyErr(err))
 	}
-	if err := applyInTx(ctx, tx, dbPath, m); err != nil {
+	if err := applyInTx(ctx, tx, dbPath, m, repairs); err != nil {
 		return rollbackMigration(tx, err)
 	}
 	if err := checkForeignKeys(ctx, tx, m); err != nil {
@@ -309,10 +316,10 @@ func applyRebuild(ctx context.Context, dbPath string, m migration, busyTimeout t
 	return commitMigration(tx, dbPath, m)
 }
 
-// applyInTx runs m's statements inside tx, between SAVEPOINT and
-// RELEASE, then sets user_version to m's version and records m
-// in the ledger. The version is formatted into the statement because a
-// PRAGMA takes no bound parameter. The first failing statement ends the
+// applyInTx runs repairs inside tx, then m's statements between
+// SAVEPOINT and RELEASE, then sets user_version to m's version and
+// records m in the ledger. The version is formatted into the statement
+// because a PRAGMA takes no bound parameter. The first failing statement ends the
 // file: a multi-statement exec stops there, and nothing after it runs.
 //
 // The SAVEPOINT catches a body that ends the runner's own transaction
@@ -321,13 +328,16 @@ func applyRebuild(ctx context.Context, dbPath string, m migration, busyTimeout t
 // or the ledger row changes, so the caller's rollback finds nothing of
 // this file committed beyond what the body's own COMMIT already
 // persisted.
-func applyInTx(ctx context.Context, tx *sql.Tx, dbPath string, m migration) error {
+func applyInTx(ctx context.Context, tx *sql.Tx, dbPath string, m migration, repairs []repair) error {
 	var current int
 	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&current); err != nil {
 		return fmt.Errorf("apply %s: read user_version: %w", m.name, classifyWriteErr(dbPath, err))
 	}
 	if current != m.version-1 {
 		return fmt.Errorf("apply %s: store at version %d, want %d", m.name, current, m.version-1)
+	}
+	if err := applyRepairs(ctx, tx, dbPath, repairs); err != nil {
+		return fmt.Errorf("apply %s: %w", m.name, err)
 	}
 	if _, err := tx.ExecContext(ctx, "SAVEPOINT "+runnerSavepoint); err != nil {
 		return fmt.Errorf("apply %s: open savepoint: %w", m.name, classifyWriteErr(dbPath, err))

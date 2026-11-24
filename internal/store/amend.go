@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 )
 
@@ -36,47 +37,52 @@ func amendable(version int, sum string) bool {
 	return false
 }
 
-// amend applies, in one transaction, every amendment whose former hash
-// the ledger of h, a store at version current, records, and records
-// each file's current hash from files in its place. checkLedger has
-// already accepted the ledger. A store whose ledger records no former
-// hash takes no write.
-func amend(ctx context.Context, h *Handle, files []migration, current int) error {
-	var due []amendment
+// A repair is an amendment due on one store: fix runs, and the ledger
+// row at version then records sum, the current file's hash.
+type repair struct {
+	version int
+	sum     string
+	fix     string
+}
+
+// dueRepairs returns a repair for every amendment whose former hash the
+// ledger of a store at version current records, each taking its
+// current hash from files. checkLedger has already accepted the ledger.
+// It reads and never writes.
+func dueRepairs(ctx context.Context, q *sql.DB, files []migration, current int) ([]repair, error) {
+	var due []repair
 	for _, a := range amendments {
 		if a.version > current {
 			continue
 		}
 		var n int
-		if err := h.write.QueryRowContext(ctx,
+		if err := q.QueryRowContext(ctx,
 			"SELECT count(*) FROM "+ledgerTable+" WHERE version = ? AND sha256 = ?", a.version, a.formerSum,
 		).Scan(&n); err != nil {
-			return fmt.Errorf("amend version %d: read ledger: %w", a.version, classifyErr(err))
+			return nil, fmt.Errorf("amend version %d: read ledger: %w", a.version, classifyErr(err))
 		}
 		if n > 0 {
-			due = append(due, a)
+			due = append(due, repair{version: a.version, sum: files[a.version-1].sum, fix: a.fix})
 		}
 	}
-	if len(due) == 0 {
-		return nil
-	}
+	return due, nil
+}
 
-	tx, err := h.write.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("amend: begin: %w", classifyErr(err))
-	}
-	for _, a := range due {
+// applyRepairs runs each repair inside tx, the transaction of the first
+// migration the store takes. A store never commits an amended ledger at
+// its old version, so a retry after a failed migration copies the store
+// as it was, and the pre-migrate copy stays one the earlier binary
+// opens.
+func applyRepairs(ctx context.Context, tx *sql.Tx, dbPath string, due []repair) error {
+	for _, r := range due {
 		if _, err := tx.ExecContext(ctx,
-			"UPDATE "+ledgerTable+" SET sha256 = ? WHERE version = ?", files[a.version-1].sum, a.version,
+			"UPDATE "+ledgerTable+" SET sha256 = ? WHERE version = ?", r.sum, r.version,
 		); err != nil {
-			return rollbackMigration(tx, fmt.Errorf("amend version %d: ledger: %w", a.version, classifyWriteErr(h.path, err)))
+			return fmt.Errorf("amend version %d: ledger: %w", r.version, classifyWriteErr(dbPath, err))
 		}
-		if _, err := tx.ExecContext(ctx, a.fix); err != nil {
-			return rollbackMigration(tx, fmt.Errorf("amend version %d: %w", a.version, classifyWriteErr(h.path, err)))
+		if _, err := tx.ExecContext(ctx, r.fix); err != nil {
+			return fmt.Errorf("amend version %d: %w", r.version, classifyWriteErr(dbPath, err))
 		}
-	}
-	if err := tx.Commit(); err != nil {
-		return rollbackMigration(tx, fmt.Errorf("amend: commit: %w", classifyWriteErr(h.path, err)))
 	}
 	return nil
 }

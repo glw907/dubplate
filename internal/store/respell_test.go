@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -206,6 +208,74 @@ func TestMigrateAmendsTheBoxCatalog(t *testing.T) {
 	got, want := queryStrings(t, h.write, schema), queryStrings(t, fresh.write, schema)
 	if !slices.Equal(got, want) {
 		t.Errorf("amended schema differs from a fresh store's:\n got %q\nwant %q", got, want)
+	}
+}
+
+// TestMigrateKeepsTheBoxCatalogWhenAMigrationFails fails the first
+// migration a box store takes. The store is left exactly as the box's
+// commit wrote it, so the retry's pre-migrate-v5 copy, which replaces
+// the first, is still one that commit's binary opens: its ledger
+// records the box catalog's sum and its users table still has
+// streamer_username.
+func TestMigrateKeepsTheBoxCatalogWhenAMigrationFails(t *testing.T) {
+	l, h := boxStore(t)
+	ctx := context.Background()
+	files := readMigrationsT(t, migrationSource())
+	failing := slices.Clone(files)
+	failing[5].body = "SELECT * FROM no_such_table"
+	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil || !strings.Contains(err.Error(), "no_such_table") {
+		t.Fatalf("migrate with a failing 0006: %v, want its no_such_table error", err)
+	}
+
+	boxShape := func(t *testing.T, db *sql.DB, what string) {
+		t.Helper()
+		if got := queryStrings(t, db, "SELECT sha256 FROM "+ledgerTable+" WHERE version = 3"); !slices.Equal(got, []string{boxCatalogSum}) {
+			t.Errorf("%s: ledger version 3 sum = %q, want [%s]", what, got, boxCatalogSum)
+		}
+		if got := queryStrings(t, db, "SELECT name FROM pragma_table_info('users') WHERE name LIKE '%username'"); !slices.Equal(got, []string{"streamer_username"}) {
+			t.Errorf("%s: users columns = %q, want [streamer_username]", what, got)
+		}
+	}
+	boxShape(t, h.write, "store after the failure")
+
+	if err := migrate(ctx, h, l, failing, defaultOpts()); err == nil {
+		t.Fatal("retry with the failing 0006: nil, want its error")
+	}
+	snapPath := filepath.Join(l.snapshotsDir, preMigrateName(5))
+	snap, err := sql.Open(sqliteDriverName, inspectDSN(snapPath, migrateBusy))
+	if err != nil {
+		t.Fatalf("open snapshot %s: %v", snapPath, err)
+	}
+	defer func() { _ = snap.Close() }()
+	boxShape(t, snap, "pre-migrate-v5 copy after the retry")
+
+	if err := migrate(ctx, h, l, files, defaultOpts()); err != nil {
+		t.Fatalf("migrate to head once 0006 applies: %v", err)
+	}
+	if got := queryStrings(t, h.write, "SELECT username FROM users WHERE id = x'79797979797979797979797979797979'"); !slices.Equal(got, []string{"boxer"}) {
+		t.Errorf("username after the migration = %q, want [boxer]", got)
+	}
+}
+
+// TestMigrateRollsBackAFailedAmendment gives a store the box catalog's
+// ledger sum over a users table that already has username, so the
+// amendment's rename fails. The ledger row and user_version roll back
+// with the first file.
+func TestMigrateRollsBackAFailedAmendment(t *testing.T) {
+	l, h := boxStore(t)
+	ctx := context.Background()
+	if _, err := h.write.ExecContext(ctx, "ALTER TABLE users RENAME COLUMN streamer_username TO username"); err != nil {
+		t.Fatalf("restore username: %v", err)
+	}
+	err := migrate(ctx, h, l, readMigrationsT(t, migrationSource()), defaultOpts())
+	if err == nil || !strings.Contains(err.Error(), "amend version 3") {
+		t.Fatalf("migrate over an amended column: %v, want the amend version 3 error", err)
+	}
+	if got := queryStrings(t, h.write, "SELECT sha256 FROM "+ledgerTable+" WHERE version = 3"); !slices.Equal(got, []string{boxCatalogSum}) {
+		t.Errorf("ledger version 3 sum = %q, want [%s]", got, boxCatalogSum)
+	}
+	if got := queryStrings(t, h.write, "PRAGMA user_version"); !slices.Equal(got, []string{"5"}) {
+		t.Errorf("user_version = %q, want [5]", got)
 	}
 }
 
