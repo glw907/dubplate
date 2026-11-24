@@ -15,9 +15,9 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 )
 
-// checkRequest builds a request carrying session as its cookie and site
+// sessionRequest builds a request carrying session as its cookie and site
 // as its Sec-Fetch-Site header when non-empty.
-func checkRequest(session, site string) *http.Request {
+func sessionRequest(session, site string) *http.Request {
 	r := rosterRequest(http.MethodPost, "/dubplate/api/v1/catalog", session, "")
 	if site != "" {
 		r.Header.Set("Sec-Fetch-Site", site)
@@ -25,11 +25,11 @@ func checkRequest(session, site string) *http.Request {
 	return r
 }
 
-// TestCheckRequest_AdmitsAnyVerifiedMember proves the check admits a
+// TestVerifyRequest_AdmitsAnyVerifiedMember proves the check admits a
 // verified non-admin as well as an admin, reports the flag the roster
 // holds, and never reads it from the request (a claim in the query, a
 // header, or the body changes nothing).
-func TestCheckRequest_AdmitsAnyVerifiedMember(t *testing.T) {
+func TestVerifyRequest_AdmitsAnyVerifiedMember(t *testing.T) {
 	for _, tt := range []struct {
 		address string
 		admin   bool
@@ -42,9 +42,9 @@ func TestCheckRequest_AdmitsAnyVerifiedMember(t *testing.T) {
 			r := rosterRequest(http.MethodPost, "/dubplate/api/v1/catalog?admin=on", mintAt(t, currentFixture, tt.address, verifierBirth), "admin=on")
 			r.Header.Set("X-Admin", "1")
 			w := httptest.NewRecorder()
-			v, err := CheckRequest(fx.cfg, w, r)
+			v, err := VerifyRequest(fx.cfg, w, r)
 			if err != nil {
-				t.Fatalf("CheckRequest: %v", err)
+				t.Fatalf("VerifyRequest: %v", err)
 			}
 			if v.Admin != tt.admin || v.Identity.Address != tt.address || !v.Identity.Valid() {
 				t.Errorf("verified = admin %v for %q (valid %v), want admin %v for %q", v.Admin, v.Identity.Address, v.Identity.Valid(), tt.admin, tt.address)
@@ -53,11 +53,11 @@ func TestCheckRequest_AdmitsAnyVerifiedMember(t *testing.T) {
 	}
 }
 
-// TestCheckRequest_RefreshesOnlySameOrigin proves the session is
+// TestVerifyRequest_RefreshesOnlySameOrigin proves the session is
 // refreshed and its cookie set on w only for a same-origin request,
 // that the refreshed session keeps its anchor while its issue time
 // moves, and that the identity the check returns carries that anchor.
-func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
+func TestVerifyRequest_RefreshesOnlySameOrigin(t *testing.T) {
 	for _, tt := range []struct {
 		site        string
 		wantRefresh bool
@@ -71,9 +71,9 @@ func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
 		t.Run("Sec-Fetch-Site "+tt.site, func(t *testing.T) {
 			fx := newAdminFixture(t)
 			w := httptest.NewRecorder()
-			v, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
+			v, err := VerifyRequest(fx.cfg, w, sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
 			if err != nil {
-				t.Fatalf("CheckRequest: %v", err)
+				t.Fatalf("VerifyRequest: %v", err)
 			}
 			cookies := w.Header().Values("Set-Cookie")
 			if !tt.wantRefresh {
@@ -103,33 +103,33 @@ func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
 	}
 }
 
-// TestCheckRequest_RefusalsAreNotSignedIn proves every verification
+// TestVerifyRequest_RefusalsAreNotSignedIn proves every verification
 // refusal wraps ops.ErrUnauthenticated, sets no cookie, and logs at Info a
 // fixed reason carrying no address and no cookie value.
-func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
+func TestVerifyRequest_RefusalsAreNotSignedIn(t *testing.T) {
 	tests := []struct {
 		name    string
 		seam    Verifier
 		request func(t *testing.T, fx adminFixture) *http.Request
 	}{
-		{"no cookie", nil, func(t *testing.T, fx adminFixture) *http.Request { return checkRequest("", "same-origin") }},
+		{"no cookie", nil, func(t *testing.T, fx adminFixture) *http.Request { return sessionRequest("", "same-origin") }},
 		{"forged cookie", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest(mintAt(t, foreignFixture, "admin@example.com", verifierBirth), "same-origin")
+			return sessionRequest(mintAt(t, foreignFixture, "admin@example.com", verifierBirth), "same-origin")
 		}},
 		{"expired session", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest(mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-verifierLifetime-time.Hour)), "same-origin")
+			return sessionRequest(mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-verifierLifetime-time.Hour)), "same-origin")
 		}},
 		{"session older than its epoch", nil, func(t *testing.T, fx adminFixture) *http.Request {
 			if err := fx.epoch.Bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
 				t.Fatalf("Bump: %v", err)
 			}
-			return checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin")
+			return sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin")
 		}},
 		{"member removed from the roster", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest(mintAt(t, currentFixture, "gone@example.com", verifierBirth), "same-origin")
+			return sessionRequest(mintAt(t, currentFixture, "gone@example.com", verifierBirth), "same-origin")
 		}},
 		{"verified identity that is not a login", stubVerifier{v: VerifiedIdentity{Identity: identity.Identity{Channel: identity.ChannelCommandLine}, Admin: true, RefreshedValue: "refreshed-by-stub"}}, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest("", "same-origin")
+			return sessionRequest("", "same-origin")
 		}},
 	}
 	for _, tt := range tests {
@@ -141,9 +141,9 @@ func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
 			}
 			r := tt.request(t, fx)
 			w := httptest.NewRecorder()
-			_, err := CheckRequest(cfg, w, r)
+			_, err := VerifyRequest(cfg, w, r)
 			if !errors.Is(err, ops.ErrUnauthenticated) {
-				t.Fatalf("CheckRequest = %v, want an error wrapping ops.ErrUnauthenticated", err)
+				t.Fatalf("VerifyRequest = %v, want an error wrapping ops.ErrUnauthenticated", err)
 			}
 			if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 				t.Errorf("a refusal set a cookie: %q", c)
@@ -161,21 +161,21 @@ func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
 	}
 }
 
-// TestCheckRequest_ServerFailuresAreNotRefusals proves a failed roster
+// TestVerifyRequest_ServerFailuresAreNotRefusals proves a failed roster
 // lookup or setting read is the server failing: the error is not a
 // not-signed-in refusal, the log holds an Error record, and nothing is
 // set. A refusal answered here would sign a member out on a store
 // outage.
-func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
+func TestVerifyRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 	t.Run("the roster lookup fails", func(t *testing.T) {
 		fx := newAdminFixture(t)
 		if err := fx.users.Close(); err != nil {
 			t.Fatalf("close store: %v", err)
 		}
 		w := httptest.NewRecorder()
-		_, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin"))
+		_, err := VerifyRequest(fx.cfg, w, sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin"))
 		if err == nil || errors.Is(err, ops.ErrUnauthenticated) {
-			t.Fatalf("CheckRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
+			t.Fatalf("VerifyRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
 		}
 		if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 			t.Errorf("a failed lookup set a cookie: %q", c)
@@ -197,7 +197,7 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 			lifetime, absoluteCap := newSettingFake(verifierLifetime), newSettingFake(verifierCap)
 			sf := newVerifierFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
 			logs := newLogCapture()
-			cfg := AdminConfig{
+			cfg := VerifyConfig{
 				Verifier: sf.seam,
 				ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 				Now:      func() time.Time { return gateNow },
@@ -209,9 +209,9 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 				lifetime.set(0, errFixtureRead)
 			}
 			w := httptest.NewRecorder()
-			_, err := CheckRequest(cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
+			_, err := VerifyRequest(cfg, w, sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
 			if err == nil || errors.Is(err, ops.ErrUnauthenticated) {
-				t.Fatalf("CheckRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
+				t.Fatalf("VerifyRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
 			}
 			if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 				t.Errorf("a failed read set a cookie: %q", c)

@@ -44,14 +44,14 @@ type adminFixture struct {
 	epoch  *EpochStore
 	seam   *MagicLinkVerifier
 	logs   *logCapture
-	cfg    AdminConfig
+	cfg    VerifyConfig
 }
 
 func newAdminFixture(t *testing.T) adminFixture {
 	t.Helper()
 	sf := newVerifierFixture(t, slices.Clone(adminRosterMembers)...)
 	logs := newLogCapture()
-	cfg := AdminConfig{
+	cfg := VerifyConfig{
 		Verifier: sf.seam,
 		ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 		Now:      func() time.Time { return gateNow },
@@ -449,7 +449,7 @@ func TestRequireAdmin_SettingReadFailure(t *testing.T) {
 			lifetime, absoluteCap := newSettingFake(verifierLifetime), newSettingFake(verifierCap)
 			sf := newVerifierFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
 			logs := newLogCapture()
-			cfg := AdminConfig{
+			cfg := VerifyConfig{
 				Verifier: sf.seam,
 				ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 				Now:      func() time.Time { return gateNow },

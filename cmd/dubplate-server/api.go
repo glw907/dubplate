@@ -18,7 +18,7 @@ const apiRouteName = "api"
 
 // newAPIMount builds the /api/v1 handler over the admin and submission
 // operations for the sessions cfg verifies.
-func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Submissions, cfg auth.AdminConfig) (http.Handler, error) {
+func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Submissions, cfg auth.VerifyConfig) (http.Handler, error) {
 	return opshttp.NewMount(adminOps, submissionOps, prefix.String(), apiVerifier(cfg), cfg.Logger)
 }
 
@@ -28,9 +28,9 @@ func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Subm
 // the freshness the re-authentication gate reads. It logs one record
 // per admitted request, naming the principal under its own key because
 // the actor carries the durable id.
-func apiVerifier(cfg auth.AdminConfig) opshttp.Verifier {
+func apiVerifier(cfg auth.VerifyConfig) opshttp.Verifier {
 	return func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
-		v, err := auth.CheckRequest(cfg, w, r)
+		v, err := auth.VerifyRequest(cfg, w, r)
 		if err != nil {
 			return identity.Actor{}, 0, err
 		}

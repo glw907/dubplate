@@ -98,9 +98,9 @@ func newAPIHarness(t *testing.T, members []seedMember, tweak func([]string) []st
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ResolveConfig(environ)
+	prefix, addrs, _, err := serve.ParseConfig(environ)
 	if err != nil {
-		t.Fatalf("serve.ResolveConfig: %v", err)
+		t.Fatalf("serve.ParseConfig: %v", err)
 	}
 	logs := &syncBuffer{}
 	srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(logs, nil)))

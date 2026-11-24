@@ -872,7 +872,7 @@ order closes it:
 2. it runs `unidecode install` from that file on the box, under `systemd-run`
    with the property list `--check` prints (the env file is not installed until
    a later step). The run may write only `/var/lib/dubplate/unidecode`, which
-   the script creates first, so the install cannot touch the auth store or the
+   the script creates first, so the install cannot touch the auth directory or the
    store beside it;
 3. only a verified install is moved over the live path with `mv`.
 

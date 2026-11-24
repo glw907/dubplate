@@ -125,7 +125,7 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 	if err != nil {
 		return nil, err
 	}
-	if err := intake.ResolveStaging(cfg); err != nil {
+	if err := intake.ValidateStaging(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil

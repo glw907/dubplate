@@ -7,9 +7,10 @@ import (
 	"time"
 )
 
-// AdminConfig is everything the admin gate and [CheckRequest] need,
-// resolved by the caller. Every field is required.
-type AdminConfig struct {
+// VerifyConfig is everything a session check needs, for the admin gate
+// [RequireAdmin] and for [VerifyRequest], which admits every member.
+// The caller builds it, and every field is required.
+type VerifyConfig struct {
 	// Verifier verifies the session a request carries. The admin flag the
 	// gate checks is the one the verifier read from the roster record.
 	Verifier Verifier
@@ -38,7 +39,7 @@ type AdminConfig struct {
 // refreshed cookie is set only once the admin check has passed; setting
 // it earlier would put a Set-Cookie on a non-admin's 404 that an
 // unregistered path never carries.
-func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
+func RequireAdmin(cfg VerifyConfig, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		now := cfg.Now()
 		sameOrigin := r.Header.Get("Sec-Fetch-Site") == "same-origin"

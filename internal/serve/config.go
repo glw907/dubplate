@@ -90,13 +90,13 @@ func Register(reg *config.Registry) {
 	reg.AddThreshold(PrefixThreshold)
 }
 
-// ResolveConfig reads the three thresholds against environ and
+// ParseConfig reads the three thresholds against environ and
 // returns the values [Run] and its construction values take: the
 // validated owned prefix, the split and validated bind addresses, and
 // the port. It returns before any listener opens, so a caller can
 // refuse an invalid prefix or bind list without ever touching the
 // network.
-func ResolveConfig(environ []string) (Prefix, []string, int, error) {
+func ParseConfig(environ []string) (Prefix, []string, int, error) {
 	prefixValue, err := config.ParseString(environ, PrefixThreshold)
 	if err != nil {
 		return Prefix{}, nil, 0, err
@@ -154,7 +154,7 @@ func RegisterTrustedProxy(reg *config.Registry) {
 	reg.AddIntegrationClass(TrustedProxyClass)
 }
 
-// ResolveTrustedProxy builds the [TrustedProxyConfig] cfg
+// ParseTrustedProxy builds the [TrustedProxyConfig] cfg
 // configures: the zero value, which is direct mode, when the class is
 // off, and otherwise the parsed address set and the checked header
 // name. Serve startup and doctor both call it, so the two cannot
@@ -165,8 +165,8 @@ func RegisterTrustedProxy(reg *config.Registry) {
 // off. What is left is each value's own grammar: every address entry
 // that is empty, is not an IP address, is a network, carries a zone,
 // or is unspecified is refused by name, and so is a header
-// [CheckProxyHeader] refuses. Every refusal is reported at once.
-func ResolveTrustedProxy(cfg *config.Config) (TrustedProxyConfig, error) {
+// [ValidateProxyHeader] refuses. Every refusal is reported at once.
+func ParseTrustedProxy(cfg *config.Config) (TrustedProxyConfig, error) {
 	class := TrustedProxyClass.Name
 	if !cfg.IntegrationEnabled(class) {
 		return TrustedProxyConfig{}, nil
@@ -174,7 +174,7 @@ func ResolveTrustedProxy(cfg *config.Config) (TrustedProxyConfig, error) {
 
 	addrs, errs := ParseProxyAddrs(cfg.IntegrationValue(class, TrustedProxyAddrsKey))
 	header := strings.TrimSpace(cfg.IntegrationValue(class, TrustedProxyHeaderKey))
-	if err := CheckProxyHeader(header); err != nil {
+	if err := ValidateProxyHeader(header); err != nil {
 		errs = append(errs, fmt.Errorf("%s %q: %w", TrustedProxyHeaderKey, header, err))
 	}
 	if len(errs) > 0 {

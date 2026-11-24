@@ -572,11 +572,11 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 // sweeps' removed counts: [2]int{0, 1} when the store's retention is
 // retention, since a record at exactly its expiry is kept.
 func sweptAround(ctx context.Context, acc *settings.Accessor, stateDir string, retention time.Duration) ([2]int, error) {
-	authStore, err := auth.Open(stateDir)
+	authDir, err := auth.Open(stateDir)
 	if err != nil {
 		return [2]int{}, err
 	}
-	nonces, err := openNonceStore(ctx, authStore, acc, time.Now())
+	nonces, err := openNonceStore(ctx, authDir, acc, time.Now())
 	if err != nil {
 		return [2]int{}, err
 	}

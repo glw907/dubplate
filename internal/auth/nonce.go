@@ -48,10 +48,10 @@ var errNonceRecordUnparseable = errors.New("nonce record: unparseable")
 // first-writer-wins, and syncs both the record and the directory that
 // now names it.
 type NonceStore struct {
-	store *Store
+	leaf *Dir
 
 	// dir is the nonce subdirectory. It names a directory rather
-	// than a record, so it does not go through the store's record
+	// than a record, so it does not go through the leaf's record
 	// path function; every record path below still does.
 	dir string
 
@@ -83,15 +83,15 @@ type NonceSweep struct {
 	Malformed int
 }
 
-// OpenNonceStore returns the consumed-nonce store under store's leaf,
+// OpenNonceStore returns the consumed-nonce store under leaf,
 // with retention reading DUBPLATE_NONCE_RETENTION's value in force and
 // linkExpiryCeiling the registered ceiling on the magic-link expiry
 // (m5), and sweeps it once at now before returning. The caller runs
 // Sweep on an interval thereafter; this package owns no timer.
-func OpenNonceStore(ctx context.Context, store *Store, retention Setting[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
+func OpenNonceStore(ctx context.Context, leaf *Dir, retention Setting[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
-		store:             store,
-		dir:               store.subdir(nonceSubdir),
+		leaf:              leaf,
+		dir:               leaf.subdir(nonceSubdir),
 		retention:         retention,
 		linkExpiryCeiling: linkExpiryCeiling,
 	}
@@ -152,7 +152,7 @@ func (s *NonceStore) Insert(ctx context.Context, nonce [NonceLength]byte, now, e
 	if err != nil {
 		return err
 	}
-	path, err := s.store.NoncePath(RecordID(nonceSubdir, string(nonce[:])))
+	path, err := s.leaf.NoncePath(RecordID(nonceSubdir, string(nonce[:])))
 	if err != nil {
 		return err
 	}

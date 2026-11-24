@@ -385,7 +385,7 @@ func FreeSpaceFloor(acc *settings.Accessor) func(context.Context) (int64, error)
 	}
 }
 
-// ResolveStaging refuses a staging directory and a library root that
+// ValidateStaging refuses a staging directory and a library root that
 // overlap, in either direction or as one path. The library tree is what
 // backup syncs and restore refuses to fill, so a partial upload inside
 // it would be backed up and skew the sync guard's count.
@@ -398,7 +398,7 @@ func FreeSpaceFloor(acc *settings.Accessor) func(context.Context) (int64, error)
 // absence. The startup check compares the resolved paths once both
 // exist. The error is keyed by the staging row, so doctor prints it
 // there.
-func ResolveStaging(cfg *config.Config) error {
+func ValidateStaging(cfg *config.Config) error {
 	staging := filepath.Clean(cfg.WallValue(StagingKey))
 	library := filepath.Clean(cfg.LibraryRoot)
 	if !filepath.IsAbs(staging) || !filepath.IsAbs(library) {
@@ -426,9 +426,9 @@ func SweepInterval(ctx context.Context, acc *settings.Accessor) (time.Duration, 
 	return d, readError(sweepIntervalSetting, err)
 }
 
-// CheckWorkers reads DUBPLATE_INTAKE_CHECK_WORKERS in force through acc.
+// CheckWorkerCount reads DUBPLATE_INTAKE_CHECK_WORKERS in force through acc.
 // The worker pool is sized once at start.
-func CheckWorkers(ctx context.Context, acc *settings.Accessor) (int, error) {
+func CheckWorkerCount(ctx context.Context, acc *settings.Accessor) (int, error) {
 	n, err := acc.Int(ctx, checkWorkersSetting)
 	return n, readError(checkWorkersSetting, err)
 }

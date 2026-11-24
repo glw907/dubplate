@@ -69,7 +69,7 @@ func TestDoctorBoundaryRows_Baseline(t *testing.T) {
 	}
 	reg := productionRegistry()
 	wantLines := len(reg.OwnedWall()) + len(reg.ReservedClasses()) + len(reg.IntegrationClasses()) +
-		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authStoreRowLines + backupDoctorRowsOff +
+		len(reg.Thresholds()) + len(reg.IdentitySources()) + storeRowLines + membersRowLines + authDirRowLines + backupDoctorRowsOff +
 		unidecodeRowLines + probeRowLines + musicVolumeRowLines + len(reg.Settings())
 	if lines != wantLines {
 		t.Errorf("doctor printed %d lines, want %d", lines, wantLines)
@@ -237,9 +237,9 @@ func TestDoctorBoundaryRows_NeutralBrandingLogsNothingToStdout(t *testing.T) {
 	environ := withEnv(doctorEnviron(t), branding)
 
 	var logs bytes.Buffer
-	prefix, _, _, err := serve.ResolveConfig(environ)
+	prefix, _, _, err := serve.ParseConfig(environ)
 	if err != nil {
-		t.Fatalf("serve.ResolveConfig: %v", err)
+		t.Fatalf("serve.ParseConfig: %v", err)
 	}
 	if _, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, slog.New(slog.NewTextHandler(&logs, nil))); err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
@@ -306,10 +306,10 @@ func startServeOnHeldPort(t *testing.T, extra ...string) []string {
 		_ = l.Close()
 		t.Fatalf("loadConfig: %v", err)
 	}
-	prefix, addrs, _, err := serve.ResolveConfig(environ)
+	prefix, addrs, _, err := serve.ParseConfig(environ)
 	if err != nil {
 		_ = l.Close()
-		t.Fatalf("serve.ResolveConfig: %v", err)
+		t.Fatalf("serve.ParseConfig: %v", err)
 	}
 	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
 		func(s *serve.Shell) registrar { return s }, newFixtureBuildFS(1, 1))

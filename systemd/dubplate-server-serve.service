@@ -29,7 +29,7 @@ RestartSec=5
 TimeoutStopSec=30
 
 # Why the grant is two leaves and one volume directory: serve writes its sign-in state under
-# auth.StoreDir (DUBPLATE_STATE_DIR plus /auth) and its member and settings
+# auth.DirPath (DUBPLATE_STATE_DIR plus /auth) and its member and settings
 # store under the store leaf (DUBPLATE_STATE_DIR plus /store), and nothing
 # else under the state directory. The third entry, /srv/music, is the music
 # volume's directory, the common parent of DUBPLATE_STAGING_DIR and

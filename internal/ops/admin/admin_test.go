@@ -186,11 +186,11 @@ func newFixtureWith(t *testing.T, opts fixtureOptions) *fixture {
 	t.Cleanup(func() { _ = h.Close() })
 	insertMembers(t, h, alice, bob, carol, dave)
 
-	authStore, err := auth.Open(t.TempDir())
+	authDir, err := auth.Open(t.TempDir())
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	epoch := auth.OpenEpochStore(authStore)
+	epoch := auth.OpenEpochStore(authDir)
 	logs := &bytes.Buffer{}
 	mail := &mailbox{}
 	seam := New(Config{

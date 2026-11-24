@@ -83,13 +83,13 @@ func MembersRowStatus(r store.Report, checked bool) (status string, failed bool)
 	return fmt.Sprintf("members: %d, admins: %d", r.Facts.Members, r.Facts.Admins), false
 }
 
-// StoreRowOptions are the process facts [StoreRowStatus] reads.
-type StoreRowOptions struct {
+// DirRowOptions are the process facts [DirRowStatus] reads.
+type DirRowOptions struct {
 	// Geteuid returns the effective uid the leaf must belong to.
 	Geteuid func() int
 }
 
-// StoreRowStatus reports, without writing, whether serve could open
+// DirRowStatus reports, without writing, whether serve could open
 // the auth leaf under cfg's state directory: "ok" when the leaf is at
 // most 0700, owned by the effective uid, and each record directory is
 // writable; "absent; serve creates it" when the leaf is missing and
@@ -99,11 +99,11 @@ type StoreRowOptions struct {
 // shape a path outside the unit's ReadWritePaths takes. A nil cfg reads
 // "not checked" and adds no failure of its own, since Load's own
 // report already fails doctor.
-func StoreRowStatus(cfg *config.Config, opts StoreRowOptions) (status string, failed bool) {
+func DirRowStatus(cfg *config.Config, opts DirRowOptions) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	leaf := StoreDir(cfg.StateDir)
+	leaf := DirPath(cfg.StateDir)
 	info, err := os.Stat(leaf)
 	if errors.Is(err, fs.ErrNotExist) {
 		if err := checkCreatable(leaf); err != nil {

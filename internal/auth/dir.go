@@ -32,22 +32,23 @@ const (
 	filePerm = 0o600
 )
 
-// StoreDir joins stateDir to the auth leaf, so the leaf name has one
+// DirPath joins stateDir to the auth leaf, so the leaf name has one
 // home rather than a literal at every call site.
-func StoreDir(stateDir string) string {
+func DirPath(stateDir string) string {
 	return filepath.Join(stateDir, leafDirName)
 }
 
-// A Store is the auth leaf's durable state, rooted at
-// StoreDir(stateDir). The nonce store and the epoch store are built on
-// the record path Store derives, so neither can disagree about where a
-// record lives or what its name may contain.
-type Store struct {
+// A Dir is the auth leaf, the directory under the state directory that
+// holds the auth package's durable records, rooted at DirPath(stateDir).
+// The nonce store and the epoch store are built on the record path Dir
+// derives, so neither can disagree about where a record lives or what
+// its name may contain.
+type Dir struct {
 	root string
 }
 
 // Open creates the leaf and both record subdirectories under stateDir
-// if they do not already exist, and returns a Store rooted there.
+// if they do not already exist, and returns a Dir rooted there.
 //
 // It refuses to start when the leaf itself already has a mode wider
 // than dirPerm: os.MkdirAll is a no-op on an existing directory
@@ -55,19 +56,19 @@ type Store struct {
 // hand-run command or an earlier deploy, would otherwise stay wide
 // forever. Record names are digests, but a listable directory is still
 // a listing of how many links are outstanding (review m3).
-func Open(stateDir string) (*Store, error) {
-	s := &Store{root: StoreDir(stateDir)}
+func Open(stateDir string) (*Dir, error) {
+	s := &Dir{root: DirPath(stateDir)}
 	for _, sub := range []string{nonceSubdir, epochSubdir} {
 		if err := os.MkdirAll(s.subdir(sub), dirPerm); err != nil {
-			return nil, fmt.Errorf("open auth store: create %s: %w", sub, err)
+			return nil, fmt.Errorf("open auth dir: create %s: %w", sub, err)
 		}
 	}
 	info, err := os.Stat(s.root)
 	if err != nil {
-		return nil, fmt.Errorf("open auth store: stat leaf: %w", err)
+		return nil, fmt.Errorf("open auth dir: stat leaf: %w", err)
 	}
 	if mode := info.Mode().Perm(); mode&^dirPerm != 0 {
-		return nil, fmt.Errorf("open auth store: leaf %s has mode %o, want at most %o", s.root, mode, dirPerm)
+		return nil, fmt.Errorf("open auth dir: leaf %s has mode %o, want at most %o", s.root, mode, dirPerm)
 	}
 	return s, nil
 }
@@ -75,7 +76,7 @@ func Open(stateDir string) (*Store, error) {
 // subdir returns the path of one of the store's record subdirectories.
 // It is the one place the leaf and a subdirectory become a directory
 // path, so no caller reaches for the root field to build one.
-func (s *Store) subdir(sub string) string {
+func (s *Dir) subdir(sub string) string {
 	return filepath.Join(s.root, sub)
 }
 
@@ -83,15 +84,15 @@ func (s *Store) subdir(sub string) string {
 // nonce and epoch subdirectories, after refusing an id validID rejects.
 // This is the one place a subdirectory and an id become a path, so no
 // other file in the package builds one by hand.
-func (s *Store) NoncePath(id string) (string, error) {
+func (s *Dir) NoncePath(id string) (string, error) {
 	return s.recordPath(nonceSubdir, id)
 }
 
-func (s *Store) EpochPath(id string) (string, error) {
+func (s *Dir) EpochPath(id string) (string, error) {
 	return s.recordPath(epochSubdir, id)
 }
 
-func (s *Store) recordPath(sub, id string) (string, error) {
+func (s *Dir) recordPath(sub, id string) (string, error) {
 	if !validID(id) {
 		return "", fmt.Errorf("record path: invalid id: length %d, %s", len(id), idRefusalReason(id))
 	}

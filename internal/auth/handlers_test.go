@@ -478,7 +478,7 @@ func TestConsumeLink_Refusals(t *testing.T) {
 				if os.Geteuid() == 0 {
 					t.Skip("running as root: permission bits do not block reads")
 				}
-				dir := filepath.Join(StoreDir(fx.stateDir), epochSubdir)
+				dir := filepath.Join(DirPath(fx.stateDir), epochSubdir)
 				if err := os.Chmod(dir, 0o000); err != nil {
 					t.Fatalf("Chmod: %v", err)
 				}

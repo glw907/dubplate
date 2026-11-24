@@ -41,7 +41,7 @@ func withKey(environ []string, name, value string) []string {
 	return append(out, name+"="+value)
 }
 
-// TestResolveTrustedProxy walks every state the trusted proxy class's
+// TestParseTrustedProxy walks every state the trusted proxy class's
 // three keys can meet, through config.Load and then the resolver, the
 // order serve startup and doctor both run them in. A row names exactly
 // one of three outcomes: a Load refusal, a resolver refusal, or the
@@ -51,7 +51,7 @@ func withKey(environ []string, name, value string) []string {
 // addresses, already in the dotted, unmapped form the set compares in,
 // so a resolver that skipped a trim or an unmap returns a set that
 // differs from it.
-func TestResolveTrustedProxy(t *testing.T) {
+func TestParseTrustedProxy(t *testing.T) {
 	const (
 		flag   = "DUBPLATE_TRUSTED_PROXY_ENABLED"
 		addrs  = "DUBPLATE_TRUSTED_PROXY_ADDRS"
@@ -205,35 +205,35 @@ func TestResolveTrustedProxy(t *testing.T) {
 				t.Fatalf("config.Load() error = %v, want nil: the row's fixture must pass the wall", err)
 			}
 
-			got, err := ResolveTrustedProxy(cfg)
+			got, err := ParseTrustedProxy(cfg)
 			if len(tt.wantErr) > 0 {
 				if err == nil {
-					t.Fatalf("ResolveTrustedProxy() error = nil, want a refusal containing %q", tt.wantErr)
+					t.Fatalf("ParseTrustedProxy() error = nil, want a refusal containing %q", tt.wantErr)
 				}
 				for _, want := range tt.wantErr {
 					if !strings.Contains(err.Error(), want) {
-						t.Errorf("ResolveTrustedProxy() error = %v, want it to contain %q", err, want)
+						t.Errorf("ParseTrustedProxy() error = %v, want it to contain %q", err, want)
 					}
 				}
 				if !reflect.DeepEqual(got, TrustedProxyConfig{}) {
-					t.Errorf("ResolveTrustedProxy() returned a configuration alongside its refusal, want the zero value")
+					t.Errorf("ParseTrustedProxy() returned a configuration alongside its refusal, want the zero value")
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("ResolveTrustedProxy() error = %v, want nil", err)
+				t.Fatalf("ParseTrustedProxy() error = %v, want nil", err)
 			}
 			if !reflect.DeepEqual(got, tt.wantConfig) {
-				t.Errorf("ResolveTrustedProxy() = %+v, want %+v", got, tt.wantConfig)
+				t.Errorf("ParseTrustedProxy() = %+v, want %+v", got, tt.wantConfig)
 			}
 		})
 	}
 }
 
-// TestResolveTrustedProxy_RefusalsJoin proves the resolver joins its
+// TestParseTrustedProxy_RefusalsJoin proves the resolver joins its
 // refusals with errors.Join rather than stopping at the first, so an
 // operator reads every bad entry in one run.
-func TestResolveTrustedProxy_RefusalsJoin(t *testing.T) {
+func TestParseTrustedProxy_RefusalsJoin(t *testing.T) {
 	environ := wallEnviron()
 	environ = withKey(environ, "DUBPLATE_TRUSTED_PROXY_ENABLED", "true")
 	environ = withKey(environ, "DUBPLATE_TRUSTED_PROXY_ADDRS", "0.0.0.0, proxy.example.test")
@@ -243,17 +243,17 @@ func TestResolveTrustedProxy_RefusalsJoin(t *testing.T) {
 		t.Fatalf("config.Load() error = %v, want nil", err)
 	}
 
-	_, err = ResolveTrustedProxy(cfg)
+	_, err = ParseTrustedProxy(cfg)
 	var joined interface{ Unwrap() []error }
 	if !errors.As(err, &joined) {
-		t.Fatalf("ResolveTrustedProxy() error = %v (%T), want an errors.Join result", err, err)
+		t.Fatalf("ParseTrustedProxy() error = %v (%T), want an errors.Join result", err, err)
 	}
 	if got := len(joined.Unwrap()); got != 3 {
 		t.Errorf("joined refusals = %d, want 3 (two entries and the header): %v", got, err)
 	}
 }
 
-func TestResolveConfig(t *testing.T) {
+func TestParseConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		environ    []string
@@ -294,15 +294,15 @@ func TestResolveConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			prefix, addrs, port, err := ResolveConfig(tt.environ)
+			prefix, addrs, port, err := ParseConfig(tt.environ)
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("ResolveConfig() error = %v, want it to wrap %v", err, tt.wantErr)
+					t.Fatalf("ParseConfig() error = %v, want it to wrap %v", err, tt.wantErr)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("ResolveConfig() error = %v, want nil", err)
+				t.Fatalf("ParseConfig() error = %v, want nil", err)
 			}
 			if !slices.Equal(addrs, tt.wantAddrs) {
 				t.Errorf("addrs = %v, want %v", addrs, tt.wantAddrs)

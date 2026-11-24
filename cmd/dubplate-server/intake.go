@@ -30,7 +30,7 @@ func newIntake(ctx context.Context, h *store.Handle, cfg *config.Config, acc *se
 	if err != nil {
 		return nil, err
 	}
-	workers, err := intake.CheckWorkers(ctx, acc)
+	workers, err := intake.CheckWorkerCount(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +70,9 @@ func liveAdminAddresses(roster *auth.Roster) func(context.Context) ([]string, er
 // member, through the same check the API's verifier makes. A request
 // signed out wraps [ops.ErrUnauthenticated], which the mount answers
 // 401; any other failure is logged here and answers 500.
-func tusVerifier(cfg auth.AdminConfig) intake.Verifier {
+func tusVerifier(cfg auth.VerifyConfig) intake.Verifier {
 	return func(w http.ResponseWriter, r *http.Request) (identity.UserID, error) {
-		v, err := auth.CheckRequest(cfg, w, r)
+		v, err := auth.VerifyRequest(cfg, w, r)
 		switch {
 		case errors.Is(err, ops.ErrUnauthenticated):
 			return identity.UserID{}, err

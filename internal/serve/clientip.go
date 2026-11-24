@@ -39,7 +39,7 @@ func NewTrustedProxyConfig(proxies []netip.Addr, header string) TrustedProxyConf
 	return TrustedProxyConfig{proxies: set, header: header}
 }
 
-// CheckProxyHeader reports why name cannot be a trusted-proxy client
+// ValidateProxyHeader reports why name cannot be a trusted-proxy client
 // address header, or nil when it can. name must be an RFC 9110 token:
 // [textproto.CanonicalMIMEHeaderKey] returns a name holding a space or
 // another byte outside the token set unmodified, so [http.Header]
@@ -51,7 +51,7 @@ func NewTrustedProxyConfig(proxies []netip.Addr, header string) TrustedProxyConf
 // keyed on the proxy's own address, so one client's flood would spend
 // the rate limits of the whole group. The comparison is case-insensitive, and a name's
 // underscore spelling is refused with its dash spelling.
-func CheckProxyHeader(name string) error {
+func ValidateProxyHeader(name string) error {
 	if name == "" {
 		return errors.New("empty header name")
 	}
@@ -65,7 +65,7 @@ func CheckProxyHeader(name string) error {
 	return nil
 }
 
-// refusedProxyHeaders maps each canonical name [CheckProxyHeader]
+// refusedProxyHeaders maps each canonical name [ValidateProxyHeader]
 // refuses to the reason it gives.
 func refusedProxyHeaders() map[string]string {
 	refused := map[string]string{

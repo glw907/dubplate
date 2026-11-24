@@ -62,7 +62,7 @@ const epochRecordFieldCount = 2
 // WriteStream is the one entry point that fsyncs the containing
 // directory after the rename.
 type EpochStore struct {
-	store *Store
+	leaf *Dir
 
 	// mu serializes each bump's read of the stored epoch with its
 	// write, and guards subscribers.
@@ -70,9 +70,9 @@ type EpochStore struct {
 	subscribers []func(address string, epoch time.Time)
 }
 
-// OpenEpochStore returns the revocation-epoch store under store's leaf.
-func OpenEpochStore(store *Store) *EpochStore {
-	return &EpochStore{store: store}
+// OpenEpochStore returns the revocation-epoch store under leaf.
+func OpenEpochStore(leaf *Dir) *EpochStore {
+	return &EpochStore{leaf: leaf}
 }
 
 // Bump revokes every credential for address anchored or minted at or
@@ -153,7 +153,7 @@ func (e *EpochStore) advance(normalized string, epoch time.Time) ([]func(address
 	if ok && epoch.Equal(stored) {
 		return nil, nil
 	}
-	path, err := e.store.EpochPath(RecordID(epochSubdir, normalized))
+	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (e *EpochStore) Read(address string) (epoch time.Time, ok bool, err error) 
 }
 
 func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) {
-	path, err := e.store.EpochPath(RecordID(epochSubdir, normalized))
+	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
 		return time.Time{}, false, fmt.Errorf("read epoch: %w", err)
 	}

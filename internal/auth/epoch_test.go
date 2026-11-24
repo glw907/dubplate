@@ -372,7 +372,7 @@ func TestBumpNoAddressInFilename(t *testing.T) {
 		t.Fatalf("Bump: %v", err)
 	}
 
-	entries, err := os.ReadDir(filepath.Join(StoreDir(stateDir), epochSubdir))
+	entries, err := os.ReadDir(filepath.Join(DirPath(stateDir), epochSubdir))
 	if err != nil {
 		t.Fatalf("read epoch directory: %v", err)
 	}

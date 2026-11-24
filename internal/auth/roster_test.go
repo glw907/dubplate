@@ -1120,7 +1120,7 @@ type rosterFixture struct {
 	roster   *Roster
 	h        *store.Handle
 	storeDir string
-	auth     *Store
+	auth     *Dir
 	epoch    *EpochStore
 	clock    *testClock
 }
@@ -1132,12 +1132,12 @@ func newRosterFixture(t *testing.T, rows ...userRow) rosterFixture {
 	fx := rosterFixture{storeDir: t.TempDir(), clock: &testClock{at: rosterNow}}
 	fx.h = newUsersStoreAt(t, fx.storeDir)
 	insertUsers(t, fx.h, rows...)
-	authStore, err := Open(t.TempDir())
+	authDir, err := Open(t.TempDir())
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	fx.auth = authStore
-	fx.epoch = OpenEpochStore(authStore)
+	fx.auth = authDir
+	fx.epoch = OpenEpochStore(authDir)
 	fx.roster = NewRoster(fx.h, fx.epoch, fx.clock.now)
 	return fx
 }
