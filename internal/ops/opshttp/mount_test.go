@@ -46,8 +46,8 @@ func newMountFixture(t *testing.T, decide func(w http.ResponseWriter, r *http.Re
 	return f
 }
 
-// seamCallsOf is the number of calls both seams under f have received.
-func seamCallsOf(f *mountFixture) int {
+// operationCallsOf is the number of calls both seams under f have received.
+func operationCallsOf(f *mountFixture) int {
 	return len(f.admin.calls) + len(f.subs.calls)
 }
 
@@ -114,7 +114,7 @@ func TestMount_NoSessionAnswers401(t *testing.T) {
 			if code, _, _ := errorAnswer(t, rec); code != ops.CodeUnauthenticated {
 				t.Errorf("code = %q, want unauthenticated", code)
 			}
-			if seamCallsOf(f) != 0 {
+			if operationCallsOf(f) != 0 {
 				t.Errorf("a refused request reached a seam: %v %v", f.admin.calls, f.subs.calls)
 			}
 		})
@@ -142,7 +142,7 @@ func TestMount_VerifierFailureAnswers500(t *testing.T) {
 	if !strings.Contains(f.log.String(), "level=ERROR") {
 		t.Errorf("log %q has no Error record", f.log.String())
 	}
-	if seamCallsOf(f) != 0 {
+	if operationCallsOf(f) != 0 {
 		t.Errorf("a failed verification reached a seam")
 	}
 }
@@ -219,7 +219,7 @@ func TestMount_BearerHeaderAdmitsNobody(t *testing.T) {
 	if !sawBearer {
 		t.Fatal("the verifier never saw the request's header, so the test proves nothing")
 	}
-	if n := seamCallsOf(f); n != 0 {
+	if n := operationCallsOf(f); n != 0 {
 		t.Errorf("a bearer header reached a seam")
 	}
 }

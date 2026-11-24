@@ -54,16 +54,16 @@ func submissionCalls() []seamCall {
 	}
 }
 
-// seamCalls is the number of calls every seam under f has received.
-func seamCalls(f *fixture) int {
+// operationCalls is the number of calls every seam under f has received.
+func operationCalls(f *fixture) int {
 	return len(f.admin.calls) + len(f.subs.calls)
 }
 
-// TestAuthorizingSeamDiscardsItsCallersActor posts every one of the
+// TestAdmissionDiscardsItsCallersActor posts every one of the
 // twelve operations; the seam beneath must see only the actor the
 // authorizer admitted, with its session. No request field names an
 // actor, so the handler has none to pass on but the admitted one.
-func TestAuthorizingSeamDiscardsItsCallersActor(t *testing.T) {
+func TestAdmissionDiscardsItsCallersActor(t *testing.T) {
 	for _, tt := range slices.Concat(adminCalls(), submissionCalls()) {
 		t.Run(tt.op, func(t *testing.T) {
 			f := newFixture(t, admitAnn())
@@ -86,12 +86,12 @@ func TestAuthorizingSeamDiscardsItsCallersActor(t *testing.T) {
 	}
 }
 
-// TestAuthorizingSeamMemberReachesTheSubmissions is the authorizer half
+// TestAdmissionMemberReachesTheSubmissions is the authorizer half
 // of the spec's member criterion: a member caller reaches the five
 // submission operations, and each admin operation answers forbidden
 // before any seam sees the call. A refused call that reached a fake
 // fails here.
-func TestAuthorizingSeamMemberReachesTheSubmissions(t *testing.T) {
+func TestAdmissionMemberReachesTheSubmissions(t *testing.T) {
 	for _, tt := range slices.Concat(adminCalls(), submissionCalls()) {
 		t.Run(tt.op, func(t *testing.T) {
 			f := newFixture(t, grant(ann, ops.PrivilegeMember))
@@ -105,17 +105,17 @@ func TestAuthorizingSeamMemberReachesTheSubmissions(t *testing.T) {
 			if rec.Code != http.StatusForbidden {
 				t.Errorf("member's %s answered %d, want 403; body %q", tt.op, rec.Code, rec.Body.String())
 			}
-			if n := seamCalls(f); n != 0 {
+			if n := operationCalls(f); n != 0 {
 				t.Errorf("a refused %s reached a seam %d times", tt.op, n)
 			}
 		})
 	}
 }
 
-// TestAuthorizingSeamDenialIsForbidden checks the in-process shape of a
+// TestAdmissionDenialIsForbidden checks the in-process shape of a
 // denial: the error matches ops.ErrForbidden and still carries the
 // authorizer's own error, on a submission operation and on an admin one.
-func TestAuthorizingSeamDenialIsForbidden(t *testing.T) {
+func TestAdmissionDenialIsForbidden(t *testing.T) {
 	errSession := errors.New("session expired")
 	for _, tt := range []seamCall{submissionCalls()[4], adminCalls()[1]} {
 		t.Run(tt.op, func(t *testing.T) {
@@ -123,25 +123,25 @@ func TestAuthorizingSeamDenialIsForbidden(t *testing.T) {
 				return identity.Actor{}, 0, errSession
 			}}
 			f := newFixture(t, deny)
-			_, err := f.h.seam.admit(context.Background(), tt.op)
+			_, err := f.h.admission.admit(context.Background(), tt.op)
 			if !errors.Is(err, ops.ErrForbidden) || !errors.Is(err, errSession) {
 				t.Errorf("%s = %v, want ops.ErrForbidden wrapping the authorizer's error", tt.op, err)
 			}
 			if code := ops.CodeOf(err); code != ops.CodeForbidden {
 				t.Errorf("CodeOf = %q, want forbidden", code)
 			}
-			if n := seamCalls(f); n != 0 {
+			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
 	}
 }
 
-// TestAuthorizingSeamChecksTheGrant admits a call only when the
+// TestAdmissionChecksTheGrant admits a call only when the
 // privilege the authorizer granted reaches the one the operation
 // requires. Each row's authorizer admits without error, so a denial
 // can come only from the seam's own check.
-func TestAuthorizingSeamChecksTheGrant(t *testing.T) {
+func TestAdmissionChecksTheGrant(t *testing.T) {
 	listMembers, getSubmission := adminCalls()[0], submissionCalls()[2]
 	tests := []struct {
 		name    string
@@ -162,7 +162,7 @@ func TestAuthorizingSeamChecksTheGrant(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := newFixture(t, grant(ann, tt.granted))
 			rec := f.post(tt.op.op, tt.op.body(t))
-			n := seamCalls(f)
+			n := operationCalls(f)
 			if tt.admit {
 				if rec.Code != http.StatusOK || n != 1 {
 					t.Errorf("status = %d, seam calls = %d; want admitted once", rec.Code, n)
@@ -179,14 +179,14 @@ func TestAuthorizingSeamChecksTheGrant(t *testing.T) {
 	}
 }
 
-// TestAuthorizingSeamRefusesAnOperationOffTheTable proves an operation
+// TestAdmissionRefusesAnOperationOffTheTable proves an operation
 // the privilege table does not hold answers not found before the
 // authorizer is asked, so a removed operation cannot be reached by name.
-func TestAuthorizingSeamRefusesAnOperationOffTheTable(t *testing.T) {
+func TestAdmissionRefusesAnOperationOffTheTable(t *testing.T) {
 	for _, op := range []string{"start_backup", "job_status", "cancel_job", "catalog", "delete_everything"} {
 		t.Run(op, func(t *testing.T) {
 			f := newFixture(t, admitAnn())
-			_, err := f.h.seam.admit(context.Background(), op)
+			_, err := f.h.admission.admit(context.Background(), op)
 			if !errors.Is(err, ops.ErrNotFound) {
 				t.Errorf("admit(%q) = %v, want ops.ErrNotFound", op, err)
 			}

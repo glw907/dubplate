@@ -14,9 +14,9 @@ import (
 // as a signed-out visitor.
 var ErrNotSignedIn = errors.New("auth: no valid session")
 
-// CheckRequest verifies the session r carries through cfg.Seam, for a
+// CheckRequest verifies the session r carries through cfg.Verifier, for a
 // caller that admits every signed-in member rather than only an admin.
-// It returns the verified identity, whose Admin flag the seam read from
+// It returns the verified identity, whose Admin flag the verifier read from
 // the roster and never from anything the request carries.
 //
 // The session is refreshed, and its new cookie set on w, only when
@@ -31,7 +31,7 @@ var ErrNotSignedIn = errors.New("auth: no valid session")
 func CheckRequest(cfg AdminConfig, w http.ResponseWriter, r *http.Request) (VerifiedIdentity, error) {
 	now := cfg.Now()
 	sameOrigin := r.Header.Get("Sec-Fetch-Site") == "same-origin"
-	v, err := cfg.Seam.VerifyIdentity(r, now, sameOrigin)
+	v, err := cfg.Verifier.VerifyIdentity(r, now, sameOrigin)
 	var reason string
 	level := slog.LevelInfo
 	switch {

@@ -19,9 +19,9 @@ import (
 const apiRouteName = "api"
 
 // newAPIMount builds the /api/v1 handler over the admin and submission
-// seams for the sessions cfg verifies.
-func newAPIMount(prefix serve.Prefix, adminSeam ops.AdminSeam, submissionSeam ops.SubmissionSeam, cfg auth.AdminConfig) (http.Handler, error) {
-	return opshttp.NewMount(adminSeam, submissionSeam, prefix.String(), apiVerifier(cfg), cfg.Logger)
+// operations for the sessions cfg verifies.
+func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Submissions, cfg auth.AdminConfig) (http.Handler, error) {
+	return opshttp.NewMount(adminOps, submissionOps, prefix.String(), apiVerifier(cfg), cfg.Logger)
 }
 
 // apiVerifier admits a request whose session verifies as any member,

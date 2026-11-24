@@ -19,20 +19,20 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 )
 
-// testSeamLimits are the limits testLimits holds, as the seam's
+// testServiceLimits are the limits testLimits holds, as the seam's
 // settings reader returns them.
-func testSeamLimits() Limits {
+func testServiceLimits() Limits {
 	l := testLimits()
 	return Limits{Policy: l.policy, SessionsPerMember: l.sessionsPerMember}
 }
 
-// newTestSeam returns a store with one live admin and a seam over the
+// newTestService returns a store with one live admin and a seam over the
 // test submissions writer, so its clock is fixed and its free-space
 // read answers plentyFree.
-func newTestSeam(t *testing.T) (*store.Handle, *Seam) {
+func newTestService(t *testing.T) (*store.Handle, *Service) {
 	t.Helper()
 	h, s := newTestSubmissions(t)
-	return h, &Seam{subs: s, limits: func(context.Context) (Limits, error) { return testSeamLimits(), nil }}
+	return h, &Service{subs: s, limits: func(context.Context) (Limits, error) { return testServiceLimits(), nil }}
 }
 
 // actorOf is the network actor a verified session for uploader builds.
@@ -52,7 +52,7 @@ func albumRequest(n int) ops.CreateSubmissionRequest {
 	return req
 }
 
-func mustCreateVia(t *testing.T, seam *Seam, uploader identity.UserID, req ops.CreateSubmissionRequest) ops.CreateSubmissionResponse {
+func mustCreateVia(t *testing.T, seam *Service, uploader identity.UserID, req ops.CreateSubmissionRequest) ops.CreateSubmissionResponse {
 	t.Helper()
 	resp, err := seam.CreateSubmission(deadline(t), actorOf(uploader), req)
 	if err != nil {
@@ -75,8 +75,8 @@ func opsError(t *testing.T, err error) *ops.Error {
 // wireOf is a submission id's wire form, written out from its bytes.
 func wireOf(id []byte) string { return fmt.Sprintf("%x", id) }
 
-func TestSeamCreateTakesTheCallerFromTheActor(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceCreateTakesTheCallerFromTheActor(t *testing.T) {
+	h, seam := newTestService(t)
 	ann, bo := member(t, h), member(t, h)
 
 	resp := mustCreateVia(t, seam, ann, albumRequest(2))
@@ -121,8 +121,8 @@ func TestSeamCreateTakesTheCallerFromTheActor(t *testing.T) {
 	}
 }
 
-func TestSeamCreateStoresEachSource(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceCreateStoresEachSource(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	override(t, h, uploader, nil, nil, 100)
 	for _, source := range []string{"bought", "cd", "vinyl", "free-download", "own-recording", "gift", "other"} {
@@ -141,7 +141,7 @@ func TestSeamCreateStoresEachSource(t *testing.T) {
 	}
 }
 
-func TestSeamCreateRefusals(t *testing.T) {
+func TestServiceCreateRefusals(t *testing.T) {
 	tests := []struct {
 		name       string
 		edit       func(*ops.CreateSubmissionRequest)
@@ -168,7 +168,7 @@ func TestSeamCreateRefusals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, seam := newTestSeam(t)
+			h, seam := newTestService(t)
 			uploader := member(t, h)
 			req := albumRequest(2)
 			tt.edit(&req)
@@ -206,7 +206,7 @@ func TestSeamCreateRefusals(t *testing.T) {
 	}
 }
 
-func TestSeamCreateStoreURL(t *testing.T) {
+func TestServiceCreateStoreURL(t *testing.T) {
 	long := "https://example.com/" + strings.Repeat("a", maxStoreURL-len("https://example.com/"))
 	tests := []struct {
 		name string
@@ -227,7 +227,7 @@ func TestSeamCreateStoreURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, seam := newTestSeam(t)
+			h, seam := newTestService(t)
 			uploader := member(t, h)
 			req := albumRequest(1)
 			req.StoreURL = tt.url
@@ -254,7 +254,7 @@ func TestSeamCreateStoreURL(t *testing.T) {
 	}
 }
 
-func TestSeamCreateClientFaults(t *testing.T) {
+func TestServiceCreateClientFaults(t *testing.T) {
 	tests := []struct {
 		name       string
 		edit       func(*ops.CreateSubmissionRequest)
@@ -274,7 +274,7 @@ func TestSeamCreateClientFaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, seam := newTestSeam(t)
+			h, seam := newTestService(t)
 			uploader := member(t, h)
 			req := albumRequest(2)
 			tt.edit(&req)
@@ -292,8 +292,8 @@ func TestSeamCreateClientFaults(t *testing.T) {
 	}
 }
 
-func TestSeamAZipTracksSubmissionIsAccepted(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceAZipTracksSubmissionIsAccepted(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	resp := mustCreateVia(t, seam, uploader, ops.CreateSubmissionRequest{
 		VerdictUnit: "track", Container: "zip", Source: "cd",
@@ -308,34 +308,34 @@ func TestSeamAZipTracksSubmissionIsAccepted(t *testing.T) {
 	}
 }
 
-func TestSeamCreateLimitRefusals(t *testing.T) {
+func TestServiceCreateLimitRefusals(t *testing.T) {
 	tests := []struct {
 		name     string
-		arrange  func(t *testing.T, h *store.Handle, s *Seam, uploader identity.UserID)
+		arrange  func(t *testing.T, h *store.Handle, s *Service, uploader identity.UserID)
 		wantCode ops.Code
 		want     reject.Code
 	}{
-		{"uploads off", func(t *testing.T, h *store.Handle, _ *Seam, u identity.UserID) { override(t, h, u, nil, 0, nil) },
+		{"uploads off", func(t *testing.T, h *store.Handle, _ *Service, u identity.UserID) { override(t, h, u, nil, 0, nil) },
 			ops.CodeConflict, reject.UploadsOff},
-		{"too many sessions", func(t *testing.T, h *store.Handle, _ *Seam, u identity.UserID) { override(t, h, u, nil, nil, 1) },
+		{"too many sessions", func(t *testing.T, h *store.Handle, _ *Service, u identity.UserID) { override(t, h, u, nil, nil, 1) },
 			ops.CodeConflict, reject.TooManySessions},
-		{"over quota", func(t *testing.T, h *store.Handle, _ *Seam, u identity.UserID) { override(t, h, u, 150, nil, nil) },
+		{"over quota", func(t *testing.T, h *store.Handle, _ *Service, u identity.UserID) { override(t, h, u, 150, nil, nil) },
 			ops.CodeConflict, reject.OverQuota},
-		{"no space", func(_ *testing.T, _ *store.Handle, s *Seam, _ identity.UserID) {
+		{"no space", func(_ *testing.T, _ *store.Handle, s *Service, _ identity.UserID) {
 			s.subs.freeBytes = func(string) (uint64, error) { return 10, nil }
 			s.limits = func(context.Context) (Limits, error) {
-				l := testSeamLimits()
+				l := testServiceLimits()
 				l.FreeSpaceFloor = 1000
 				return l, nil
 			}
 		}, ops.CodeConflict, reject.NoSpace},
-		{"free space unreadable", func(_ *testing.T, _ *store.Handle, s *Seam, _ identity.UserID) {
+		{"free space unreadable", func(_ *testing.T, _ *store.Handle, s *Service, _ identity.UserID) {
 			s.subs.freeBytes = func(string) (uint64, error) { return 0, errors.New("statfs: input/output error") }
 		}, ops.CodeUnavailable, reject.CouldNotCheck},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h, seam := newTestSeam(t)
+			h, seam := newTestService(t)
 			uploader := member(t, h)
 			if tt.name == "too many sessions" {
 				mustCreateVia(t, seam, uploader, albumRequest(1))
@@ -359,8 +359,8 @@ func TestSeamCreateLimitRefusals(t *testing.T) {
 	}
 }
 
-func TestSeamLimitsFailureIsNotAVerdict(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceLimitsFailureIsNotAVerdict(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	seam.limits = func(context.Context) (Limits, error) { return Limits{}, errors.New("setting unreadable") }
 
@@ -374,8 +374,8 @@ func TestSeamLimitsFailureIsNotAVerdict(t *testing.T) {
 	}
 }
 
-func TestSeamBusyStoreIsRetryable(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceBusyStoreIsRetryable(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	ctx, cancel := context.WithDeadline(t.Context(), time.Now().Add(-time.Second))
 	defer cancel()
@@ -390,16 +390,16 @@ func TestSeamBusyStoreIsRetryable(t *testing.T) {
 
 // twoMembers returns a seam over two members with one submission each,
 // the first member and both submissions' ids.
-func twoMembers(t *testing.T) (h *store.Handle, seam *Seam, ann identity.UserID, annsID, bosID string) {
+func twoMembers(t *testing.T) (h *store.Handle, seam *Service, ann identity.UserID, annsID, bosID string) {
 	t.Helper()
-	h, seam = newTestSeam(t)
+	h, seam = newTestService(t)
 	ann, bo := member(t, h), member(t, h)
 	annsID = mustCreateVia(t, seam, ann, albumRequest(1)).SubmissionID
 	bosID = mustCreateVia(t, seam, bo, albumRequest(1)).SubmissionID
 	return h, seam, ann, annsID, bosID
 }
 
-func TestSeamAnotherMembersIdIsAnUnknownId(t *testing.T) {
+func TestServiceAnotherMembersIdIsAnUnknownId(t *testing.T) {
 	h, seam, ann, annsID, bosID := twoMembers(t)
 	unknown := "ffffffffffffffffffffffffffffffff"
 	ctx := deadline(t)
@@ -447,7 +447,7 @@ func mustParse(t *testing.T, wire string) []byte {
 	return id
 }
 
-func TestSeamMalformedIdsAreInvalid(t *testing.T) {
+func TestServiceMalformedIdsAreInvalid(t *testing.T) {
 	_, seam, ann, _, _ := twoMembers(t)
 	for _, id := range []string{"", "abc", "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", "00000000000000000000000000000000", "gfffffffffffffffffffffffffffffff"} {
 		t.Run(fmt.Sprintf("%q", id), func(t *testing.T) {
@@ -459,8 +459,8 @@ func TestSeamMalformedIdsAreInvalid(t *testing.T) {
 	}
 }
 
-func TestSeamListsOnlyTheCallersNewestFirst(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceListsOnlyTheCallersNewestFirst(t *testing.T) {
+	h, seam := newTestService(t)
 	ann, bo := member(t, h), member(t, h)
 	override(t, h, ann, nil, nil, 10)
 	clock := int64(testNow)
@@ -501,11 +501,11 @@ func equalWording(r *reject.Reason, w wording) bool {
 	return r != nil && r.Code == reject.Code(w.code) && r.Label == w.label && r.Friendly == w.friendly && r.NextStep == w.nextStep
 }
 
-// TestSeamGetRendersEveryReasonAsItsWording holds that each reason a
+// TestServiceGetRendersEveryReasonAsItsWording holds that each reason a
 // submission carries reaches the wire as the four strings the reject set
 // holds, written out here from internal/reject's text.
-func TestSeamGetRendersEveryReasonAsItsWording(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceGetRendersEveryReasonAsItsWording(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	req := albumRequest(3)
 	resp := mustCreateVia(t, seam, uploader, req)
@@ -591,11 +591,11 @@ func TestSeamGetRendersEveryReasonAsItsWording(t *testing.T) {
 	}
 }
 
-func TestSeamBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	seam.limits = func(context.Context) (Limits, error) {
-		l := testSeamLimits()
+		l := testServiceLimits()
 		l.Policy.Allowlist = []string{"flac", "mp3"}
 		return l, nil
 	}
@@ -623,8 +623,8 @@ func TestSeamBadExtensionNamesTheEffectiveAllowlist(t *testing.T) {
 	}
 }
 
-func TestSeamRendersANonUTF8PathWithTheReplacementCharacter(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceRendersANonUTF8PathWithTheReplacementCharacter(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	req := albumRequest(1)
 	req.Files[0].Path = "caf\xe9.flac"
@@ -639,11 +639,11 @@ func TestSeamRendersANonUTF8PathWithTheReplacementCharacter(t *testing.T) {
 	}
 }
 
-// TestSeamAVerdictItCannotRenderIsNotAPass holds that a stored verdict
+// TestServiceAVerdictItCannotRenderIsNotAPass holds that a stored verdict
 // outside the reject set fails the read rather than showing as a file
 // that passed.
-func TestSeamAVerdictItCannotRenderIsNotAPass(t *testing.T) {
-	h, seam := newTestSeam(t)
+func TestServiceAVerdictItCannotRenderIsNotAPass(t *testing.T) {
+	h, seam := newTestService(t)
 	uploader := member(t, h)
 	resp := mustCreateVia(t, seam, uploader, albumRequest(1))
 	if err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
@@ -663,10 +663,10 @@ func TestSeamAVerdictItCannotRenderIsNotAPass(t *testing.T) {
 	}
 }
 
-// TestSeamActionsFromEveryState holds each of retry and cancel against
+// TestServiceActionsFromEveryState holds each of retry and cancel against
 // each journey state: the one move the transition table gives it, or
 // conflict, with the answer carrying the submission as it then stands.
-func TestSeamActionsFromEveryState(t *testing.T) {
+func TestServiceActionsFromEveryState(t *testing.T) {
 	moves := map[string]map[state]state{
 		"retry":  {stateCheckUnfinished: stateChecking},
 		"cancel": {stateUploading: stateCancelled, stateCheckUnfinished: stateCancelled},
@@ -674,7 +674,7 @@ func TestSeamActionsFromEveryState(t *testing.T) {
 	for action, table := range moves {
 		for _, from := range states {
 			t.Run(action+" from "+string(from), func(t *testing.T) {
-				h, seam := newTestSeam(t)
+				h, seam := newTestService(t)
 				uploader := member(t, h)
 				c := inState(t, seam.subs, uploader, from, 10, 20)
 				wire := wireOf(c.id)

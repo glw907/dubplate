@@ -135,7 +135,7 @@ func (m *mailbox) recipients() []string {
 // A fixture is a seam over a fresh store holding alice, bob, carol, and
 // dave, with the pieces a test reads back.
 type fixture struct {
-	seam  *Seam
+	seam  *Service
 	h     *store.Handle
 	dir   string
 	reg   *config.Registry

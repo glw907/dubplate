@@ -1,10 +1,10 @@
 // Package ops declares the operation vocabulary a caller reaches the
-// server's work through, and nothing that runs one: the two seams, their
-// wire types, the error vocabulary, and the privilege each operation
+// server's work through, and nothing that runs one: the admin and
+// submission interfaces, the background-job vocabulary, their wire types, the error vocabulary, and the privilege each operation
 // requires.
 //
-// [AdminSeam] holds the seven member and settings operations and
-// [SubmissionSeam] the five submission operations. Both take the acting
+// [Admin] holds the seven member and settings operations and
+// [Submissions] the five submission operations. Both take the acting
 // identity as a parameter of every method, never as a field of a request
 // type, so a caller can never widen its own privilege by shaping a
 // request body. An [identity.Actor] is local, built from an

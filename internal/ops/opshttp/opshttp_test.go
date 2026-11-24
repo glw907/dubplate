@@ -66,7 +66,7 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 			if n := len(f.auth.calls); n != 0 {
 				t.Errorf("authorizer calls = %d, want 0", n)
 			}
-			if n := seamCalls(f); n != 0 {
+			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
@@ -107,7 +107,7 @@ func TestServeHTTPRefusesABadBodyAfterAdmitting(t *testing.T) {
 			if got := f.auth.calls; !slices.Equal(got, []string{tt.op}) {
 				t.Errorf("authorizer calls = %v, want one for %s", got, tt.op)
 			}
-			if n := seamCalls(f); n != 0 {
+			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
@@ -145,7 +145,7 @@ func TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody(t *testing.T) {
 				if got := f.auth.calls; !slices.Equal(got, []string{op}) {
 					t.Errorf("authorizer calls = %v, want one for %s", got, op)
 				}
-				if n := seamCalls(f); n != 0 {
+				if n := operationCalls(f); n != 0 {
 					t.Errorf("seam calls = %d, want 0", n)
 				}
 			})
@@ -179,7 +179,7 @@ func TestServeHTTPAdmitsBeforeDecodingAnAdminBody(t *testing.T) {
 			if got := f.auth.calls; !slices.Equal(got, []string{tt.op}) {
 				t.Errorf("authorizer calls = %v, want one for %s", got, tt.op)
 			}
-			if n := seamCalls(f); n != 0 {
+			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
@@ -451,7 +451,7 @@ func TestServeHTTPDenials(t *testing.T) {
 			if n := len(f.auth.calls); n != 1 {
 				t.Errorf("authorizer calls = %d, want 1", n)
 			}
-			if n := seamCalls(f); n != 0 {
+			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
@@ -515,7 +515,7 @@ func TestServeHTTPAdmitsByGrant(t *testing.T) {
 	}
 }
 
-func TestServeHTTPSeamErrors(t *testing.T) {
+func TestServeHTTPOperationErrors(t *testing.T) {
 	const path = "/var/lib/dubplate/db/dubplate.db"
 	tests := []struct {
 		name       string
@@ -605,15 +605,15 @@ func TestNewHandlerRefuses(t *testing.T) {
 	log := slog.New(slog.DiscardHandler)
 	tests := []struct {
 		name    string
-		admin   ops.AdminSeam
-		subs    ops.SubmissionSeam
+		admin   ops.Admin
+		subs    ops.Submissions
 		auth    authorizer
 		channel identity.Channel
 		log     *slog.Logger
 		want    string
 	}{
-		{"nil admin seam", nil, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, log, "admin seam is nil"},
-		{"nil submission seam", &fakeAdmin{}, nil, admitAnn(), identity.ChannelCookie, log, "submission seam is nil"},
+		{"nil admin operations", nil, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, log, "admin operations are nil"},
+		{"nil submission operations", &fakeAdmin{}, nil, admitAnn(), identity.ChannelCookie, log, "submission operations are nil"},
 		{"nil authorizer", &fakeAdmin{}, &fakeSubmissions{}, nil, identity.ChannelCookie, log, "authorizer is nil"},
 		{"nil logger", &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, nil, "logger is nil"},
 		{"zero channel", &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.Channel(0), log, "channel 0 is not"},

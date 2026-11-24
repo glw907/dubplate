@@ -20,7 +20,7 @@ type Member struct {
 // A ListMembersRequest lists the live roster. It carries no fields.
 type ListMembersRequest struct{}
 
-// A ListMembersResponse carries the live members [AdminSeam.ListMembers]
+// A ListMembersResponse carries the live members [Admin.ListMembers]
 // read.
 type ListMembersResponse struct {
 	Members []Member `json:"members"`
@@ -35,12 +35,12 @@ type AddMemberRequest struct {
 	Username    string `json:"username"`
 }
 
-// An AddMemberResponse carries the member [AdminSeam.AddMember] added.
+// An AddMemberResponse carries the member [Admin.AddMember] added.
 type AddMemberResponse struct {
 	Member Member `json:"member"`
 }
 
-// A RemoveMemberRequest names the member [AdminSeam.RemoveMember]
+// A RemoveMemberRequest names the member [Admin.RemoveMember]
 // removes by UserID.
 type RemoveMemberRequest struct {
 	UserID string `json:"user_id"`
@@ -49,7 +49,7 @@ type RemoveMemberRequest struct {
 // A RemoveMemberResponse acknowledges a removal. It carries no fields.
 type RemoveMemberResponse struct{}
 
-// A DemoteMemberRequest names the member [AdminSeam.DemoteMember]
+// A DemoteMemberRequest names the member [Admin.DemoteMember]
 // demotes by UserID.
 type DemoteMemberRequest struct {
 	UserID string `json:"user_id"`
@@ -79,7 +79,7 @@ type SettingEntry struct {
 }
 
 // A ListSettingsResponse carries every registered key
-// [AdminSeam.ListSettings] read.
+// [Admin.ListSettings] read.
 type ListSettingsResponse struct {
 	Settings []SettingEntry `json:"settings"`
 }
@@ -122,12 +122,12 @@ const (
 	OpResetSetting = "reset_setting"
 )
 
-// An AdminSeam is what a caller reaches the seven member and settings
+// An Admin is what a caller reaches the seven member and settings
 // operations through. Every method takes the acting [identity.Actor]
 // as a parameter and returns an error wrapping one of this package's
 // sentinels when it cannot answer. Each call is admin only; the authorizing layer
 // enforces it before any method runs.
-type AdminSeam interface {
+type Admin interface {
 	// ListMembers lists the live roster.
 	ListMembers(ctx context.Context, actor identity.Actor, req ListMembersRequest) (ListMembersResponse, error)
 

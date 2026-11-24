@@ -10,9 +10,9 @@ import (
 // AdminConfig is everything the admin gate and [CheckRequest] need,
 // resolved by the caller. Every field is required.
 type AdminConfig struct {
-	// Seam verifies the session a request carries. The admin flag the
-	// gate checks is the one the seam read from the roster record.
-	Seam Seam
+	// Verifier verifies the session a request carries. The admin flag the
+	// gate checks is the one the verifier read from the roster record.
+	Verifier Verifier
 
 	// ClientIP returns the client address a request is held
 	// accountable for, under the shell's trusted-proxy policy.
@@ -25,7 +25,7 @@ type AdminConfig struct {
 }
 
 // RequireAdmin admits a request to next only when its session verifies
-// through cfg.Seam as a valid identity holding the admin flag. Every
+// through cfg.Verifier as a valid identity holding the admin flag. Every
 // other request answers exactly what [http.NotFound] answers and
 // carries no cookie, so a gated path tells a non-admin nothing an
 // unregistered path would not. next decides every method and path
@@ -34,7 +34,7 @@ type AdminConfig struct {
 // The session is refreshed only when Sec-Fetch-Site is exactly
 // same-origin: the shell's cross-origin check always admits a GET, so
 // having been reached says nothing about where a GET came from. The
-// seam refreshes a verified non-admin's session as well, so the
+// verifier refreshes a verified non-admin's session as well, so the
 // refreshed cookie is set only once the admin check has passed; setting
 // it earlier would put a Set-Cookie on a non-admin's 404 that an
 // unregistered path never carries.
@@ -42,7 +42,7 @@ func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		now := cfg.Now()
 		sameOrigin := r.Header.Get("Sec-Fetch-Site") == "same-origin"
-		v, err := cfg.Seam.VerifyIdentity(r, now, sameOrigin)
+		v, err := cfg.Verifier.VerifyIdentity(r, now, sameOrigin)
 		var reason string
 		level := slog.LevelInfo
 		switch {
@@ -65,7 +65,7 @@ func RequireAdmin(cfg AdminConfig, next http.Handler) http.Handler {
 	})
 }
 
-// gateRefusals are the causes the gate's log names. A seam error's own
+// gateRefusals are the causes the gate's log names. A verifier error's
 // text is never logged: the epoch check wraps the normalizer's error,
 // which quotes the address a signed session carries, and a failed
 // setting read's text may carry whatever the read met.

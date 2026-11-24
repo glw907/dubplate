@@ -31,7 +31,7 @@ var fixtureAddresses = []string{"admin@example.com", "founder@example.com", "mem
 // gateNow is ten days after seamBirth, when every session minted at
 // seamBirth still verifies and a refresh visibly moves its expiry: from
 // seamBirth plus the 30-day lifetime to gateNow plus the same.
-var gateNow = seamBirth.Add(10 * 24 * time.Hour)
+var gateNow = verifierBirth.Add(10 * 24 * time.Hour)
 
 // validPost is a form every field check accepts for a new member.
 const validPost = "address=new%40example.com&display_name=New+Member&username=newmember"
@@ -42,17 +42,17 @@ type adminFixture struct {
 	users  *store.Handle
 	roster *Roster
 	epoch  *EpochStore
-	seam   *MagicLinkSeam
+	seam   *MagicLinkVerifier
 	logs   *logCapture
 	cfg    AdminConfig
 }
 
 func newAdminFixture(t *testing.T) adminFixture {
 	t.Helper()
-	sf := newSeamFixture(t, slices.Clone(adminRosterMembers)...)
+	sf := newVerifierFixture(t, slices.Clone(adminRosterMembers)...)
 	logs := newLogCapture()
 	cfg := AdminConfig{
-		Seam:     sf.seam,
+		Verifier: sf.seam,
 		ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 		Now:      func() time.Time { return gateNow },
 		Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
@@ -71,7 +71,7 @@ func newAdminFixture(t *testing.T) adminFixture {
 // minted at issued.
 func mintAt(t *testing.T, secret, address string, issued time.Time) string {
 	t.Helper()
-	value, _, err := MintSession([]byte(secret), address, issued, seamLifetime, seamCap)
+	value, _, err := MintSession([]byte(secret), address, issued, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession(%s): %v", address, err)
 	}
@@ -114,15 +114,15 @@ var fixtureAdmin = VerifiedIdentity{
 	Admin: true,
 }
 
-// stubSeam answers every request with v. It stands in for a verifier
+// stubVerifier answers every request with v. It stands in for a verifier
 // that emits an identity the magic-link seam never does.
-type stubSeam struct{ v VerifiedIdentity }
+type stubVerifier struct{ v VerifiedIdentity }
 
-func (s stubSeam) VerifyIdentity(*http.Request, time.Time, bool) (VerifiedIdentity, error) {
+func (s stubVerifier) VerifyIdentity(*http.Request, time.Time, bool) (VerifiedIdentity, error) {
 	return s.v, nil
 }
 
-func (s stubSeam) Read(string) (time.Time, bool, error) {
+func (s stubVerifier) Read(string) (time.Time, bool, error) {
 	return time.Time{}, false, errors.New("stub seam: Read is not part of the gate")
 }
 
@@ -150,7 +150,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		seam        Seam
+		seam        Verifier
 		storeClosed bool // the store is closed, so no table is left to compare
 		request     func(t *testing.T, fx adminFixture) *http.Request
 	}{
@@ -163,28 +163,28 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 		{
 			name: "forged cookie",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, foreignFixture, "admin@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, foreignFixture, "admin@example.com", verifierBirth), "")
 			},
 		},
 		{
 			name: "expired session",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-seamLifetime-time.Hour)), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-verifierLifetime-time.Hour)), "")
 			},
 		},
 		{
 			name: "session older than its epoch",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				if err := fx.epoch.Bump("admin@example.com", seamBirth.Add(time.Hour)); err != nil {
+				if err := fx.epoch.Bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
 					t.Fatalf("Bump: %v", err)
 				}
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", verifierBirth), "")
 			},
 		},
 		{
 			name: "member removed from the roster",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", verifierBirth), "")
 			},
 		},
 		{
@@ -194,7 +194,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 				if err := fx.users.Close(); err != nil {
 					t.Fatalf("close store: %v", err)
 				}
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", verifierBirth), "")
 			},
 		},
 		{
@@ -225,7 +225,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 		},
 		{
 			name: "command-line identity holding the admin flag",
-			seam: stubSeam{v: commandLineAdmin},
+			seam: stubVerifier{v: commandLineAdmin},
 			request: func(t *testing.T, fx adminFixture) *http.Request {
 				r := rosterRequest(http.MethodGet, "/dubplate/roster", "", "")
 				r.Header.Set("Sec-Fetch-Site", "same-origin")
@@ -238,7 +238,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 			fx := newAdminFixture(t)
 			cfg := fx.cfg
 			if tt.seam != nil {
-				cfg.Seam = tt.seam
+				cfg.Verifier = tt.seam
 			}
 			before := dumpUsers(t, fx.users)
 			r := tt.request(t, fx)
@@ -277,7 +277,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 // was refreshed.
 func nonAdminRefreshing(t *testing.T, fx adminFixture) string {
 	t.Helper()
-	value := mintAt(t, currentFixture, "member@example.com", seamBirth)
+	value := mintAt(t, currentFixture, "member@example.com", verifierBirth)
 	v, err := fx.seam.VerifyIdentity(requestWithSession(t, value), gateNow, true)
 	if err != nil {
 		t.Fatalf("VerifyIdentity(non-admin): %v", err)
@@ -321,7 +321,7 @@ func TestRequireAdmin_RefreshOnlySameOrigin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("Sec-Fetch-Site "+tt.site, func(t *testing.T) {
 			fx := newAdminFixture(t)
-			r := rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+			r := rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", verifierBirth), "")
 			if tt.site != "" {
 				r.Header.Set("Sec-Fetch-Site", tt.site)
 			}
@@ -344,15 +344,15 @@ func TestRequireAdmin_RefreshOnlySameOrigin(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseSetCookie: %v", err)
 			}
-			sess, err := VerifySession([]byte(currentFixture), nil, c.Value, gateNow, seamCap)
+			sess, err := VerifySession([]byte(currentFixture), nil, c.Value, gateNow, verifierCap)
 			if err != nil {
 				t.Fatalf("VerifySession(refreshed): %v", err)
 			}
-			if want := seamBirth.Add(40 * 24 * time.Hour); !sess.ExpiresAt.Equal(want) {
+			if want := verifierBirth.Add(40 * 24 * time.Hour); !sess.ExpiresAt.Equal(want) {
 				t.Errorf("refreshed expiry = %v, want %v", sess.ExpiresAt, want)
 			}
-			if !sess.AnchoredAt.Equal(seamBirth) {
-				t.Errorf("refreshed anchor = %v, want %v", sess.AnchoredAt, seamBirth)
+			if !sess.AnchoredAt.Equal(verifierBirth) {
+				t.Errorf("refreshed anchor = %v, want %v", sess.AnchoredAt, verifierBirth)
 			}
 		})
 	}
@@ -381,7 +381,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 		{
 			name: "forged cookie",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, foreignFixture, "admin@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, foreignFixture, "admin@example.com", verifierBirth), "")
 			},
 			wantLevel:  "INFO",
 			wantReason: ErrSessionMAC.Error(),
@@ -389,7 +389,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 		{
 			name: "member removed from the roster",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "gone@example.com", verifierBirth), "")
 			},
 			wantLevel:  "INFO",
 			wantReason: ErrMemberNotFound.Error(),
@@ -400,7 +400,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 				if err := fx.users.Close(); err != nil {
 					t.Fatalf("close store: %v", err)
 				}
-				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", verifierBirth), "")
 			},
 			wantLevel:  "ERROR",
 			wantReason: "roster lookup failed",
@@ -446,11 +446,11 @@ func TestRequireAdmin_SettingReadFailure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lifetime, absoluteCap := newSettingFake(seamLifetime), newSettingFake(seamCap)
-			sf := newSeamFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
+			lifetime, absoluteCap := newSettingFake(verifierLifetime), newSettingFake(verifierCap)
+			sf := newVerifierFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
 			logs := newLogCapture()
 			cfg := AdminConfig{
-				Seam:     sf.seam,
+				Verifier: sf.seam,
 				ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 				Now:      func() time.Time { return gateNow },
 				Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
@@ -461,7 +461,7 @@ func TestRequireAdmin_SettingReadFailure(t *testing.T) {
 				lifetime.set(0, errFixtureRead)
 			}
 			next := &recordingHandler{}
-			r := rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", seamBirth), "")
+			r := rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", verifierBirth), "")
 			r.Header.Set("Sec-Fetch-Site", tt.sfs)
 			w := serveOne(RequireAdmin(cfg, next), r)
 

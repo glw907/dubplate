@@ -59,7 +59,7 @@ type Windows struct {
 	StallAfter time.Duration
 }
 
-// An Intake is the server's one intake. The tus mount, the seam, the
+// An Intake is the server's one intake. The tus mount, the [Service], the
 // checking workers, and the sweep share its writer, so a receipt or a
 // retry wakes the worker that checks it, and its tus locker, so
 // cleanup takes the lock tusd holds an upload under before removing it.
@@ -89,9 +89,9 @@ func New(cfg Config) (*Intake, error) {
 	}, nil
 }
 
-// Seam returns the member-facing submission operations.
-func (in *Intake) Seam() *Seam {
-	return &Seam{subs: in.subs, limits: in.cfg.Limits}
+// Service returns the member-facing submission operations.
+func (in *Intake) Service() *Service {
+	return &Service{subs: in.subs, limits: in.cfg.Limits}
 }
 
 // TusMount returns the handler for the shell's subtree tus, which takes

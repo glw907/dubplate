@@ -311,8 +311,8 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		PreviousLinkSecret: []byte(previousFixture),
 		SessionSecret:      []byte(sessionFixture),
 		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
-		SessionLifetime:    orFixed(opts.lifetimeReader, seamLifetime),
-		SessionAbsoluteCap: orFixed(opts.capReader, seamCap),
+		SessionLifetime:    orFixed(opts.lifetimeReader, verifierLifetime),
+		SessionAbsoluteCap: orFixed(opts.capReader, verifierCap),
 		PublicOrigin:       handlerOrigin,
 		Prefix:             handlerPrefix,
 		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
@@ -395,7 +395,7 @@ func TestConsumeLink_SignsIn(t *testing.T) {
 	if len(cookies) != 1 || cookies[0].Name != "__Host-dubplate_session" {
 		t.Fatalf("cookies = %v, want one __Host-dubplate_session", cookies)
 	}
-	sess, err := VerifySession([]byte(sessionFixture), nil, cookies[0].Value, handlerNow, seamCap)
+	sess, err := VerifySession([]byte(sessionFixture), nil, cookies[0].Value, handlerNow, verifierCap)
 	if err != nil {
 		t.Fatalf("VerifySession: %v", err)
 	}
@@ -1439,10 +1439,10 @@ func TestConsumeLink_SettingReadFailureLeavesTheLinkUnconsumed(t *testing.T) {
 	}{
 		{"the lifetime reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
 			return fixtureOptions{lifetimeReader: f.setting()}
-		}, seamLifetime},
+		}, verifierLifetime},
 		{"the cap reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
 			return fixtureOptions{capReader: f.setting()}
-		}, seamCap},
+		}, verifierCap},
 		{"the retention reader fails", func(f *settingFake[time.Duration]) fixtureOptions {
 			return fixtureOptions{retentionReader: f.setting()}
 		}, fixtureRetention},
@@ -1484,7 +1484,7 @@ func TestConsumeLink_ReadsTheLifetimeAtEachConsumption(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Fatalf("consume = %d %s, want 200", w.Code, w.Body.String())
 		}
-		sess, err := VerifySession([]byte(sessionFixture), nil, w.Result().Cookies()[0].Value, handlerNow, seamCap)
+		sess, err := VerifySession([]byte(sessionFixture), nil, w.Result().Cookies()[0].Value, handlerNow, verifierCap)
 		if err != nil {
 			t.Fatalf("VerifySession: %v", err)
 		}

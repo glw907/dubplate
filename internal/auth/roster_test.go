@@ -1277,11 +1277,11 @@ func liveAdmins(t *testing.T, h *store.Handle) []string {
 // minted plus a minute, through a seam over fx's roster and epoch store.
 func (fx rosterFixture) verifyAt(t *testing.T, address string, minted time.Time) (VerifiedIdentity, error) {
 	t.Helper()
-	value, _, err := MintSession([]byte(currentFixture), address, minted, seamLifetime, seamCap)
+	value, _, err := MintSession([]byte(currentFixture), address, minted, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
-	seam := NewMagicLinkSeam(fx.roster, fx.epoch, []byte(currentFixture), []byte(previousFixture), fixed(seamLifetime), fixed(seamCap))
+	seam := NewMagicLinkVerifier(fx.roster, fx.epoch, []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
 	return seam.VerifyIdentity(requestWithSession(t, value), minted.Add(time.Minute), false)
 }
 

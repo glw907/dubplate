@@ -215,7 +215,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 
-	seam := auth.NewMagicLinkSeam(roster, epoch,
+	verifier := auth.NewMagicLinkVerifier(roster, epoch,
 		[]byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
 		[]byte(cfg.IdentitySourceValue(auth.SessionSecretPreviousKey)),
 		auth.DurationSetting(acc, auth.SessionLifetimeSetting), auth.DurationSetting(acc, auth.SessionAbsoluteCapSetting))
@@ -231,7 +231,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	routes.Register(signOutRouteName, methodOnly(http.MethodPost, handlers.SignOut))
 
 	adminConfig := auth.AdminConfig{
-		Seam:     seam,
+		Verifier: verifier,
 		ClientIP: clientIP,
 		Now:      time.Now,
 		Logger:   shell.Logger(),
@@ -241,7 +241,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	probePath := prefix.String() + "/" + serve.ProbeRouteName
 	routes.Register(serve.ProbeRouteName, webapp.ExactPaths(map[string]http.Handler{probePath: serve.NewProbeRoute(bindAddrs, proxyConfig)}))
 
-	adminSeam := admin.New(admin.Config{
+	adminService := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
 		Window: admin.ReauthWindow(acc),
 		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
@@ -250,7 +250,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	apiMount, err := newAPIMount(prefix, adminSeam, in.Seam(), adminConfig)
+	apiMount, err := newAPIMount(prefix, adminService, in.Service(), adminConfig)
 	if err != nil {
 		return nil, err
 	}

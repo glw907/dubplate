@@ -1,9 +1,9 @@
-// Package admin implements [ops.AdminSeam] for serve: the member and
+// Package admin implements [ops.Admin] for serve: the member and
 // settings operations an admin reaches over the cookie mount, over the
 // roster in internal/auth and the settings write path in
 // internal/settings.
 //
-// The seam adds what the network channel needs beyond those write
+// The [Service] adds what the network channel needs beyond those write
 // paths, which the command line shares: the re-authentication gate,
 // which holds a sensitive settings write and every member write to a
 // session signed in within the window; the sensitive-change notice to
@@ -33,7 +33,7 @@ import (
 // bounded by the store's busy timeout alone.
 const writeWait = 5 * time.Second
 
-// Config is everything the seam needs, resolved by the caller. Every
+// Config is everything the [Service] needs, resolved by the caller. Every
 // field is required.
 type Config struct {
 	// Store is the store the settings write path writes through. The
@@ -58,21 +58,21 @@ type Config struct {
 	Logger *slog.Logger
 }
 
-// A Seam is the admin operations' implementation for serve.
-type Seam struct {
+// A Service is the admin operations' implementation for serve.
+type Service struct {
 	cfg      Config
 	settings map[string]config.Setting
 }
 
-var _ ops.AdminSeam = (*Seam)(nil)
+var _ ops.Admin = (*Service)(nil)
 
-// New returns a seam over cfg.
-func New(cfg Config) *Seam {
+// New returns a [Service] over cfg.
+func New(cfg Config) *Service {
 	byKey := make(map[string]config.Setting)
 	for _, s := range cfg.Registry.Settings() {
 		byKey[s.Key] = s
 	}
-	return &Seam{cfg: cfg, settings: byKey}
+	return &Service{cfg: cfg, settings: byKey}
 }
 
 // requireFresh is the re-authentication gate: it refuses unless the
@@ -81,7 +81,7 @@ func New(cfg Config) *Seam {
 // signed in never renews it, and a local actor's zero anchor is never
 // fresh. A window that cannot be read refuses the call rather than
 // falling back to a default.
-func (s *Seam) requireFresh(ctx context.Context, actor identity.Actor) error {
+func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error {
 	window, err := s.cfg.Window(ctx)
 	if err != nil {
 		return fmt.Errorf("read the re-authentication window: %w", err)
@@ -104,7 +104,7 @@ func parseUserID(s string) (identity.UserID, error) {
 	return identity.UserID(v), nil
 }
 
-// refusal maps a write's error to the seam's answer: an [*ops.Error]
+// refusal maps a write's error to the operation's answer: an [*ops.Error]
 // wrapped around err, so the wire carries the code, the reason, and
 // the detail while the log keeps the cause. An error no case names is
 // the server failing and is returned as is, which answers internal.

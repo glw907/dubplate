@@ -198,8 +198,8 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 }
 
 // Subscribe registers fn to be called, with the normalized address and
-// the new epoch, on every future [EpochStore.Bump]. It is the
-// convenience half of the seam: the authority is [EpochStore.Read],
+// the new epoch, on every future [EpochStore.Bump]. It is a
+// convenience: the authority is [EpochStore.Read],
 // which a subscriber that missed a notification, or never registered
 // at all, can still consult.
 //

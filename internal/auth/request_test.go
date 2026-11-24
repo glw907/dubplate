@@ -38,7 +38,7 @@ func TestCheckRequest_AdmitsAnyVerifiedMember(t *testing.T) {
 	} {
 		t.Run(tt.address, func(t *testing.T) {
 			fx := newAdminFixture(t)
-			r := rosterRequest(http.MethodPost, "/dubplate/api/v1/catalog?admin=on", mintAt(t, currentFixture, tt.address, seamBirth), "admin=on")
+			r := rosterRequest(http.MethodPost, "/dubplate/api/v1/catalog?admin=on", mintAt(t, currentFixture, tt.address, verifierBirth), "admin=on")
 			r.Header.Set("X-Admin", "1")
 			w := httptest.NewRecorder()
 			v, err := CheckRequest(fx.cfg, w, r)
@@ -70,7 +70,7 @@ func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
 		t.Run("Sec-Fetch-Site "+tt.site, func(t *testing.T) {
 			fx := newAdminFixture(t)
 			w := httptest.NewRecorder()
-			v, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", seamBirth), tt.site))
+			v, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
 			if err != nil {
 				t.Fatalf("CheckRequest: %v", err)
 			}
@@ -88,12 +88,12 @@ func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseSetCookie: %v", err)
 			}
-			sess, err := VerifySession([]byte(currentFixture), nil, c.Value, gateNow, seamCap)
+			sess, err := VerifySession([]byte(currentFixture), nil, c.Value, gateNow, verifierCap)
 			if err != nil {
 				t.Fatalf("VerifySession(refreshed): %v", err)
 			}
-			if !sess.AnchoredAt.Equal(seamBirth) || !v.Session.AnchoredAt.Equal(seamBirth) {
-				t.Errorf("anchor after a refresh = cookie %v, identity %v, want %v for both", sess.AnchoredAt, v.Session.AnchoredAt, seamBirth)
+			if !sess.AnchoredAt.Equal(verifierBirth) || !v.Session.AnchoredAt.Equal(verifierBirth) {
+				t.Errorf("anchor after a refresh = cookie %v, identity %v, want %v for both", sess.AnchoredAt, v.Session.AnchoredAt, verifierBirth)
 			}
 			if !sess.IssuedAt.Equal(gateNow) {
 				t.Errorf("refreshed issue time = %v, want %v, so the refresh visibly moved it", sess.IssuedAt, gateNow)
@@ -108,26 +108,26 @@ func TestCheckRequest_RefreshesOnlySameOrigin(t *testing.T) {
 func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
 	tests := []struct {
 		name    string
-		seam    Seam
+		seam    Verifier
 		request func(t *testing.T, fx adminFixture) *http.Request
 	}{
 		{"no cookie", nil, func(t *testing.T, fx adminFixture) *http.Request { return checkRequest("", "same-origin") }},
 		{"forged cookie", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest(mintAt(t, foreignFixture, "admin@example.com", seamBirth), "same-origin")
+			return checkRequest(mintAt(t, foreignFixture, "admin@example.com", verifierBirth), "same-origin")
 		}},
 		{"expired session", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest(mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-seamLifetime-time.Hour)), "same-origin")
+			return checkRequest(mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-verifierLifetime-time.Hour)), "same-origin")
 		}},
 		{"session older than its epoch", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			if err := fx.epoch.Bump("admin@example.com", seamBirth.Add(time.Hour)); err != nil {
+			if err := fx.epoch.Bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
 				t.Fatalf("Bump: %v", err)
 			}
-			return checkRequest(mintAt(t, currentFixture, "admin@example.com", seamBirth), "same-origin")
+			return checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin")
 		}},
 		{"member removed from the roster", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			return checkRequest(mintAt(t, currentFixture, "gone@example.com", seamBirth), "same-origin")
+			return checkRequest(mintAt(t, currentFixture, "gone@example.com", verifierBirth), "same-origin")
 		}},
-		{"verified identity that is not a login", stubSeam{v: VerifiedIdentity{Identity: identity.Identity{Channel: identity.ChannelCommandLine}, Admin: true, RefreshedValue: "refreshed-by-stub"}}, func(t *testing.T, fx adminFixture) *http.Request {
+		{"verified identity that is not a login", stubVerifier{v: VerifiedIdentity{Identity: identity.Identity{Channel: identity.ChannelCommandLine}, Admin: true, RefreshedValue: "refreshed-by-stub"}}, func(t *testing.T, fx adminFixture) *http.Request {
 			return checkRequest("", "same-origin")
 		}},
 	}
@@ -136,7 +136,7 @@ func TestCheckRequest_RefusalsAreNotSignedIn(t *testing.T) {
 			fx := newAdminFixture(t)
 			cfg := fx.cfg
 			if tt.seam != nil {
-				cfg.Seam = tt.seam
+				cfg.Verifier = tt.seam
 			}
 			r := tt.request(t, fx)
 			w := httptest.NewRecorder()
@@ -172,7 +172,7 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 			t.Fatalf("close store: %v", err)
 		}
 		w := httptest.NewRecorder()
-		_, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", seamBirth), "same-origin"))
+		_, err := CheckRequest(fx.cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin"))
 		if err == nil || errors.Is(err, ErrNotSignedIn) {
 			t.Fatalf("CheckRequest = %v, want a server failure that is no ErrNotSignedIn", err)
 		}
@@ -193,11 +193,11 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 		{"the lifetime reader fails on a same-origin refresh", false, "same-origin"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			lifetime, absoluteCap := newSettingFake(seamLifetime), newSettingFake(seamCap)
-			sf := newSeamFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
+			lifetime, absoluteCap := newSettingFake(verifierLifetime), newSettingFake(verifierCap)
+			sf := newVerifierFixtureReading(t, lifetime.setting(), absoluteCap.setting(), slices.Clone(adminRosterMembers)...)
 			logs := newLogCapture()
 			cfg := AdminConfig{
-				Seam:     sf.seam,
+				Verifier: sf.seam,
 				ClientIP: func(r *http.Request) string { return serve.ClientIP(r, serve.TrustedProxyConfig{}) },
 				Now:      func() time.Time { return gateNow },
 				Logger:   slog.New(slog.NewJSONHandler(logs, nil)),
@@ -208,7 +208,7 @@ func TestCheckRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 				lifetime.set(0, errFixtureRead)
 			}
 			w := httptest.NewRecorder()
-			_, err := CheckRequest(cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", seamBirth), tt.site))
+			_, err := CheckRequest(cfg, w, checkRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
 			if err == nil || errors.Is(err, ErrNotSignedIn) {
 				t.Fatalf("CheckRequest = %v, want a server failure that is no ErrNotSignedIn", err)
 			}

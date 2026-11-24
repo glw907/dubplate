@@ -42,9 +42,9 @@ type mount struct {
 //
 // Every operation runs as the actor verify admits and never as a field
 // of the request. prefix is the shell's owned prefix, with a leading
-// separator and no trailing one. NewMount fails on a nil seam (either),
-// verifier, or logger, and on a prefix of the wrong shape.
-func NewMount(admin ops.AdminSeam, subs ops.SubmissionSeam, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
+// separator and no trailing one. NewMount fails on a nil admin or
+// submissions implementation, verifier, or logger, and on a prefix of the wrong shape.
+func NewMount(admin ops.Admin, subs ops.Submissions, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
 	if verify == nil {
 		return nil, errors.New("opshttp: verifier is nil")
 	}
