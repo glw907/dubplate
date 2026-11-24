@@ -19,11 +19,11 @@ const pinnedLibxml = "21504"
 
 var (
 	// errVersion reports an xmllint built against another libxml.
-	errVersion = errors.New("xmlrule: xmllint version is not the pinned one")
+	errVersion = errors.New("xmllint version is not the pinned one")
 
 	// ErrToolFailure reports an xmllint run that ended in neither a
 	// validation result nor a set of validity errors.
-	ErrToolFailure = errors.New("xmlrule: xmllint failed")
+	ErrToolFailure = errors.New("xmllint failed")
 )
 
 var (

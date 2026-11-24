@@ -106,7 +106,7 @@ func TestSupportedFormats(t *testing.T) {
 func TestReadAndWriteRefuseANonFLACFile(t *testing.T) {
 	data := []byte("OggS\x00\x02\x00\x00\x00\x00\x00\x00")
 	path := writeFixture(t, data)
-	want := "tagio: " + path + ": tagio: unsupported container"
+	want := "tagio: " + path + ": unsupported container"
 
 	if _, err := Read(path); !errors.Is(err, ErrUnsupportedContainer) || err.Error() != want {
 		t.Errorf("Read error = %v, want %q", err, want)

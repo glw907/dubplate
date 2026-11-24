@@ -29,7 +29,7 @@ const MaxAddressLength = 254
 // address: [net/mail] cannot parse it as a single RFC 5322 address, it
 // exceeds [MaxAddressLength], or its normalized form is not itself an
 // address [NormalizeAddress] would return unchanged.
-var ErrInvalidAddress = errors.New("identity: invalid address")
+var ErrInvalidAddress = errors.New("invalid address")
 
 // NormalizeAddress parses value as a single RFC 5322 address and
 // returns the address portion lowercased. Every caller that keys,

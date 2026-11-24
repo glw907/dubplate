@@ -130,7 +130,7 @@ type Client struct {
 // identified client.
 func NewClient(cfg ClientConfig) (*Client, error) {
 	if cfg.UserAgent == "" {
-		return nil, errors.New("musicbrainz: ClientConfig.UserAgent is required")
+		return nil, errors.New("ClientConfig.UserAgent is required")
 	}
 
 	baseURL := cfg.BaseURL

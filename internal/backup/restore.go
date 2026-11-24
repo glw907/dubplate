@@ -111,17 +111,17 @@ func (c RestoreConfig) check() error {
 	}
 	switch {
 	case n != 1:
-		return errors.New("restore: name exactly one of a snapshot, a file, or a resume")
+		return errors.New("name exactly one of a snapshot, a file, or a resume")
 	case c.Older && c.Snapshot == "":
-		return errors.New("restore: --older applies only to a snapshot")
+		return errors.New("--older applies only to a snapshot")
 	case c.Older && c.Library:
-		return errors.New("restore: --older never combines with --library: the library on the remote is the latest backup's")
+		return errors.New("--older never combines with --library: the library on the remote is the latest backup's")
 	case c.Library && c.Snapshot == "":
-		return errors.New("restore: --library needs a snapshot from the remote the library is on")
+		return errors.New("--library needs a snapshot from the remote the library is on")
 	case c.DiscardCurrent && c.Resume:
-		return errors.New("restore: --discard-current never combines with --resume")
+		return errors.New("--discard-current never combines with --resume")
 	case c.IntoNonempty && !c.Library:
-		return errors.New("restore: --into-nonempty applies only to --library")
+		return errors.New("--into-nonempty applies only to --library")
 	}
 	return nil
 }

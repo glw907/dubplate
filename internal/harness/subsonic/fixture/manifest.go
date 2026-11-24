@@ -17,7 +17,7 @@ import (
 
 // errInvalid marks a manifest Load refuses. The error carries every
 // problem found, one per line.
-var errInvalid = errors.New("fixture: invalid manifest")
+var errInvalid = errors.New("invalid fixture manifest")
 
 const (
 	// vorbisCommentBlock is the FLAC metadata block type of VORBIS_COMMENT

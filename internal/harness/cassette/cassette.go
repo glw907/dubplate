@@ -256,10 +256,10 @@ func LoadManifest(path string) (*Manifest, error) {
 		return nil, fmt.Errorf("parse manifest: %w", err)
 	}
 	if m.SchemaVersion == "" {
-		return nil, errors.New("manifest: schema_version: missing")
+		return nil, errors.New("manifest has no schema_version")
 	}
 	if m.Beets == "" {
-		return nil, errors.New("manifest: beets: missing")
+		return nil, errors.New("manifest has no beets version")
 	}
 	return &m, nil
 }

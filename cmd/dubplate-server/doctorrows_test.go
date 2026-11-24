@@ -277,7 +277,7 @@ func listenerPort(t *testing.T, l net.Listener) int {
 // placeholderWebRefusal opens the web row's status when the embedded
 // build holds only the placeholder, the state of a tree where
 // `npm run build` has not run.
-const placeholderWebRefusal = "invalid: web: the embedded build tree holds only the placeholder"
+const placeholderWebRefusal = "invalid: the embedded web build tree holds only the placeholder"
 
 // startServeOnHeldPort serves the shell the serve verb builds, over a
 // fixture web tree, on a loopback port this test holds from the moment

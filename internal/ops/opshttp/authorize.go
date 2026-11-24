@@ -38,11 +38,11 @@ type admission struct {
 func newAdmission(auth authorizer, channel identity.Channel) (*admission, error) {
 	switch {
 	case auth == nil:
-		return nil, errors.New("opshttp: authorizer is nil")
+		return nil, errors.New("authorizer is nil")
 	case !channel.Valid():
-		return nil, fmt.Errorf("opshttp: mount channel %d is not a recognized channel", int(channel))
+		return nil, fmt.Errorf("mount channel %d is not a recognized channel", int(channel))
 	case channel == identity.ChannelCommandLine:
-		return nil, errors.New("opshttp: mount channel is the command line, which no network mount carries")
+		return nil, errors.New("mount channel is the command line, which no network mount carries")
 	}
 	return &admission{auth: auth, channel: channel}, nil
 }

@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -360,5 +361,99 @@ func TestServerLinkCheckFiresOnItsOwnListing(t *testing.T) {
 				t.Errorf("serverLinkViolations = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+// prefixedSentinel matches error text that opens with a lowercase
+// package-style prefix and a colon, the form record 0016 retires: a
+// sentinel's text is a bare phrase, and the wrapping site adds context.
+var prefixedSentinel = regexp.MustCompile(`^[a-z/]+: `)
+
+// checkBareSentinels walks every non-test .go file under root, skipping
+// testdata, and fails naming each errors.New call whose string literal
+// matches prefixedSentinel.
+func checkBareSentinels(root string) error {
+	var errs []error
+	walkErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if d.Name() == "testdata" {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		fset := token.NewFileSet()
+		f, err := parser.ParseFile(fset, path, nil, parser.AllErrors)
+		if err != nil {
+			return fmt.Errorf("parse %s: %w", path, err)
+		}
+		errorsName := importedName(f, "errors")
+		if errorsName == "" {
+			return nil
+		}
+		ast.Inspect(f, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok || len(call.Args) != 1 {
+				return true
+			}
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok || sel.Sel.Name != "New" {
+				return true
+			}
+			if ident, ok := sel.X.(*ast.Ident); !ok || ident.Name != errorsName {
+				return true
+			}
+			lit, ok := call.Args[0].(*ast.BasicLit)
+			if !ok || lit.Kind != token.STRING {
+				return true
+			}
+			text, err := strconv.Unquote(lit.Value)
+			if err == nil && prefixedSentinel.MatchString(text) {
+				errs = append(errs, fmt.Errorf("%s: errors.New(%s) opens with a package prefix; record 0016 wants a bare phrase",
+					fset.Position(lit.Pos()), lit.Value))
+			}
+			return true
+		})
+		return nil
+	})
+	if walkErr != nil {
+		errs = append(errs, walkErr)
+	}
+	return errors.Join(errs...)
+}
+
+// TestSentinelTextIsBare checks the real tree: no errors.New call in a
+// non-test file under cmd or internal opens its text with a package
+// prefix (record 0016).
+func TestSentinelTextIsBare(t *testing.T) {
+	for _, dir := range []string{"cmd", "internal"} {
+		if err := checkBareSentinels(filepath.Join(repoRoot(t), dir)); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+// TestSentinelCheckFiresOnItsOwnFixture proves checkBareSentinels fires
+// against testdata/arch/sentinel-prefix: bad.go carries a prefixed
+// errors.New under a renamed import, good.go carries only bare text and a
+// prefixed fmt.Errorf wrap, and bad_test.go carries a prefixed errors.New
+// the walk must skip.
+func TestSentinelCheckFiresOnItsOwnFixture(t *testing.T) {
+	err := checkBareSentinels(filepath.Join("testdata", "arch", "sentinel-prefix"))
+	if err == nil {
+		t.Fatal("expected checkBareSentinels to fire against its own violating fixture")
+	}
+	if !strings.Contains(err.Error(), `"store: no record"`) {
+		t.Errorf("error does not name the prefixed text: %v", err)
+	}
+	for _, skipped := range []string{"good.go", "bad_test.go"} {
+		if strings.Contains(err.Error(), skipped) {
+			t.Errorf("error names %s, which the check must pass: %v", skipped, err)
+		}
 	}
 }

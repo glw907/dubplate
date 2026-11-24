@@ -149,22 +149,22 @@ type Override struct {
 func (s *ReleaseSpec) validate() error {
 	switch {
 	case s.Album == "":
-		return errors.New("synth: spec: album: missing")
+		return errors.New("spec has no album")
 	case s.Artist == "":
-		return errors.New("synth: spec: artist: missing")
+		return errors.New("spec has no artist")
 	case s.Date == "":
-		return errors.New("synth: spec: date: missing")
+		return errors.New("spec has no date")
 	case s.Country == "":
-		return errors.New("synth: spec: country: missing")
+		return errors.New("spec has no country")
 	case s.MBAlbumID == "":
-		return errors.New("synth: spec: mb_albumid: missing")
+		return errors.New("spec has no mb_albumid")
 	case s.Profile == "":
-		return errors.New("synth: spec: profile: missing")
+		return errors.New("spec has no profile")
 	case s.EvalDate == "":
-		return errors.New("synth: spec: eval_date: missing")
+		return errors.New("spec has no eval_date")
 	}
 	if len(s.Items) == 0 && len(s.Media) == 0 {
-		return errors.New("synth: spec: media: empty, and items was not supplied as an independent item set")
+		return errors.New("spec has no media, and items was not supplied as an independent item set")
 	}
 	for i, m := range s.Media {
 		if m.Format == "" {

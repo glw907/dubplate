@@ -66,15 +66,15 @@ var (
 	// ErrLinkMalformed reports a value that is not a link token at
 	// all: the wrong field count, a field that is not base64url, an
 	// unknown version label, or a field whose contents do not parse.
-	ErrLinkMalformed = errors.New("auth: malformed magic link")
+	ErrLinkMalformed = errors.New("malformed magic link")
 
 	// ErrLinkMAC reports a link token whose MAC verifies under
 	// neither the current nor the previous secret.
-	ErrLinkMAC = errors.New("auth: magic link signature")
+	ErrLinkMAC = errors.New("bad magic link signature")
 
 	// ErrLinkExpired reports a link token whose MAC verified and
 	// whose expiry has passed.
-	ErrLinkExpired = errors.New("auth: magic link expired")
+	ErrLinkExpired = errors.New("magic link expired")
 )
 
 // LinkToken is a magic link's fields. VerifyLink returns one only for a

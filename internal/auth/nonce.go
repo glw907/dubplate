@@ -16,7 +16,7 @@ import (
 // ErrNonceReplayed reports a nonce whose record already exists: the
 // link carrying it has been consumed once and every later presentation
 // of it is a replay.
-var ErrNonceReplayed = errors.New("auth: nonce already consumed")
+var ErrNonceReplayed = errors.New("nonce already consumed")
 
 // nonceRecordVersion labels the record's field layout. A later field
 // lands under a new label rather than changing what an existing field

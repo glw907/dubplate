@@ -172,7 +172,7 @@ func CheckAdjudications(caseIDs []string, l *AdjudicationLedger) error {
 	seen := make(map[string]bool, len(l.Entries))
 	for _, e := range l.Entries {
 		if e.ID == "" {
-			errs = append(errs, errors.New("adjudications: entry with no id"))
+			errs = append(errs, errors.New("adjudication entry with no id"))
 		} else if seen[e.ID] {
 			errs = append(errs, fmt.Errorf("adjudications: %s: listed twice", e.ID))
 		}

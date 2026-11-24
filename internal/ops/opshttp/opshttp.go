@@ -78,13 +78,13 @@ type handler struct {
 // no network mount carries, and on a wire code with no HTTP status.
 func newHandler(admin ops.Admin, subs ops.Submissions, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
 	if log == nil {
-		return nil, errors.New("opshttp: logger is nil")
+		return nil, errors.New("logger is nil")
 	}
 	switch {
 	case admin == nil:
-		return nil, errors.New("opshttp: admin operations are nil")
+		return nil, errors.New("admin operations are nil")
 	case subs == nil:
-		return nil, errors.New("opshttp: submission operations are nil")
+		return nil, errors.New("submission operations are nil")
 	}
 	adm, err := newAdmission(auth, channel)
 	if err != nil {

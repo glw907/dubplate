@@ -43,29 +43,29 @@ import (
 )
 
 // ErrNoPodman marks a workstation without a podman executable.
-var ErrNoPodman = errors.New("stack: podman not found in PATH")
+var ErrNoPodman = errors.New("podman not found in PATH")
 
 // errNotReady marks an oracle whose scan never finished by the deadline.
-var errNotReady = errors.New("stack: oracle not ready")
+var errNotReady = errors.New("oracle not ready")
 
 // errTrackCount marks an oracle whose finished scan counted a different
 // number of tracks than the manifest declares.
-var errTrackCount = errors.New("stack: scan track count differs from manifest")
+var errTrackCount = errors.New("scan track count differs from manifest")
 
 // errFolderCount marks an oracle that lists a different number of music
 // folders than the run has collections.
-var errFolderCount = errors.New("stack: music folder count differs from collections")
+var errFolderCount = errors.New("music folder count differs from collections")
 
 // errCollections marks a collection list Start refuses before it runs
 // anything.
-var errCollections = errors.New("stack: invalid collections")
+var errCollections = errors.New("invalid collections")
 
 // errLibrary marks a Navidrome library the stack could not create.
-var errLibrary = errors.New("stack: navidrome library creation failed")
+var errLibrary = errors.New("navidrome library creation failed")
 
 // errImageNotPinned marks a running image whose inspect output does not
 // carry the pinned digest.
-var errImageNotPinned = errors.New("stack: running image does not carry the pinned digest")
+var errImageNotPinned = errors.New("running image does not carry the pinned digest")
 
 const (
 	labelKey     = "dubplate-harness-run"

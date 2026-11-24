@@ -42,10 +42,10 @@ type mount struct {
 // submissions implementation, verifier, or logger, and on a prefix of the wrong shape.
 func NewMount(admin ops.Admin, subs ops.Submissions, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
 	if verify == nil {
-		return nil, errors.New("opshttp: verifier is nil")
+		return nil, errors.New("verifier is nil")
 	}
 	if !strings.HasPrefix(prefix, "/") || strings.HasSuffix(prefix, "/") {
-		return nil, errors.New("opshttp: prefix must begin with a separator and carry no trailing one")
+		return nil, errors.New("prefix must begin with a separator and carry no trailing one")
 	}
 	h, err := newHandler(admin, subs, contextAuthorizer{}, identity.ChannelCookie, log)
 	if err != nil {

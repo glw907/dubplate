@@ -154,7 +154,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		return Routes{}, fmt.Errorf("web: %w", err)
 	}
 	if placeholderOnly {
-		return Routes{}, errors.New("web: the embedded build tree holds only the placeholder; run `npm run build` in web/")
+		return Routes{}, errors.New("the embedded web build tree holds only the placeholder; run `npm run build` in web/")
 	}
 
 	webDocuments := documents(cfg.Names)

@@ -97,7 +97,7 @@ func decodeIntent(b []byte) (intentRecord, error) {
 		return intentRecord{}, fmt.Errorf("parse: %w", err)
 	}
 	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
-		return intentRecord{}, errors.New("parse: data after the record's object")
+		return intentRecord{}, errors.New("data after the record's object")
 	}
 	return r, r.validate()
 }

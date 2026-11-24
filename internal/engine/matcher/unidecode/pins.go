@@ -57,11 +57,11 @@ const (
 
 // errWheelChecksum reports that a wheel's sha256 disagreed with
 // WheelSHA256, whether downloaded or read from a file.
-var errWheelChecksum = errors.New("unidecode: wheel checksum mismatch")
+var errWheelChecksum = errors.New("unidecode wheel checksum mismatch")
 
 // errTableChecksum reports that a table's sha256 disagreed with the
 // pinned table checksum, whether just built or read from a file.
-var errTableChecksum = errors.New("unidecode: table checksum mismatch")
+var errTableChecksum = errors.New("unidecode table checksum mismatch")
 
 // checkWheel refuses wheel bytes whose sha256 disagrees with
 // WheelSHA256.
@@ -85,4 +85,4 @@ func checkSHA256(data []byte, want string, errMismatch error) error {
 
 // errWheelTooLarge reports that a wheel download or file exceeded
 // maxWheelSize.
-var errWheelTooLarge = errors.New("unidecode: wheel exceeds maximum size")
+var errWheelTooLarge = errors.New("unidecode wheel exceeds maximum size")

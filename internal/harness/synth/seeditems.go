@@ -31,10 +31,10 @@ func ProjectItems(doc []byte, overrides []Override, allowAlbumIDOverride bool) (
 		return nil, fmt.Errorf("synth: seed-items: parse release document: %w", err)
 	}
 	if rel.ID == "" {
-		return nil, errors.New("synth: seed-items: release document: id: missing")
+		return nil, errors.New("seed-items release document has no id")
 	}
 	if len(rel.Media) == 0 {
-		return nil, errors.New("synth: seed-items: release document: media: empty")
+		return nil, errors.New("seed-items release document has no media")
 	}
 
 	albumArtist := creditString(rel.ArtistCredit)

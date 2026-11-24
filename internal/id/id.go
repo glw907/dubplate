@@ -10,7 +10,7 @@ import (
 	"errors"
 )
 
-var errSyntax = errors.New("id: want 32 lowercase hex characters")
+var errSyntax = errors.New("want 32 lowercase hex characters")
 
 // An ID is a random 16-byte key. It prints, and is parsed from, 32
 // lowercase hex characters.

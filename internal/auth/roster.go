@@ -40,24 +40,24 @@ var usernamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._@+-]*$`)
 // ErrMemberNotFound reports that an address or id matched no live
 // member: Lookup's address once normalized, or the id a removal or a
 // demotion names.
-var ErrMemberNotFound = errors.New("auth: member not found")
+var ErrMemberNotFound = errors.New("member not found")
 
 // errRosterRecordInvalid is wrapped by every refusal of a member
 // write's own content: a duplicate address or username, a field out of
 // bounds, a control character, an address net/mail cannot parse, an
 // actor that does not meet its channel's rule, or a write that would
 // leave no admin.
-var errRosterRecordInvalid = errors.New("auth: roster record invalid")
+var errRosterRecordInvalid = errors.New("roster record invalid")
 
 // errAdminGrantForbidden reports that AddMember refused to set the
 // admin flag because the change did not come from the command line,
 // the one channel that may grant it.
-var errAdminGrantForbidden = errors.New("auth: admin flag may be granted only from the command line")
+var errAdminGrantForbidden = errors.New("admin flag may be granted only from the command line")
 
 // errInvalidActor reports that a write's [identity.Actor] failed the
 // rule its channel imposes: the zero Actor, or an operator name that
 // carries an invisible rune.
-var errInvalidActor = errors.New("auth: invalid audit actor or channel")
+var errInvalidActor = errors.New("invalid audit actor or channel")
 
 // The refusals below are the ones internal/ops/admin, and the roster
 // API's additionOutcome until it retires, branch on with errors.Is to
@@ -66,44 +66,44 @@ var errInvalidActor = errors.New("auth: invalid audit actor or channel")
 var (
 	// ErrDuplicateAddress reports that a candidate's address matches a
 	// live member, once both are normalized.
-	ErrDuplicateAddress = errors.New("auth: duplicate address")
+	ErrDuplicateAddress = errors.New("duplicate address")
 
 	// ErrDuplicateUsername reports that a candidate's username matches
 	// another row's, live or tombstoned, compared case-insensitively.
-	ErrDuplicateUsername = errors.New("auth: duplicate username")
+	ErrDuplicateUsername = errors.New("duplicate username")
 
 	// ErrInvalidMemberAddress reports that a record's address does not
 	// normalize as a login address. A write's refusal wraps it beside
 	// [identity.ErrInvalidAddress], whose detail names the rule the
 	// address broke and never quotes the address.
-	ErrInvalidMemberAddress = errors.New("auth: address does not parse as a login address")
+	ErrInvalidMemberAddress = errors.New("address does not parse as a login address")
 
 	// ErrInvalidDisplayName reports that a record's display name
 	// carries a refused rune or exceeds maxDisplayNameLength.
-	ErrInvalidDisplayName = errors.New("auth: display name is invalid")
+	ErrInvalidDisplayName = errors.New("display name is invalid")
 
 	// ErrBlankDisplayName reports that a write candidate's display name
 	// is empty or carries nothing but spaces and zero-width joiners, so
 	// it names nobody wherever it is shown.
-	ErrBlankDisplayName = errors.New("auth: display name is empty or blank")
+	ErrBlankDisplayName = errors.New("display name is empty or blank")
 
 	// ErrInvalidUsername reports that a record's username fails its
 	// shape check or exceeds maxUsernameLength.
-	ErrInvalidUsername = errors.New("auth: username is invalid")
+	ErrInvalidUsername = errors.New("username is invalid")
 
 	// ErrMissingUsername reports that a write candidate carries no
 	// username, which the write path requires.
-	ErrMissingUsername = errors.New("auth: username is required")
+	ErrMissingUsername = errors.New("username is required")
 
 	// ErrNoAdmin reports that a write would leave the roster naming no
 	// live admin, which would leave nobody able to change it but an
 	// operator at the command line.
-	ErrNoAdmin = errors.New("auth: the roster must name at least one admin")
+	ErrNoAdmin = errors.New("the roster must name at least one admin")
 
 	// ErrActorNotAdmin reports that a write arriving over the network
 	// named an actor with no live roster record holding the admin flag,
 	// as the write itself read the roster.
-	ErrActorNotAdmin = errors.New("auth: the actor is not an admin")
+	ErrActorNotAdmin = errors.New("the actor is not an admin")
 )
 
 // Member is one roster entry: a durable id, a login address, a

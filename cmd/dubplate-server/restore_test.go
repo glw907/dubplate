@@ -82,17 +82,17 @@ func TestRestoreCmd_FlagRefusals(t *testing.T) {
 		f    restoreFlags
 		want string
 	}{
-		{name: "no source", f: restoreFlags{}, want: "restore: name one source: --snapshot, --from-file, or --resume"},
-		{name: "a snapshot and a file", f: restoreFlags{snapshot: "latest", fromFile: "x.db"}, want: "restore: --snapshot and --from-file never combine: name one source"},
-		{name: "a file and a resume", f: restoreFlags{fromFile: "x.db", resume: true}, want: "restore: --from-file and --resume never combine: name one source"},
-		{name: "all three sources", f: restoreFlags{snapshot: "latest", fromFile: "x.db", resume: true}, want: "restore: --snapshot and --from-file and --resume never combine: name one source"},
-		{name: "older with a file", f: restoreFlags{fromFile: "x.db", older: true}, want: "restore: --older never combines with --from-file"},
-		{name: "older with a resume", f: restoreFlags{resume: true, older: true}, want: "restore: --older never combines with --resume"},
-		{name: "older with the library", f: restoreFlags{snapshot: "latest", older: true, library: true}, want: "restore: --older never combines with --library"},
-		{name: "the library with a file", f: restoreFlags{fromFile: "x.db", library: true}, want: "restore: --library never combines with --from-file"},
-		{name: "the library with a resume", f: restoreFlags{resume: true, library: true}, want: "restore: --library never combines with --resume"},
-		{name: "discard with a resume", f: restoreFlags{resume: true, discardCurrent: true}, want: "restore: --discard-current never combines with --resume"},
-		{name: "into-nonempty without the library", f: restoreFlags{snapshot: "latest", intoNonempty: true}, want: "restore: --into-nonempty applies only with --library"},
+		{name: "no source", f: restoreFlags{}, want: "name one source: --snapshot, --from-file, or --resume"},
+		{name: "a snapshot and a file", f: restoreFlags{snapshot: "latest", fromFile: "x.db"}, want: "--snapshot and --from-file never combine: name one source"},
+		{name: "a file and a resume", f: restoreFlags{fromFile: "x.db", resume: true}, want: "--from-file and --resume never combine: name one source"},
+		{name: "all three sources", f: restoreFlags{snapshot: "latest", fromFile: "x.db", resume: true}, want: "--snapshot and --from-file and --resume never combine: name one source"},
+		{name: "older with a file", f: restoreFlags{fromFile: "x.db", older: true}, want: "--older never combines with --from-file"},
+		{name: "older with a resume", f: restoreFlags{resume: true, older: true}, want: "--older never combines with --resume"},
+		{name: "older with the library", f: restoreFlags{snapshot: "latest", older: true, library: true}, want: "--older never combines with --library"},
+		{name: "the library with a file", f: restoreFlags{fromFile: "x.db", library: true}, want: "--library never combines with --from-file"},
+		{name: "the library with a resume", f: restoreFlags{resume: true, library: true}, want: "--library never combines with --resume"},
+		{name: "discard with a resume", f: restoreFlags{resume: true, discardCurrent: true}, want: "--discard-current never combines with --resume"},
+		{name: "into-nonempty without the library", f: restoreFlags{snapshot: "latest", intoNonempty: true}, want: "--into-nonempty applies only with --library"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
