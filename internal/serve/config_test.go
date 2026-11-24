@@ -317,8 +317,8 @@ func TestParseConfig(t *testing.T) {
 	}
 }
 
-// TestValidatePort proves the port's bound at the function the magic-link
-// source's validator calls: 0 would listen on an ephemeral port, and a
+// TestValidatePort proves the port's bound at the function the binary
+// runs beside config.Load: 0 would listen on an ephemeral port, and a
 // port below 1024 cannot bind under the serve unit's empty capability
 // set, so both refuse naming the capability, while 1024 and 65535, the
 // bound's own ends, pass.

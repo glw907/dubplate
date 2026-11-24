@@ -116,19 +116,30 @@ func newProductionRegistry() *config.Registry {
 	return reg
 }
 
-// loadConfig is config.Load plus the check no single row can express:
-// staging and the library root must not overlap. Every verb that loads
-// the wall loads it here, so backup and restore refuse an overlap as
-// serve does.
+// loadConfig is [loadWall] for a verb, returning a config only when
+// every check holds. Every verb but doctor loads the wall here, so
+// backup and restore refuse what serve refuses.
 func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) {
-	cfg, err := config.Load(environ, reg)
+	cfg, err := loadWall(environ, reg)
 	if err != nil {
 		return nil, err
 	}
-	if err := intake.ValidateStaging(cfg); err != nil {
-		return nil, err
-	}
 	return cfg, nil
+}
+
+// loadWall is config.Load plus the two checks no single registration
+// can express: staging and the library root must not overlap, and the
+// serve port must be one the serve unit can bind. The staging check
+// needs Load's config and runs only once Load succeeds. The port check
+// runs either way, and doctor reports a bad port beside every other
+// refusal. cfg is Load's result even when a later check refuses: doctor
+// carries on with it.
+func loadWall(environ []string, reg *config.Registry) (*config.Config, error) {
+	cfg, err := config.Load(environ, reg)
+	if err == nil {
+		err = intake.ValidateStaging(cfg)
+	}
+	return cfg, errors.Join(err, serve.ValidatePort(environ))
 }
 
 // newRootCmd builds the production registry once and passes it to every

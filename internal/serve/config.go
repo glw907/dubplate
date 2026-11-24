@@ -48,10 +48,10 @@ const (
 
 // ValidatePort checks DUBPLATE_SERVE_PORT against
 // [portFloor] and [portCeiling], naming the capability a
-// privileged port would need. The magic-link source's validator calls
-// it, so [config.Load] refuses an out-of-range port for doctor and every verb
-// before serve ever binds. A value that does not parse returns
-// [config.ParseInt]'s own [config.KeyError].
+// privileged port would need. The binary runs it beside [config.Load],
+// so doctor and every verb refuse an out-of-range port before serve
+// ever binds. A value that does not parse returns [config.ParseInt]'s
+// [config.KeyError].
 func ValidatePort(environ []string) error {
 	port, err := config.ParseInt(environ, PortThreshold)
 	if err != nil {

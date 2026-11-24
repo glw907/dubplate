@@ -46,13 +46,10 @@ func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writ
 // order. It returns an error when [config.Load] refuses environ or any
 // printed row reports a failure.
 func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdout io.Writer) error {
-	// Load and the staging rule run apart from loadConfig so a nesting
-	// lands on the staging row as "invalid" and the report carries on
-	// with the config Load resolved.
-	cfg, loadErr := config.Load(environ, reg)
-	if loadErr == nil {
-		loadErr = intake.ValidateStaging(cfg)
-	}
+	// loadWall rather than loadConfig, so a refused check lands on its
+	// row as "invalid" and the report carries on with the config Load
+	// resolved.
+	cfg, loadErr := loadWall(environ, reg)
 	statuses := rowStatuses(loadErr)
 	report := doctorReport{failed: loadErr != nil}
 

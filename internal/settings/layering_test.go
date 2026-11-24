@@ -12,8 +12,8 @@ import (
 	"testing"
 )
 
-// configHolders are the packages that declare settings. Each reads
-// configuration in config.go, and in doctor.go where it has one, and
+// configHolders are the packages that declare settings or
+// configuration keys. Each reads configuration in config.go, and in doctor.go where it has one, and
 // takes plain values and setting readers everywhere else.
 var configHolders = []string{
 	"auth",
@@ -22,6 +22,7 @@ var configHolders = []string{
 	"store",
 	"webapp",
 	"intake",
+	"notify",
 	"ops/jobs",
 }
 

@@ -29,6 +29,7 @@ func TestLayering(t *testing.T) {
 			forbiddenTrees: []string{"engine"},
 		},
 		{name: "fsys", dir: "../fsys", leaf: true},
+		{name: "auth", dir: "../auth", forbidden: []string{"serve"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

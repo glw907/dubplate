@@ -47,7 +47,7 @@ const renderedScriptTimeout = 13 * time.Minute
 const renderedInstallHint = "npx --prefix web playwright install chromium"
 
 // renderedMagicLinkExpiry is the fixture's own DUBPLATE_MAGIC_LINK_EXPIRY,
-// raised from the 15m default (`auth.MagicLinkExpirySetting`)
+// raised from the 15m default (DUBPLATE_MAGIC_LINK_EXPIRY)
 // so the capture matrix's own minted links, spent well after the run
 // starts, stay valid for renderedScriptTimeout's own length: it stays
 // under auth.MagicLinkExpiryCeiling (one hour).
@@ -623,7 +623,7 @@ func mintLinkFor(ctx context.Context, environ []string, address string) (string,
 	var expiry time.Duration
 	err := withStoreAccessor(ctx, environ, func(acc *settings.Accessor) error {
 		var err error
-		expiry, err = acc.Duration(ctx, auth.MagicLinkExpirySetting)
+		expiry, err = acc.Duration(ctx, registeredSetting("DUBPLATE_MAGIC_LINK_EXPIRY"))
 		return err
 	})
 	if err != nil {

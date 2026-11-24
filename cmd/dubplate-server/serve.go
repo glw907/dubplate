@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
@@ -185,6 +184,10 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 	acc := settings.NewAccessor(h, reg)
+	authConfig, err := auth.ConfigFrom(cfg, acc)
+	if err != nil {
+		return nil, err
+	}
 	limits, err := auth.ReadLimits(ctx, acc)
 	if err != nil {
 		return nil, err
@@ -192,7 +195,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	strip := serve.NewStrip(proxyConfig)
 	shell := serve.NewShell(prefix, strip, logger)
 	routes := mount(shell)
-	if sendsHSTS(cfg.IdentitySourceValue(auth.PublicURLKey)) {
+	if sendsHSTS(authConfig.PublicOrigin) {
 		shell.EnableHSTS()
 	}
 
@@ -200,7 +203,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	nonces, err := openNonceStore(ctx, authDir, acc, time.Now())
+	nonces, err := openNonceStore(ctx, authDir, authConfig.NonceRetention, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -210,18 +213,17 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	limiter := auth.NewLimiter(limits)
 
-	mailer, err := newMailer(cfg)
+	mailConfig, err := notify.ConfigFrom(cfg)
 	if err != nil {
 		return nil, err
 	}
+	mailer := notify.New(mailConfig)
 
-	verifier := auth.NewMagicLinkVerifier(roster, epoch,
-		[]byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
-		[]byte(cfg.IdentitySourceValue(auth.SessionSecretPreviousKey)),
-		acc.DurationReader(auth.SessionLifetimeSetting), acc.DurationReader(auth.SessionAbsoluteCapSetting))
+	verifier := auth.NewMagicLinkVerifier(roster, epoch, authConfig.SessionSecret, authConfig.PreviousSessionSecret,
+		authConfig.SessionLifetime, authConfig.SessionAbsoluteCap)
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
-	handlersConfig := authHandlersConfig(prefix, cfg, acc, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
+	handlersConfig := authHandlersConfig(prefix, authConfig, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
 	handlers := auth.NewHandlers(handlersConfig)
 
 	// The auth handlers apply no method check of their own; mounting
@@ -260,7 +262,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	// shell's log/slog logger cannot fill.
 	tusMount, err := in.TusMount(intake.TusConfig{
 		Prefix:    prefix.String(),
-		PublicURL: cfg.IdentitySourceValue(auth.PublicURLKey),
+		PublicURL: authConfig.PublicOrigin,
 		Verify:    tusVerifier(adminConfig),
 		Floor:     intake.FreeSpaceFloor(acc),
 		TusLog:    os.Stderr,
@@ -349,18 +351,19 @@ func sendsHSTS(publicURL string) bool {
 }
 
 // openNonceStore opens the consumed-nonce store under authDir, with
-// its retention read through acc, and sweeps it once at now. A test
-// opens the store the way newServeShell does and reads the retention it
-// was wired with.
-func openNonceStore(ctx context.Context, authDir *auth.Dir, acc *settings.Accessor, now time.Time) (*auth.NonceStore, error) {
-	nonces, _, err := auth.OpenNonceStore(ctx, authDir, acc.DurationReader(auth.NonceRetentionSetting), auth.MagicLinkExpiryCeiling, now)
+// its retention read through retention, and sweeps it once at now. A
+// test opens the store the way newServeShell does and reads the
+// retention it was wired with.
+func openNonceStore(ctx context.Context, authDir *auth.Dir, retention settings.Reader[time.Duration], now time.Time) (*auth.NonceStore, error) {
+	nonces, _, err := auth.OpenNonceStore(ctx, authDir, retention, auth.MagicLinkExpiryCeiling, now)
 	return nonces, err
 }
 
 // authHandlersConfig builds the [auth.HandlersConfig] the auth handlers
-// mount from, each setting a reader over acc. A test reads the config
-// it returns, the only proof that no caller loses a wired value.
-func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.Accessor, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
+// mount from, its secrets, origin, and readers taken from ac. A test
+// reads the config it returns, the only proof that no caller loses a
+// wired value.
+func authHandlersConfig(prefix serve.Prefix, ac auth.Config, roster *auth.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
 	return auth.HandlersConfig{
 		Roster:             roster,
 		Nonces:             nonces,
@@ -370,17 +373,17 @@ func authHandlersConfig(prefix serve.Prefix, cfg *config.Config, acc *settings.A
 		ClientIP:           clientIP,
 		Now:                time.Now,
 		Logger:             logger,
-		LinkSecret:         []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretKey)),
-		PreviousLinkSecret: []byte(cfg.IdentitySourceValue(auth.MagicLinkSecretPreviousKey)),
-		SessionSecret:      []byte(cfg.IdentitySourceValue(auth.SessionSecretKey)),
-		LinkExpiry:         acc.DurationReader(auth.MagicLinkExpirySetting),
-		SessionLifetime:    acc.DurationReader(auth.SessionLifetimeSetting),
-		SessionAbsoluteCap: acc.DurationReader(auth.SessionAbsoluteCapSetting),
-		PublicOrigin:       cfg.IdentitySourceValue(auth.PublicURLKey),
+		LinkSecret:         ac.LinkSecret,
+		PreviousLinkSecret: ac.PreviousLinkSecret,
+		SessionSecret:      ac.SessionSecret,
+		LinkExpiry:         ac.LinkExpiry,
+		SessionLifetime:    ac.SessionLifetime,
+		SessionAbsoluteCap: ac.SessionAbsoluteCap,
+		PublicOrigin:       ac.PublicOrigin,
 		Prefix:             prefix.String(),
-		BodyCap:            auth.BodyCap(acc),
+		BodyCap:            ac.BodyCap,
 		BodyCapCeiling:     auth.RequestBodyCapCeiling,
-		GenericAnswer:      auth.GenericAnswer(acc),
+		GenericAnswer:      ac.GenericAnswer,
 	}
 }
 
@@ -395,24 +398,6 @@ func methodOnly(method string, h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(w, r)
 	})
-}
-
-// newMailer resolves the magic-link source's five SMTP keys into a
-// [notify.Mailer]. The source's Validate hook already bounds the port
-// at load, so the parse here only turns the string into the int
-// [notify.Config] takes.
-func newMailer(cfg *config.Config) (*notify.Mailer, error) {
-	port, err := strconv.Atoi(cfg.IdentitySourceValue(auth.SMTPPortKey))
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", auth.SMTPPortKey, err)
-	}
-	return notify.New(notify.Config{
-		Host:     cfg.IdentitySourceValue(auth.SMTPHostKey),
-		Port:     port,
-		User:     cfg.IdentitySourceValue(auth.SMTPUserKey),
-		Password: cfg.IdentitySourceValue(auth.SMTPPasswordKey),
-		From:     cfg.IdentitySourceValue(auth.SMTPFromKey),
-	}), nil
 }
 
 // sweepNonces runs the nonce sweep every [auth.SweepInterval] and
