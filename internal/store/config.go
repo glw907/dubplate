@@ -88,7 +88,7 @@ var LocalSnapshotKeepSetting = config.Setting{
 
 // Register registers the store's own thresholds and
 // store-homed settings against reg. newProductionRegistry calls it
-// after local.Register.
+// after jobs.Register.
 func Register(reg *config.Registry) {
 	reg.AddThreshold(busyTimeoutThreshold)
 	reg.AddThreshold(migrationWaitThreshold)

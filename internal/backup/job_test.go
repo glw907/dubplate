@@ -23,7 +23,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -156,7 +156,7 @@ func defaultArchiveRetention(context.Context) (time.Duration, error) { return 21
 
 // newRunner opens a production runner over h with backup on and every
 // backup value reader at R-6c11's default, closed at cleanup before h.
-func newRunner(t *testing.T, h *store.Handle, remote, root string, logs *syncBuffer) *local.Runner {
+func newRunner(t *testing.T, h *store.Handle, remote, root string, logs *syncBuffer) *jobs.Runner {
 	t.Helper()
 	return newRunnerWithBackup(t, h, remote, root, logs, defaultSnapshotKeep, defaultGuardFraction, defaultArchiveRetention)
 }
@@ -170,17 +170,17 @@ func newRunnerWithBackup(t *testing.T, h *store.Handle, remote, root string, log
 	snapshotKeep func(context.Context) (int, error),
 	guardFraction func(context.Context) (float64, error),
 	archiveRetention func(context.Context) (time.Duration, error),
-) *local.Runner {
+) *jobs.Runner {
 	t.Helper()
 	logger := slog.New(slog.DiscardHandler)
 	if logs != nil {
 		logger = slog.New(slog.NewTextHandler(logs, nil))
 	}
-	r, err := local.New(context.Background(), local.Config{
+	r, err := jobs.New(context.Background(), jobs.Config{
 		Now:       time.Now,
 		Store:     h,
 		Retention: defaultRetention,
-		Backup: local.BackupConfig{
+		Backup: jobs.BackupConfig{
 			Enabled: true, Remote: remote, LibraryRoot: root,
 			GuardFraction:    guardFraction,
 			SnapshotKeep:     snapshotKeep,
@@ -189,14 +189,14 @@ func newRunnerWithBackup(t *testing.T, h *store.Handle, remote, root string, log
 		Logger: logger,
 	})
 	if err != nil {
-		t.Fatalf("local.New: %v", err)
+		t.Fatalf("jobs.New: %v", err)
 	}
 	t.Cleanup(func() { _ = r.Close() })
 	return r
 }
 
 // start starts a backup through r.
-func start(t *testing.T, r *local.Runner) ops.Handle {
+func start(t *testing.T, r *jobs.Runner) ops.Handle {
 	t.Helper()
 	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
 	if err != nil {
@@ -206,7 +206,7 @@ func start(t *testing.T, r *local.Runner) ops.Handle {
 }
 
 // await waits for the job h names to end and returns its status.
-func await(t *testing.T, r *local.Runner, h ops.Handle) ops.JobStatus {
+func await(t *testing.T, r *jobs.Runner, h ops.Handle) ops.JobStatus {
 	t.Helper()
 	end := time.Now().Add(60 * time.Second)
 	for {

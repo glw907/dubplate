@@ -40,7 +40,7 @@ var tableOwners = map[string]tableOwner{
 	"submission_events":   {dir: "internal/intake"},
 	"submission_warnings": {dir: "internal/intake"},
 
-	"jobs": {dir: "internal/ops/local"},
+	"jobs": {dir: "internal/ops/jobs"},
 
 	"settings":            {dir: "internal/settings"},
 	"settings_audit":      {dir: "internal/settings"},

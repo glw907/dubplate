@@ -21,7 +21,7 @@ var configHolders = []string{
 	"store",
 	"webapp",
 	"intake",
-	"ops/local",
+	"ops/jobs",
 }
 
 // configImports are the packages whose import marks a file as reading

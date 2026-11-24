@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/ops"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -169,11 +169,11 @@ func runChild(dir string) int {
 		logger.Error("child open", "err", err)
 		return 2
 	}
-	r, err := local.New(context.Background(), local.Config{
+	r, err := jobs.New(context.Background(), jobs.Config{
 		Now:       time.Now,
 		Store:     h,
 		Retention: defaultRetention,
-		Backup: local.BackupConfig{
+		Backup: jobs.BackupConfig{
 			Enabled:          true,
 			Remote:           os.Getenv(childRemoteEnv),
 			LibraryRoot:      os.Getenv(childRootEnv),

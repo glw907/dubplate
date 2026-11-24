@@ -14,7 +14,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/ops"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
@@ -96,10 +96,10 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	acc := settings.NewAccessor(h, reg)
 	runnerCtx, cancelRunner := context.WithTimeout(opsCtx, storeWait)
 	defer cancelRunner()
-	runner, err := local.New(runnerCtx, local.Config{
+	runner, err := jobs.New(runnerCtx, jobs.Config{
 		Store:     h,
-		Retention: local.JobRetention(acc),
-		Backup:    local.BackupConfigFrom(cfg, acc),
+		Retention: jobs.JobRetention(acc),
+		Backup:    jobs.BackupConfigFrom(cfg, acc),
 		Logger:    logger,
 		Now:       time.Now,
 	})
@@ -152,7 +152,7 @@ func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 // while rclone, in its own process group, survives). Every runner call
 // here runs on opsCtx, never signalCtx, so a poll or a cancel write
 // keeps working after signalCtx is done.
-func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor ops.Actor, h ops.Handle, stdout io.Writer, logger *slog.Logger) error {
+func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor ops.Actor, h ops.Handle, stdout io.Writer, logger *slog.Logger) error {
 	hup := make(chan os.Signal, 1)
 	signal.Notify(hup, syscall.SIGHUP)
 	defer signal.Stop(hup)
@@ -197,7 +197,7 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *local.Runner, actor 
 // runner this verb owns instead, and logs the write error rather than
 // returning it: the job still ends canceled, through its own terminal
 // write, and awaitBackup's next poll reports that.
-func requestCancel(opsCtx context.Context, runner *local.Runner, actor ops.Actor, h ops.Handle, logger *slog.Logger) {
+func requestCancel(opsCtx context.Context, runner *jobs.Runner, actor ops.Actor, h ops.Handle, logger *slog.Logger) {
 	ctx, cancel := context.WithTimeout(opsCtx, storeWait)
 	defer cancel()
 	if _, err := runner.CancelJob(ctx, actor, ops.CancelJobRequest{JobID: h}); err != nil {

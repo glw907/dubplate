@@ -14,7 +14,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/intake"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -367,7 +367,7 @@ func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
 			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()),
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
 			reg := freshRegistry()
-			local.Register(reg)
+			jobs.Register(reg)
 			store.Register(reg)
 
 			var stdout, stderr bytes.Buffer

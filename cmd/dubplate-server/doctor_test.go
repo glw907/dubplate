@@ -18,7 +18,7 @@ import (
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/backup"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/ops/local"
+	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -1207,7 +1207,7 @@ func TestUnclaimedLoadErrors(t *testing.T) {
 // form every duration threshold uses.
 func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 	reg := freshRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 
 	tests := []struct {
@@ -1243,7 +1243,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 // exits 1. 2147483647ms passes both rows.
 func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 	reg := freshRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 
 	tests := []struct {
@@ -1302,7 +1302,7 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 	reg := freshRegistry()
-	local.Register(reg)
+	jobs.Register(reg)
 	store.Register(reg)
 
 	before, err := os.ReadDir(stateDir)
