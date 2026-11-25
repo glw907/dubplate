@@ -15,6 +15,16 @@ import (
 // package never leans on the store's threshold.
 const jobsVersion = 2
 
+// newestSucceeded selects each kind's newest succeeded record, a tie in
+// finish time going to the higher id. The doctor's last-success row
+// reads these records and the prune keeps them, so the two never
+// disagree.
+const newestSucceeded = `SELECT id, kind, finished_at, progress FROM (
+	SELECT id, kind, finished_at, progress,
+		row_number() OVER (PARTITION BY kind ORDER BY finished_at DESC, id DESC) AS rank
+	FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
+) WHERE rank = 1`
+
 // Facts are the job facts a store inspection reads for the doctor
 // command.
 type Facts struct {
@@ -41,11 +51,7 @@ func (f *Facts) Reader() store.Reader {
 }
 
 func lastSuccesses(ctx context.Context, q store.Querier) (map[string]ops.JobSuccess, error) {
-	rows, err := q.QueryContext(ctx, `SELECT kind, finished_at, progress FROM (
-	SELECT kind, finished_at, progress,
-		row_number() OVER (PARTITION BY kind ORDER BY finished_at DESC, id DESC) AS rank
-	FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
-) WHERE rank = 1`)
+	rows, err := q.QueryContext(ctx, `SELECT kind, finished_at, progress FROM (`+newestSucceeded+`)`)
 	if err != nil {
 		return nil, err
 	}

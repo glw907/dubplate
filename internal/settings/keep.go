@@ -10,29 +10,21 @@ import (
 )
 
 // LocalSnapshotKeep decides [store.ServeOptions.Keep] before serve
-// opens the store, from the settings facts f an inspection into report
-// read and the registry's own setting, and refuses a start that a migration would otherwise make
-// unrecoverable.
+// opens the store, from report, the settings facts f its inspection
+// read, and the registry's setting. It refuses a start that a
+// migration would otherwise make unrecoverable.
 //
 // A stored keep row in its bounds is the keep, even when the
-// environment names another value: that value reaches the keep at the
-// seed this start applies after its migration. The outcome's own
-// value is the value in force after the seed, so it decides only when
-// the row is out of bounds, where it is the healed value or a refusal
-// naming the key and the bound. With no keep row, or no facts, the
-// registry default is the keep and the open decides whether the state
-// itself refuses.
+// environment names another value: the seed applies that value after
+// the migration. Out of bounds, the outcome's value decides: the
+// healed value, or a refusal naming the key and the bound. With no
+// keep row or no facts, the registry default is the keep.
 //
-// An older store whose evaluation refuses anything, whether an
-// administrator's row out of bounds or an environment value that does
-// not parse, is refused here, before the migration moves it past the
-// binary a rollback would run. An older store is evaluated against
-// the facts [SeedFacts] picks, as check and doctor evaluate it, so one
-// whose version predates the settings table, or the jobs table and
-// with it any facts at all, is evaluated against the empty table its
-// first seed meets. A store that does not migrate gets no such check,
-// nor does one that carries no facts, and the seed apply after the
-// open decides.
+// An older store whose evaluation, against the facts [SeedFacts]
+// picks, refuses anything is refused here, before the migration moves
+// it past the binary a rollback would run. A store that does not
+// migrate, or carries no facts, is left to the open and the seed after
+// it.
 func LocalSnapshotKeep(report store.Report, f Facts, environ []string, reg *config.Registry) (int, error) {
 	setting := byKey(reg.Settings(), store.LocalSnapshotKeepSetting.Key)
 	keep, err := strconv.Atoi(setting.Default)

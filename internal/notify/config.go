@@ -38,8 +38,7 @@ func Keys() []config.KeyDecl {
 // the sender address and then the port, among an identity source's
 // resolved values, and joins a [config.KeyError] for each that fails. A
 // key absent from values is left to [config.Load]'s requirement check.
-// The source's Validate hook calls it, so doctor and every verb see a
-// bad value before serve ever sends.
+// It runs from the source's Validate hook, at load.
 func ValidateKeys(values map[string]string) error {
 	var errs []error
 	if v, ok := values[fromKey]; ok {
@@ -56,9 +55,7 @@ func ValidateKeys(values map[string]string) error {
 }
 
 // validatePort checks value parses as an integer from 1 through 65535.
-// The port is a required source key rather than a registered
-// [config.Threshold], because a source key carries no bound of its own,
-// so its bound lives here.
+// A source key carries no registered bound, so the bound lives here.
 func validatePort(value string) error {
 	port, err := strconv.Atoi(value)
 	if err != nil {
@@ -71,12 +68,9 @@ func validatePort(value string) error {
 }
 
 // validateFrom checks that value parses as a single RFC 5322 address,
-// display name allowed, and carries no carriage return and no line
-// feed, so a value that would ride into a mail header cannot inject
-// one. The check runs at load rather than at send: a failed send fails
-// the login that asked for it, and a typo caught only at send time
-// would otherwise pass doctor and start clean. The returned error never
-// repeats value.
+// display name allowed, with no carriage return or line feed to inject
+// a mail header. Checked at load, a typo fails doctor rather than the
+// first login's send. The returned error never repeats value.
 func validateFrom(value string) error {
 	if strings.ContainsAny(value, "\r\n") {
 		return &config.KeyError{Key: fromKey, Reason: "invalid email address"}

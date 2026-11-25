@@ -120,13 +120,12 @@ func Evaluate(ctx context.Context, h *store.Handle, reg *config.Registry, enviro
 }
 
 // EvaluateFacts runs the seed rule for reg's settings against facts,
-// rows a [Facts.Reader] already read, and the environment in environ. It opens no connection of its own: its
-// caller has already inspected the store. When facts marks the
-// settings table absent, the rule runs against an empty row set, which
-// is the table serve's first seed into it will meet: every environment
-// value is bounded and compared now, so a value that start would
-// refuse is refused here first. check and doctor call it; backup calls
-// [Evaluate] from its own write-mode handle instead.
+// rows a [Facts.Reader] already read, and the environment in environ.
+// It opens no connection of its own. When facts marks the settings
+// table absent, the rule runs against an empty row set, which is the
+// table serve's first seed into it will meet: every environment value
+// is bounded and compared now, so a value that start would refuse is
+// refused here first.
 func EvaluateFacts(reg *config.Registry, environ []string, facts Facts) Evaluation {
 	if facts.Absent {
 		return evaluate(reg, environ, nil)

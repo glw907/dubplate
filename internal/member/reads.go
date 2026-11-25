@@ -13,8 +13,8 @@ import (
 // EarliestAdmin returns the id of the live admin created first, breaking
 // a tie in creation time by the lower id. It reports false when no live
 // admin exists. A new collection is owned by this member until the owner
-// is changed. A read error comes back bare: both callers add the prefix
-// their operators already read.
+// is changed. A read error comes back bare: the caller adds the prefix
+// its operators already read.
 func EarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
 	var raw []byte
 	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL

@@ -9,9 +9,9 @@ type Row struct {
 	Name string
 
 	// Status is the row's text, printed after Name. It never carries
-	// the value of a config.Setting registered config.Sensitive:
-	// doctor's output is pasted into reports. A key outside the
-	// settings family prints as its row needs, a bind address included.
+	// the value of a config.Setting registered config.Sensitive, since
+	// doctor's output is pasted into reports. The rule binds the
+	// settings family only (record 0018).
 	Status string
 
 	// Failed reports whether the row makes doctor exit nonzero. A row

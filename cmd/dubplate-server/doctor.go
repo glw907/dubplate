@@ -239,12 +239,18 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 		return "invalid: registered with an unnamed threshold kind, a registration bug"
 	}
 	if err != nil {
-		if keyed, ok := errors.AsType[*config.KeyError](err); ok {
-			return "invalid: " + keyed.Reason
-		}
-		return "invalid: " + err.Error()
+		return invalidStatus(err)
 	}
 	return value
+}
+
+// invalidStatus renders err as an "invalid: " status, giving a
+// [config.KeyError]'s reason in place of its full text.
+func invalidStatus(err error) string {
+	if keyed, ok := errors.AsType[*config.KeyError](err); ok {
+		return "invalid: " + keyed.Reason
+	}
+	return "invalid: " + err.Error()
 }
 
 // integrationStatus reports class as "enabled" or "disabled", or as
@@ -254,10 +260,7 @@ func integrationStatus(environ []string, class config.IntegrationClass) string {
 	enabled, err := class.Enabled(environ)
 	switch {
 	case err != nil:
-		if keyed, ok := errors.AsType[*config.KeyError](err); ok {
-			return "invalid: " + keyed.Reason
-		}
-		return "invalid: " + err.Error()
+		return invalidStatus(err)
 	case enabled:
 		return "enabled"
 	default:

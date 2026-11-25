@@ -106,7 +106,7 @@ func shown(s config.Setting, value string) string {
 // mode, then any note about what changes at serve's next start. A
 // refused outcome never reaches it.
 func outcomeStatus(s config.Setting, o Outcome) string {
-	value, source := s.Default, "default"
+	value, source := s.Default, SourceDefault
 	if o.Stored != nil {
 		value, source = o.Stored.Value, o.Stored.Source
 	}
@@ -136,11 +136,7 @@ func changeNote(s config.Setting, o Outcome) string {
 // table yet, or no store at all: the default is in force, and an env
 // value the seed accepts seeds at serve's next start.
 func noTableStatus(environ []string, s config.Setting) string {
-	status := shown(s, s.Default) + " " + traits(s, "default") + "; store holds no settings yet"
-	if v, ok := config.Lookup(environ, s.Key); ok {
-		status += fmt.Sprintf("; env %s seeds at serve's next start", shown(s, v))
-	}
-	return status
+	return defaultStatus(environ, s, "store holds no settings yet", "seeds at serve's next start")
 }
 
 // notCheckedStatus renders s's row for a store state this binary
@@ -154,9 +150,15 @@ func notCheckedStatus(environ []string, s config.Setting, state store.State) str
 	if state != 0 {
 		label = fmt.Sprintf("not checked (%s)", state)
 	}
-	status := shown(s, s.Default) + " " + traits(s, "default") + "; store " + label
+	return defaultStatus(environ, s, "store "+label, "not checked against the store")
+}
+
+// defaultStatus renders s's default with storeNote, then any env value
+// for s with envNote.
+func defaultStatus(environ []string, s config.Setting, storeNote, envNote string) string {
+	status := shown(s, s.Default) + " " + traits(s, SourceDefault) + "; " + storeNote
 	if v, ok := config.Lookup(environ, s.Key); ok {
-		status += fmt.Sprintf("; env %s not checked against the store", shown(s, v))
+		status += fmt.Sprintf("; env %s %s", shown(s, v), envNote)
 	}
 	return status
 }
