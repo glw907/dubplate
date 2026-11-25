@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"os"
 	"time"
@@ -71,16 +72,16 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			prefix, addrs, port, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				return err
 			}
-			srv, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, slog.Default())
+			srv, err := newServeShell(cmd.Context(), environ, reg, listen.Prefix, listen.BindAddrs, cfg, slog.Default())
 			if err != nil {
 				return err
 			}
 			defer func() { err = errors.Join(err, srv.Close()) }()
-			return serve.Run(cmd.Context(), srv.shell.Logger(), srv.shell.Handler(), addrs, port)
+			return serve.Run(cmd.Context(), srv.shell.Logger(), srv.shell.Handler(), listen.BindAddrs, listen.Port)
 		},
 	}
 	cmd.SetOut(stdout)
@@ -117,7 +118,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // Every identity header is stripped from every peer, a trusted proxy
 // included. The boundary probe mounts like every other route, so the
 // request it counts is one the strip has already cleared.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger) (*server, error) {
 	buildFS, err := embeddedBuild()
 	if err != nil {
 		return nil, err
@@ -155,7 +156,7 @@ type registrar interface {
 // around it escapes the route inventory test unseen. The web routes
 // come from buildFS, so a test can serve a fixture tree where the
 // embedded one holds only the placeholder.
-func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
 	proxyConfig, err := serve.ParseTrustedProxy(cfg)
 	if err != nil {
 		return nil, err

@@ -100,11 +100,11 @@ func buildServeShellContext(t *testing.T, ctx context.Context, environ []string,
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
+	srv, err := newServeShell(ctx, environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -316,10 +316,11 @@ func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	handler := shell.Handler()
 
 	for _, tt := range []struct {
@@ -532,11 +533,12 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
-			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
+			prefix := listen.Prefix
+			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
@@ -778,10 +780,11 @@ func TestNewServeShell_APIPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	before := userAddresses(t, stateDir)
@@ -836,10 +839,11 @@ func TestNewServeShell_APISameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	req := jsonRequest(http.MethodPost, prefix.String()+"/api/v1/add_member", session, "same-origin", validAddMember)
@@ -887,10 +891,11 @@ func TestNewServeShell_RosterRouteIsGone(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	admin := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 	handler := shell.Handler()
 
@@ -931,10 +936,11 @@ func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	apiBody := `{"address":"api-added@example.com","display_name":"API Added","username":"apiadded"}`
@@ -1003,10 +1009,11 @@ func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	handler := shell.Handler()
 
 	plainBody := "address=" + url.QueryEscape(`"ab"@example.com`)
@@ -1753,10 +1760,11 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell() error = %v, want nil", err)
 			}
-			prefix, _, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 			}
+			prefix := listen.Prefix
 			publicURL := environValue(environ, "DUBPLATE_PUBLIC_URL")
 			handler := shell.Handler()
 
@@ -1789,10 +1797,11 @@ func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 
 	var reached bool
 	var got http.Header
@@ -1901,12 +1910,12 @@ func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serv
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
-	return srv, prefix, cfg, err
+	srv, err := newServeShell(ctx, environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, discardTestLogger())
+	return srv, listen.Prefix, cfg, err
 }
 
 // writeAdminRows writes each of values as an admin-sourced settings row
@@ -2190,10 +2199,11 @@ func TestNewServeShell_RequestReadsTheSeededAnswer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell: %v", err)
 			}
-			prefix, _, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
+			prefix := listen.Prefix
 			rec := authRoutePOST(shell.Handler(), prefix.String()+"/"+requestLinkRouteName, "address=stranger%40example.com")
 			var got struct {
 				Outcome string `json:"outcome"`
@@ -2282,11 +2292,12 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
-			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
+			prefix := listen.Prefix
+			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, listen.BindAddrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}

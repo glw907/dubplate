@@ -204,6 +204,12 @@ func TestBindAddrsStatus(t *testing.T) {
 			wantStatus: "127.0.0.2 present",
 		},
 		{
+			name:       "an IPv6 address is named in its canonical form",
+			environ:    []string{"DUBPLATE_SERVE_BIND_ADDRS=0:0:0:0:0:0:0:1"},
+			addrs:      []net.Addr{ipNet("127.0.0.1/8")},
+			wantStatus: "::1 present",
+		},
+		{
 			name:       "an absent address",
 			environ:    []string{"DUBPLATE_SERVE_BIND_ADDRS=192.0.2.1"},
 			addrs:      []net.Addr{ipNet("198.51.100.4/24")},

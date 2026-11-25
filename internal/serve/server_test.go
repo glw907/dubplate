@@ -150,7 +150,7 @@ func TestListenBindsExactAddresses(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			listeners, err := Listen(context.Background(), tt.addrs, 0)
+			listeners, err := Listen(context.Background(), addrs(tt.addrs...), 0)
 			if err != nil {
 				t.Fatalf("Listen(%v, 0): %v", tt.addrs, err)
 			}
@@ -210,7 +210,7 @@ func TestListenPartialFailureClosesOpened(t *testing.T) {
 		t.Fatalf("parse pre-occupied port %q: %v", portStr, err)
 	}
 
-	_, err = Listen(context.Background(), []string{"127.0.0.1", "127.0.0.2"}, port)
+	_, err = Listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), port)
 	if err == nil {
 		t.Fatalf("Listen succeeded, want an error binding the already-occupied 127.0.0.2:%d", port)
 	}
@@ -235,7 +235,7 @@ const freebindTestAddr = "192.0.2.77" // RFC 5737 TEST-NET-3, on no interface
 // assertion.
 func TestControlHookOpensAnUnconfiguredAddress(t *testing.T) {
 	t.Run("with the hook, the address binds", func(t *testing.T) {
-		listeners, err := Listen(context.Background(), []string{freebindTestAddr}, 0)
+		listeners, err := Listen(context.Background(), addrs(freebindTestAddr), 0)
 		if err != nil {
 			t.Fatalf("Listen(%q, 0) with the hook: %v, want success (the boot property)", freebindTestAddr, err)
 		}
@@ -291,7 +291,7 @@ func TestRunTakesCtxFirstAndReturnsPromptlyWhenAlreadyDone(t *testing.T) {
 	cancel()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	if err := Run(ctx, slog.Default(), handler, []string{"127.0.0.1"}, 0); err != nil {
+	if err := Run(ctx, slog.Default(), handler, addrs("127.0.0.1"), 0); err != nil {
 		t.Fatalf("Run(already-canceled ctx, ...) = %v, want nil", err)
 	}
 }
@@ -315,7 +315,7 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
-	listeners, err := Listen(ctx, []string{"127.0.0.1"}, 0)
+	listeners, err := Listen(ctx, addrs("127.0.0.1"), 0)
 	if err != nil {
 		t.Fatalf("Listen: %v", err)
 	}
@@ -368,7 +368,7 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	listeners, err := Listen(context.Background(), []string{"127.0.0.1", "127.0.0.2"}, 0)
+	listeners, err := Listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), 0)
 	if err != nil {
 		t.Fatalf("Listen: %v", err)
 	}

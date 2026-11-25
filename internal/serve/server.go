@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/netip"
 	"strconv"
 	"sync"
 	"time"
@@ -105,11 +106,11 @@ func newHTTPServer(handler http.Handler, logger *slog.Logger, writeTimeout time.
 // already opened before Listen returns, so a partial bind leaks no
 // file descriptor. The listeners Listen returns carry their
 // actually-bound addresses, readable through Addr().
-func Listen(ctx context.Context, addrs []string, port int) ([]net.Listener, error) {
+func Listen(ctx context.Context, addrs []netip.Addr, port int) ([]net.Listener, error) {
 	lc := net.ListenConfig{Control: freebindControl}
 	listeners := make([]net.Listener, 0, len(addrs))
 	for _, addr := range addrs {
-		l, err := lc.Listen(ctx, "tcp", net.JoinHostPort(addr, strconv.Itoa(port)))
+		l, err := lc.Listen(ctx, "tcp", net.JoinHostPort(addr.String(), strconv.Itoa(port)))
 		if err != nil {
 			for _, opened := range listeners {
 				_ = opened.Close()
@@ -130,7 +131,7 @@ func Listen(ctx context.Context, addrs []string, port int) ([]net.Listener, erro
 // [Shell.Logger] so those errors and the shell's refusal record share
 // one sink; a nil logger falls back to [slog.Default], the same way
 // [NewShell] does.
-func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs []string, port int) error {
+func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs []netip.Addr, port int) error {
 	if logger == nil {
 		logger = slog.Default()
 	}

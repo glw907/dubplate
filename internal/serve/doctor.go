@@ -89,14 +89,14 @@ func clientIPStatus(cfg *config.Config) (status string, failed bool) {
 // over netlink, which a unit's RestrictAddressFamilies without
 // AF_NETLINK denies, so an error reads "not checked: " plus the error
 // and fails the row, naming that setting as the likely cause. An unset
-// key is the registered loopback default; a value [SplitBindAddrs]
-// refuses reads "invalid: " plus its refusal.
+// key is the registered loopback default; a refused value reads
+// "invalid: " plus its refusal.
 func bindAddrsStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
 	raw, err := config.ParseString(environ, BindAddrsThreshold)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
-	addrs, err := SplitBindAddrs(raw)
+	addrs, err := parseBindAddrs(raw)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
@@ -112,20 +112,13 @@ func bindAddrsStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (s
 	}
 
 	parts := make([]string, 0, len(addrs))
-	for _, text := range addrs {
-		ip, err := netip.ParseAddr(text)
-		if err != nil {
-			// SplitBindAddrs accepted the entry through net.ParseIP, so a
-			// parse failure here is a disagreement between the two
-			// parsers, reported rather than assumed away.
-			return fmt.Sprintf("invalid: %q: %v", text, err), true
-		}
-		ip = ip.Unmap()
+	for _, addr := range addrs {
+		ip := addr.Unmap()
 		if _, ok := held[ip]; ok || ip.IsLoopback() {
-			parts = append(parts, text+" present")
+			parts = append(parts, addr.String()+" present")
 			continue
 		}
-		parts = append(parts, text+" not on any interface")
+		parts = append(parts, addr.String()+" not on any interface")
 		failed = true
 	}
 	return strings.Join(parts, ", "), failed
@@ -211,7 +204,7 @@ func boundaryProbeStatus(ctx context.Context, environ []string, cfg *config.Conf
 	if cfg == nil {
 		return "not probed", false
 	}
-	prefix, addrs, port, err := ParseConfig(environ)
+	listen, err := ParseConfig(environ)
 	if err != nil {
 		return "not probed", false
 	}
@@ -220,20 +213,14 @@ func boundaryProbeStatus(ctx context.Context, environ []string, cfg *config.Conf
 		return "not probed", false
 	}
 
+	addrs := listen.BindAddrs
 	parts := make([]string, 0, len(addrs))
 	trustedCount, answered := 0, false
-	for _, text := range addrs {
-		ip, err := netip.ParseAddr(text)
-		if err != nil {
-			// The bind addresses row reports the same disagreement
-			// between net.ParseIP and netip.ParseAddr, and fails.
-			parts = append(parts, text+" not probed")
-			continue
-		}
-		ip = ip.Unmap()
+	for _, addr := range addrs {
+		ip := addr.Unmap()
 		_, isTrusted := proxy.proxies[ip]
-		result := probeAddress(ctx, prefix, ip, port, proxy, isTrusted)
-		part := text + " " + result.status
+		result := probeAddress(ctx, listen.Prefix, ip, listen.Port, proxy, isTrusted)
+		part := addr.String() + " " + result.status
 		if isTrusted {
 			trustedCount++
 			part += trustedProbeNote

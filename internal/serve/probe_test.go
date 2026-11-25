@@ -80,7 +80,7 @@ func TestProbeRoute_ThroughShellCountsNothing(t *testing.T) {
 	}
 	strip := NewStrip(TrustedProxyConfig{})
 	shell := NewShell(prefix, strip, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	shell.Register(ProbeRouteName, NewProbeRoute([]string{"127.0.0.1"}, TrustedProxyConfig{}))
+	shell.Register(ProbeRouteName, NewProbeRoute(addrs("127.0.0.1"),TrustedProxyConfig{}))
 	srv := httptest.NewServer(shell.Handler())
 	defer srv.Close()
 
@@ -101,7 +101,7 @@ func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := httptest.NewServer(NewProbeRoute([]string{"127.0.0.1"}, TrustedProxyConfig{}))
+	srv := httptest.NewServer(NewProbeRoute(addrs("127.0.0.1"),TrustedProxyConfig{}))
 	defer srv.Close()
 
 	got := probeOver(t, srv, prefix, TrustedProxyConfig{})
@@ -170,7 +170,7 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 				req.Header.Set(k, v)
 			}
 			rec := httptest.NewRecorder()
-			NewProbeRoute(tt.bind, tt.proxy).ServeHTTP(rec, req)
+			NewProbeRoute(addrs(tt.bind...), tt.proxy).ServeHTTP(rec, req)
 
 			if tt.wantOK {
 				if rec.Code != http.StatusOK {
@@ -259,7 +259,7 @@ func TestProbeConfiguredHeader(t *testing.T) {
 	}
 
 	t.Run("without the strip the route counts it", func(t *testing.T) {
-		srv := httptest.NewServer(NewProbeRoute([]string{"127.0.0.1"}, proxy))
+		srv := httptest.NewServer(NewProbeRoute(addrs("127.0.0.1"),proxy))
 		defer srv.Close()
 		got := probeOver(t, srv, prefix, proxy)
 		if want := wantUnstrippedForwarded + 1; got.Forwarded != want {
@@ -270,7 +270,7 @@ func TestProbeConfiguredHeader(t *testing.T) {
 	t.Run("through the shell the strip removes it", func(t *testing.T) {
 		strip := NewStrip(proxy)
 		shell := NewShell(prefix, strip, slog.New(slog.NewTextHandler(io.Discard, nil)))
-		shell.Register(ProbeRouteName, NewProbeRoute([]string{"127.0.0.1"}, proxy))
+		shell.Register(ProbeRouteName, NewProbeRoute(addrs("127.0.0.1"),proxy))
 		srv := httptest.NewServer(shell.Handler())
 		defer srv.Close()
 		if got := probeOver(t, srv, prefix, proxy); got != (ProbeCounts{}) {
@@ -303,7 +303,7 @@ func TestProbeRoute_TrustedPeerReceivesIdentityOnly(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := NewProbeRoute([]string{"127.0.0.1"}, proxy)
+			h := NewProbeRoute(addrs("127.0.0.1"),proxy)
 			if tt.strip {
 				shell := NewShell(prefix, NewStrip(proxy), slog.New(slog.NewTextHandler(io.Discard, nil)))
 				shell.Register(ProbeRouteName, h)

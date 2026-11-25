@@ -60,11 +60,9 @@ func NewProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 // unknown path. The peer is checked before the method.
 //
 // A permitted peer is one whose [PeerAddress], parsed and unmapped, is
-// a loopback address or one of bindAddrs. bindAddrs is the resolved
-// list the server listens on, each parsed and unmapped the same way,
-// since net/http reports an IPv4 peer of a dual-stack listener in
-// mapped form; an entry that does not parse permits no peer.
-// [ClientIP] is never consulted, so no forwarded header can make a
+// a loopback address or one of bindAddrs, the addresses the server
+// listens on, each unmapped the same way, since net/http reports an
+// IPv4 peer of a dual-stack listener in mapped form. [ClientIP] is never consulted, so no forwarded header can make a
 // peer local.
 //
 // A permitted peer that is also one of proxy's trusted proxies
@@ -77,12 +75,10 @@ func NewProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 //
 // The forwarded count reads the strip's own group 2 set for proxy, the
 // configured client-address header included.
-func NewProbeRoute(bindAddrs []string, proxy TrustedProxyConfig) http.Handler {
+func NewProbeRoute(bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handler {
 	local := make(map[netip.Addr]struct{}, len(bindAddrs))
 	for _, a := range bindAddrs {
-		if addr, err := netip.ParseAddr(a); err == nil {
-			local[addr.Unmap()] = struct{}{}
-		}
+		local[a.Unmap()] = struct{}{}
 	}
 	identity := identitySpellings
 	forwarded := forwardedAddressSet(proxy.header)

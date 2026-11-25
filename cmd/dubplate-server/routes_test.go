@@ -86,16 +86,17 @@ func TestRouteInventory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
+	prefix := listen.Prefix
 	buildFS, err := embeddedBuild()
 	if err != nil {
 		t.Fatalf("embeddedBuild: %v", err)
 	}
 	var registered []string
-	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
+	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger(),
 		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }, buildFS)
 	if err != nil {
 		t.Fatalf("newServeShellVia: %v", err)

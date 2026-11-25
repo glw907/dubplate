@@ -10,11 +10,8 @@ import (
 )
 
 // BindAddrsThreshold is the comma-separated list of addresses the
-// serve verb binds. Its default, loopback only, is the salvage
-// configuration's own default. The registry has no list kind, so
-// this registers as KindString and [SplitBindAddrs] splits and
-// validates it in the package that binds, keeping the address grammar
-// with the code that uses it.
+// serve verb binds, loopback only by default. The registry has no list
+// kind, so it registers as a string and [ParseConfig] parses the list.
 var BindAddrsThreshold = config.Threshold{
 	Key:         "DUBPLATE_SERVE_BIND_ADDRS",
 	Kind:        config.KindString,
@@ -25,8 +22,7 @@ var BindAddrsThreshold = config.Threshold{
 }
 
 // PortThreshold is the TCP port the serve verb binds on every
-// configured address. Its default, 8080, is the salvage configuration's
-// own default.
+// configured address.
 var PortThreshold = config.Threshold{
 	Key:         "DUBPLATE_SERVE_PORT",
 	Kind:        config.KindInt,
@@ -90,37 +86,72 @@ func Register(reg *config.Registry) {
 	reg.AddThreshold(PrefixThreshold)
 }
 
-// ParseConfig reads the three thresholds against environ and
-// returns the values [Run] and its construction values take: the
-// validated owned prefix, the split and validated bind addresses, and
-// the port. It returns before any listener opens, so a caller can
-// refuse an invalid prefix or bind list without ever touching the
-// network.
-func ParseConfig(environ []string) (Prefix, []string, int, error) {
+// Config is the shell's listen configuration, read from the three
+// thresholds [Register] adds.
+type Config struct {
+	Prefix    Prefix
+	BindAddrs []netip.Addr
+	Port      int
+}
+
+// ParseConfig reads the three thresholds against environ. It opens no
+// listener, so a caller can refuse an invalid prefix or bind list
+// without touching the network.
+func ParseConfig(environ []string) (Config, error) {
 	prefixValue, err := config.ParseString(environ, PrefixThreshold)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 	prefix, err := NewPrefix(prefixValue)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 
 	bindRaw, err := config.ParseString(environ, BindAddrsThreshold)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
-	addrs, err := SplitBindAddrs(bindRaw)
+	addrs, err := parseBindAddrs(bindRaw)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 
 	port, err := config.ParseInt(environ, PortThreshold)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 
-	return prefix, addrs, port, nil
+	return Config{Prefix: prefix, BindAddrs: addrs, Port: port}, nil
+}
+
+// ErrInvalidBindAddr is the sentinel [ParseConfig] wraps when an entry
+// of the bind address list is refused.
+var ErrInvalidBindAddr = errors.New("invalid bind address")
+
+// parseBindAddrs parses raw's comma-separated addresses, each trimmed of
+// surrounding space. An empty entry, an entry that is not an IP address,
+// and an entry carrying a zone are refused rather than dropped, since a
+// dropped entry would bind fewer interfaces than the operator named.
+// The unspecified addresses are refused too: each binds every
+// interface, which [Listen] never does.
+func parseBindAddrs(raw string) ([]netip.Addr, error) {
+	parts := strings.Split(raw, ",")
+	addrs := make([]netip.Addr, 0, len(parts))
+	for _, part := range parts {
+		text := strings.TrimSpace(part)
+		if text == "" {
+			return nil, fmt.Errorf("%q: empty entry: %w", raw, ErrInvalidBindAddr)
+		}
+		addr, err := netip.ParseAddr(text)
+		if err != nil || addr.Zone() != "" {
+			return nil, fmt.Errorf("%q: %w", text, ErrInvalidBindAddr)
+		}
+		if addr.Unmap().IsUnspecified() {
+			return nil, fmt.Errorf("%q: the wildcard address binds every interface: %w", text, ErrInvalidBindAddr)
+		}
+		addrs = append(addrs, addr)
+	}
+	return addrs, nil
 }
 
 // The trusted proxy class's two Required keys.
