@@ -260,10 +260,3 @@ func (k *keyedLimiter) pushFront(kb *keyedBucket) {
 	k.ring.next.prev = kb
 	k.ring.next = kb
 }
-
-// size returns how many keys the map holds.
-func (k *keyedLimiter) size() int {
-	k.mu.Lock()
-	defer k.mu.Unlock()
-	return len(k.byKey)
-}

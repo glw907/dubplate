@@ -31,6 +31,13 @@ func address(i int) string { return fmt.Sprintf("member%d@example.com", i) }
 // every i is a distinct client key.
 func client(i int) string { return fmt.Sprintf("2001:db8:%x:%x::1", i>>16, i&0xffff) }
 
+// size returns how many keys the map holds.
+func (k *keyedLimiter) size() int {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	return len(k.byKey)
+}
+
 // TestLinkRequestLimitsTrip proves each link-request limit refuses on
 // its own count and names itself, and that a fresh key is still
 // admitted once it has.
