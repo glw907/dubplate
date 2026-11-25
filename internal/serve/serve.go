@@ -227,8 +227,7 @@ func (s *Shell) Logger() *slog.Logger {
 func refuseEchoMethods(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodTrace || r.Method == "TRACK" {
-			markRefusal(r, http.StatusMethodNotAllowed)
-			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			refuse(w, r, http.StatusMethodNotAllowed)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -267,13 +266,14 @@ type refusalRecord struct {
 	Status int
 }
 
-// markRefusal records that the shell itself refused r with status, the
-// status the caller then writes. It is a no-op outside the composed
-// chain, so [Normalize] stays usable on its own.
-func markRefusal(r *http.Request, status int) {
+// refuse answers r with status and records that the shell itself
+// refused it, so [Shell.logRefusal] writes its record. The record is a
+// no-op outside the composed chain.
+func refuse(w http.ResponseWriter, r *http.Request, status int) {
 	if rec, ok := r.Context().Value(refusalContextKey{}).(*refusalRecord); ok {
 		rec.Status = status
 	}
+	http.Error(w, http.StatusText(status), status)
 }
 
 // logRefusal wraps the whole composed chain (next) and, once it

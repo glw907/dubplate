@@ -77,8 +77,7 @@ func newOriginCheck() *originCheck {
 		protection: http.NewCrossOriginProtection(),
 		bypass:     http.NewServeMux(),
 		deny: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			markRefusal(r, http.StatusForbidden)
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			refuse(w, r, http.StatusForbidden)
 		}),
 	}
 }

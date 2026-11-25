@@ -78,8 +78,7 @@ const maxPathBytes = 2048
 func Normalize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if status, refused := pathRefusal(r.URL); refused {
-			markRefusal(r, status)
-			http.Error(w, http.StatusText(status), status)
+			refuse(w, r, status)
 			return
 		}
 		next.ServeHTTP(w, r)
