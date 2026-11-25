@@ -35,7 +35,7 @@ const (
 var (
 	fixtureMint   = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	fixtureExpiry = 15 * time.Minute
-	fixtureNonce  = [NonceLength]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+	fixtureNonce  = [nonceLength]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 )
 
 func fixtureLink(address string) LinkToken {
@@ -122,7 +122,7 @@ func TestVerifyLinkAcceptsPreviousSecret(t *testing.T) {
 	if parsed.Address != "alice@example.test" {
 		t.Errorf("address = %q, want %q", parsed.Address, "alice@example.test")
 	}
-	if _, err := VerifyLink([]byte(currentFixture), nil, rotatedVector, fixtureMint); !errors.Is(err, ErrLinkMAC) {
+	if _, err := VerifyLink([]byte(currentFixture), nil, rotatedVector, fixtureMint); !errors.Is(err, errLinkMAC) {
 		t.Errorf("VerifyLink without previous secret error = %v, want ErrLinkMAC", err)
 	}
 }
@@ -141,13 +141,13 @@ func TestVerifyLinkRefusals(t *testing.T) {
 			name:  "one bit flipped in the MAC",
 			value: flipFieldBit(t, valid, linkFieldCount),
 			now:   fixtureMint,
-			want:  ErrLinkMAC,
+			want:  errLinkMAC,
 		},
 		{
 			name:  "one bit flipped in the address",
 			value: flipFieldBit(t, valid, 1),
 			now:   fixtureMint,
-			want:  ErrLinkMAC,
+			want:  errLinkMAC,
 		},
 		{
 			// A value signed under the session cookie's own
@@ -157,13 +157,13 @@ func TestVerifyLinkRefusals(t *testing.T) {
 			name:  "signed under the session domain-separation label",
 			value: encodeUnderLabel([]byte(currentFixture), foreignLabelFixture, fixtureLink("alice@example.test")),
 			now:   fixtureMint,
-			want:  ErrLinkMAC,
+			want:  errLinkMAC,
 		},
 		{
 			name:  "past its expiry",
 			value: valid,
 			now:   expired,
-			want:  ErrLinkExpired,
+			want:  errLinkExpired,
 		},
 		{
 			// The MAC is checked first, so a value that fails
@@ -172,49 +172,49 @@ func TestVerifyLinkRefusals(t *testing.T) {
 			name:  "expired and MAC broken reports the MAC",
 			value: flipFieldBit(t, valid, linkFieldCount),
 			now:   expired,
-			want:  ErrLinkMAC,
+			want:  errLinkMAC,
 		},
 		{
 			name:  "exactly at its expiry",
 			value: valid,
 			now:   fixtureMint.Add(fixtureExpiry),
-			want:  ErrLinkExpired,
+			want:  errLinkExpired,
 		},
 		{
 			name:  "too few fields",
 			value: strings.Join(strings.Split(valid, ".")[:linkFieldCount], "."),
 			now:   fixtureMint,
-			want:  ErrLinkMalformed,
+			want:  errLinkMalformed,
 		},
 		{
 			name:  "a field that is not base64url",
 			value: "!!!." + strings.SplitN(valid, ".", 2)[1],
 			now:   fixtureMint,
-			want:  ErrLinkMalformed,
+			want:  errLinkMalformed,
 		},
 		{
 			name:  "an unknown version label",
 			value: replaceField(valid, 0, []byte("dubplate-link-99")),
 			now:   fixtureMint,
-			want:  ErrLinkMalformed,
+			want:  errLinkMalformed,
 		},
 		{
 			name:  "a mint time that is not a number",
 			value: replaceField(valid, 3, []byte("soon")),
 			now:   fixtureMint,
-			want:  ErrLinkMalformed,
+			want:  errLinkMalformed,
 		},
 		{
 			name:  "a nonce of the wrong length",
-			value: replaceField(valid, 4, fixtureNonce[:NonceLength-1]),
+			value: replaceField(valid, 4, fixtureNonce[:nonceLength-1]),
 			now:   fixtureMint,
-			want:  ErrLinkMalformed,
+			want:  errLinkMalformed,
 		},
 		{
 			name:  "an empty value",
 			value: "",
 			now:   fixtureMint,
-			want:  ErrLinkMalformed,
+			want:  errLinkMalformed,
 		},
 	}
 
@@ -226,7 +226,7 @@ func TestVerifyLinkRefusals(t *testing.T) {
 			}
 			// A refused value yields no nonce, so a caller cannot
 			// insert one for a value that failed either check.
-			if got.Nonce != ([NonceLength]byte{}) {
+			if got.Nonce != ([nonceLength]byte{}) {
 				t.Errorf("Nonce = %x on a refused value, want the zero value", got.Nonce)
 			}
 			if got != (LinkToken{}) {
@@ -262,7 +262,7 @@ func TestMACLengthPrefixesResistFieldShifting(t *testing.T) {
 	// The same property from the verifier's side: the right-hand
 	// fields carrying the left-hand MAC are refused.
 	spliced := replaceField(encodeLink([]byte(currentFixture), right), linkFieldCount, decodeField(t, leftMAC))
-	if _, err := VerifyLink([]byte(currentFixture), nil, spliced, fixtureMint); !errors.Is(err, ErrLinkMAC) {
+	if _, err := VerifyLink([]byte(currentFixture), nil, spliced, fixtureMint); !errors.Is(err, errLinkMAC) {
 		t.Errorf("spliced value error = %v, want ErrLinkMAC", err)
 	}
 }
@@ -285,7 +285,7 @@ func TestMintLink(t *testing.T) {
 	if want := now.Truncate(time.Second).Add(fixtureExpiry); !minted.ExpiresAt.Equal(want) {
 		t.Errorf("ExpiresAt = %v, want %v", minted.ExpiresAt, want)
 	}
-	if minted.Nonce == ([NonceLength]byte{}) {
+	if minted.Nonce == ([nonceLength]byte{}) {
 		t.Error("Nonce is the zero value, want random bytes")
 	}
 

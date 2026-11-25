@@ -110,7 +110,7 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 	if err := sess.checkLife(now, absoluteCap); err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
-	if err := m.epoch.CheckSession(sess); err != nil {
+	if err := m.epoch.checkSession(sess); err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
 	member, err := m.roster.Lookup(r.Context(), sess.Address)
@@ -133,7 +133,7 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 		if err != nil {
 			return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 		}
-		value, refreshed := RefreshSession(m.currentSecret, sess, now, lifetime, absoluteCap)
+		value, refreshed := refreshSession(m.currentSecret, sess, now, lifetime, absoluteCap)
 		result.Session = refreshed
 		result.RefreshedValue = value
 	}

@@ -175,7 +175,7 @@ func TestRequireAdmin_RefusalsMatchNotFound(t *testing.T) {
 		{
 			name: "session older than its epoch",
 			request: func(t *testing.T, fx adminFixture) *http.Request {
-				if err := fx.epoch.Bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
+				if err := fx.epoch.bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
 					t.Fatalf("Bump: %v", err)
 				}
 				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, currentFixture, "admin@example.com", verifierBirth), "")
@@ -384,7 +384,7 @@ func TestRequireAdmin_RefusalLogLevel(t *testing.T) {
 				return rosterRequest(http.MethodGet, "/dubplate/roster", mintAt(t, foreignFixture, "admin@example.com", verifierBirth), "")
 			},
 			wantLevel:  "INFO",
-			wantReason: ErrSessionMAC.Error(),
+			wantReason: errSessionMAC.Error(),
 		},
 		{
 			name: "member removed from the roster",
@@ -584,7 +584,7 @@ func TestVerifyRequest_RefusalsAreNotSignedIn(t *testing.T) {
 			return sessionRequest(mintAt(t, currentFixture, "admin@example.com", gateNow.Add(-verifierLifetime-time.Hour)), "same-origin")
 		}},
 		{"session older than its epoch", nil, func(t *testing.T, fx adminFixture) *http.Request {
-			if err := fx.epoch.Bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
+			if err := fx.epoch.bump("admin@example.com", verifierBirth.Add(time.Hour)); err != nil {
 				t.Fatalf("Bump: %v", err)
 			}
 			return sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin")

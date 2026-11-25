@@ -40,7 +40,7 @@ func dirStatus(cfg *config.Config, euid int) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	leaf := DirPath(cfg.StateDir)
+	leaf := dirPath(cfg.StateDir)
 	info, err := os.Stat(leaf)
 	if errors.Is(err, fs.ErrNotExist) {
 		if err := checkCreatable(leaf); err != nil {

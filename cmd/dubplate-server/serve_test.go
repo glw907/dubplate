@@ -2220,7 +2220,7 @@ func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
 	if _, err := auth.Open(stateDir); err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	record := filepath.Join(auth.DirPath(stateDir), "nonce", "truncated")
+	record := filepath.Join(stateDir, "auth", "nonce", "truncated")
 	if err := os.WriteFile(record, nil, 0o600); err != nil {
 		t.Fatalf("plant the truncated record: %v", err)
 	}

@@ -21,20 +21,20 @@ import (
 // credential refusal in this package, so a caller can log a revocation
 // as what it is rather than as an expiry or a signature failure.
 var (
-	// ErrSessionRevoked reports a session whose anchor predates its
+	// errSessionRevoked reports a session whose anchor predates its
 	// address's revocation epoch.
-	ErrSessionRevoked = errors.New("session revoked")
+	errSessionRevoked = errors.New("session revoked")
 
-	// ErrLinkRevoked reports a magic link whose mint time predates its
+	// errLinkRevoked reports a magic link whose mint time predates its
 	// address's revocation epoch.
-	ErrLinkRevoked = errors.New("magic link revoked")
+	errLinkRevoked = errors.New("magic link revoked")
 )
 
-// ErrEpochBackward reports a bump whose time is earlier than the epoch
+// errEpochBackward reports a bump whose time is earlier than the epoch
 // already stored for its address. The stored epoch is left in place,
 // so the revocation it records still holds; the sentinel lets a caller
 // tell that outcome from a bump that failed to write.
-var ErrEpochBackward = errors.New("revocation epoch would move backward")
+var errEpochBackward = errors.New("revocation epoch would move backward")
 
 // epochRecordVersion labels the record's field layout. A later field
 // lands under a new label rather than changing what an existing field
@@ -66,17 +66,17 @@ func NewEpochStore(leaf *Dir) *EpochStore {
 	return &EpochStore{leaf: leaf}
 }
 
-// Bump revokes every credential for address anchored or minted at or
+// bump revokes every credential for address anchored or minted at or
 // before now: it writes now as address's new epoch.
 //
 // The stored epoch only moves forward. A bump earlier than it writes
-// nothing and returns [ErrEpochBackward], so a backward clock step
+// nothing and returns [errEpochBackward], so a backward clock step
 // cannot reinstate a credential an earlier bump revoked. A bump at the
 // stored epoch's own second has nothing to move and returns nil. The
 // read of the stored epoch and the write of the new one happen under
 // one lock, so of two concurrent bumps the later time is the one left
 // stored.
-func (e *EpochStore) Bump(address string, now time.Time) error {
+func (e *EpochStore) bump(address string, now time.Time) error {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
 		return fmt.Errorf("bump epoch: %w", err)
@@ -89,14 +89,14 @@ func (e *EpochStore) Bump(address string, now time.Time) error {
 
 // Revoke bumps address's epoch to at for a roster write. The write calls
 // it inside its transaction, and a failed bump rolls the write back. A
-// bump refused with [ErrEpochBackward] is logged to logger, and Revoke
+// bump refused with [errEpochBackward] is logged to logger, and Revoke
 // returns nil. The stored epoch is later than at and already refuses
 // every credential this bump would. What committing accepts is a
 // session anchored between that stored epoch and the clock's step back:
 // no bump at the stepped-back time can reach it.
 func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, logger *slog.Logger) error {
-	err := e.Bump(address, at)
-	if errors.Is(err, ErrEpochBackward) {
+	err := e.bump(address, at)
+	if errors.Is(err, errEpochBackward) {
 		logger.Log(ctx, slog.LevelWarn, "revocation epoch is later than the clock; the write commits on the stored epoch", "address", address)
 		return nil
 	}
@@ -105,7 +105,7 @@ func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, l
 
 // advance writes epoch as normalized's epoch when it is later than the
 // stored one. It writes nothing when the stored epoch already equals
-// epoch, and returns [ErrEpochBackward] when the stored epoch is later.
+// epoch, and returns [errEpochBackward] when the stored epoch is later.
 func (e *EpochStore) advance(normalized string, epoch time.Time) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -115,12 +115,12 @@ func (e *EpochStore) advance(normalized string, epoch time.Time) error {
 		return err
 	}
 	if ok && epoch.Before(stored) {
-		return ErrEpochBackward
+		return errEpochBackward
 	}
 	if ok && epoch.Equal(stored) {
 		return nil
 	}
-	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
+	path, err := e.leaf.epochPath(recordID(epochSubdir, normalized))
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (e *EpochStore) Read(address string) (epoch time.Time, ok bool, err error) 
 }
 
 func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) {
-	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
+	path, err := e.leaf.epochPath(recordID(epochSubdir, normalized))
 	if err != nil {
 		return time.Time{}, false, fmt.Errorf("read epoch: %w", err)
 	}
@@ -161,7 +161,7 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 	return epoch, true, nil
 }
 
-// CheckSession refuses s when its anchor predates or equals its
+// checkSession refuses s when its anchor predates or equals its
 // address's revocation epoch.
 //
 // The comparison reads [Session.AnchoredAt] rather than
@@ -171,32 +171,32 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 // permitted from then on, permanently. The anchor is what refresh never
 // moves, so no ordering rule between this check and a refresh is
 // load-bearing.
-func (e *EpochStore) CheckSession(s Session) error {
+func (e *EpochStore) checkSession(s Session) error {
 	revoked, err := e.revokedAt(s.Address, s.AnchoredAt)
 	if err != nil {
 		return fmt.Errorf("check session epoch: %w", err)
 	}
 	if revoked {
-		return ErrSessionRevoked
+		return errSessionRevoked
 	}
 	return nil
 }
 
-// CheckLink refuses tok when its mint time predates or equals its
+// checkLink refuses tok when its mint time predates or equals its
 // address's revocation epoch.
 //
 // Without this check, an outstanding magic link survives an offboarding
-// for the whole of its expiry and mints a session [EpochStore.CheckSession]
+// for the whole of its expiry and mints a session [EpochStore.checkSession]
 // then honors, because the session's anchor is set at that later mint.
 // The attacker chooses when to click, so the refusal must be on the
 // link's own mint time, not on when it happens to be redeemed.
-func (e *EpochStore) CheckLink(tok LinkToken) error {
+func (e *EpochStore) checkLink(tok LinkToken) error {
 	revoked, err := e.revokedAt(tok.Address, tok.MintedAt)
 	if err != nil {
 		return fmt.Errorf("check link epoch: %w", err)
 	}
 	if revoked {
-		return ErrLinkRevoked
+		return errLinkRevoked
 	}
 	return nil
 }

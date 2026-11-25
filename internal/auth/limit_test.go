@@ -66,10 +66,10 @@ func TestLinkRequestLimitsTrip(t *testing.T) {
 				}
 			}
 			err := tt.allow(l)
-			if !errors.Is(err, ErrRateLimited) {
+			if !errors.Is(err, errRateLimited) {
 				t.Fatalf("request %d error = %v, want wrapping ErrRateLimited", tt.admitted+1, err)
 			}
-			if got := err.Error(); got != ErrRateLimited.Error()+": "+tt.wantText {
+			if got := err.Error(); got != errRateLimited.Error()+": "+tt.wantText {
 				t.Errorf("error = %q, want the %q limit named", got, tt.wantText)
 			}
 			if err := tt.fresh(l); err != nil {
@@ -89,10 +89,10 @@ func TestLimitsRefillOverTheInterval(t *testing.T) {
 		allow func(l *Limiter, now time.Time) error
 	}{
 		{"consumption attempts per client", registeredDefaults.ConsumptionAttemptsPerClient, func(l *Limiter, now time.Time) error {
-			return l.AllowConsumption(now, "192.0.2.1")
+			return l.allowConsumption(now, "192.0.2.1")
 		}},
 		{"link mail ceiling", registeredDefaults.LinkMailCeiling, func(l *Limiter, now time.Time) error {
-			return l.AllowLinkMail(now)
+			return l.allowLinkMail(now)
 		}},
 	}
 	for _, tt := range tests {
@@ -104,7 +104,7 @@ func TestLimitsRefillOverTheInterval(t *testing.T) {
 						t.Fatalf("at %v: attempt %d of %d refused: %v", now, i+1, tt.count, err)
 					}
 				}
-				if err := tt.allow(l, now); !errors.Is(err, ErrRateLimited) {
+				if err := tt.allow(l, now); !errors.Is(err, errRateLimited) {
 					t.Fatalf("at %v: attempt %d error = %v, want wrapping ErrRateLimited", now, tt.count+1, err)
 				}
 			}
@@ -124,14 +124,14 @@ func TestLinkMailCeilingIgnoresKeys(t *testing.T) {
 		if err := l.allowLinkAddress(limitEpoch, address(i)); err != nil {
 			t.Fatalf("request %d for a fresh address refused: %v", i+1, err)
 		}
-		err := l.AllowLinkMail(limitEpoch)
+		err := l.allowLinkMail(limitEpoch)
 		if i < registeredDefaults.LinkMailCeiling {
 			if err != nil {
 				t.Fatalf("mail %d of %d refused: %v", i+1, registeredDefaults.LinkMailCeiling, err)
 			}
 			continue
 		}
-		if !errors.Is(err, ErrRateLimited) {
+		if !errors.Is(err, errRateLimited) {
 			t.Errorf("mail %d error = %v, want wrapping ErrRateLimited", i+1, err)
 		}
 	}
@@ -158,7 +158,7 @@ func TestKeyedLimiterBoundHoldsUnderFlood(t *testing.T) {
 			_ = l.allowLinkClient(limitEpoch, client(i))
 		}, func(l *Limiter) *keyedLimiter { return l.perClient }},
 		{"consumption attempts per client", 2*maxLimiterKeys + 1, func(l *Limiter, i int) {
-			_ = l.AllowConsumption(limitEpoch, client(i))
+			_ = l.allowConsumption(limitEpoch, client(i))
 		}, func(l *Limiter) *keyedLimiter { return l.consumption }},
 	}
 	for _, tt := range tests {
@@ -219,7 +219,7 @@ func TestKeySpacesDoNotShareBuckets(t *testing.T) {
 		{
 			name:  "consumption survives a link request flood",
 			count: registeredDefaults.ConsumptionAttemptsPerClient,
-			spend: func(l *Limiter) error { return l.AllowConsumption(limitEpoch, spent) },
+			spend: func(l *Limiter) error { return l.allowConsumption(limitEpoch, spent) },
 			flood: func(l *Limiter, i int) {
 				_ = l.allowLinkClient(limitEpoch, client(i))
 				_ = l.allowLinkAddress(limitEpoch, address(i))
@@ -229,7 +229,7 @@ func TestKeySpacesDoNotShareBuckets(t *testing.T) {
 			name:  "link requests per client survive a consumption flood",
 			count: registeredDefaults.LinkRequestsPerClient,
 			spend: func(l *Limiter) error { return l.allowLinkClient(limitEpoch, spent) },
-			flood: func(l *Limiter, i int) { _ = l.AllowConsumption(limitEpoch, client(i)) },
+			flood: func(l *Limiter, i int) { _ = l.allowConsumption(limitEpoch, client(i)) },
 		},
 	}
 	for _, tt := range tests {
@@ -240,13 +240,13 @@ func TestKeySpacesDoNotShareBuckets(t *testing.T) {
 					t.Fatalf("attempt %d of %d refused: %v", i+1, tt.count, err)
 				}
 			}
-			if err := l.AllowConsumption(limitEpoch, "203.0.113.9"); err != nil {
+			if err := l.allowConsumption(limitEpoch, "203.0.113.9"); err != nil {
 				t.Fatalf("an unrelated client's consumption refused: %v", err)
 			}
 			for i := range maxLimiterKeys + 1 {
 				tt.flood(l, i)
 			}
-			if err := tt.spend(l); !errors.Is(err, ErrRateLimited) {
+			if err := tt.spend(l); !errors.Is(err, errRateLimited) {
 				t.Errorf("spent key after the other space's flood: error = %v, want wrapping ErrRateLimited", err)
 			}
 		})
@@ -410,9 +410,9 @@ func TestClientLimitsKeyIPv6OnItsSlash64(t *testing.T) {
 		client func(i int) string
 		allow  func(l *Limiter, client string) error
 	}{
-		{"consumption, one /64", inOne64, func(l *Limiter, c string) error { return l.AllowConsumption(limitEpoch, c) }},
+		{"consumption, one /64", inOne64, func(l *Limiter, c string) error { return l.allowConsumption(limitEpoch, c) }},
 		{"link requests, one /64", inOne64, func(l *Limiter, c string) error { return l.allowLinkClient(limitEpoch, c) }},
-		{"consumption, IPv4 and its mapped form", mapped, func(l *Limiter, c string) error { return l.AllowConsumption(limitEpoch, c) }},
+		{"consumption, IPv4 and its mapped form", mapped, func(l *Limiter, c string) error { return l.allowConsumption(limitEpoch, c) }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

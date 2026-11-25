@@ -32,7 +32,7 @@ func TestBumpReadDurable(t *testing.T) {
 	stateDir := t.TempDir()
 	first := newEpochStore(t, stateDir)
 
-	if err := first.Bump(epochFixtureAddress, epochClock); err != nil {
+	if err := first.bump(epochFixtureAddress, epochClock); err != nil {
 		t.Fatalf("Bump: %v", err)
 	}
 
@@ -77,20 +77,20 @@ func TestCheckSession(t *testing.T) {
 		anchor  time.Time
 		wantErr error
 	}{
-		{"anchored before the bump", epochClock.Add(-time.Minute), ErrSessionRevoked},
-		{"anchored exactly at the bump", epochClock, ErrSessionRevoked},
+		{"anchored before the bump", epochClock.Add(-time.Minute), errSessionRevoked},
+		{"anchored exactly at the bump", epochClock, errSessionRevoked},
 		{"anchored after the bump", epochClock.Add(time.Minute), nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			store := newEpochStore(t, stateDir)
-			if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
+			if err := store.bump(epochFixtureAddress, epochClock); err != nil {
 				t.Fatalf("Bump: %v", err)
 			}
 
 			s := Session{Address: epochFixtureAddress, AnchoredAt: tt.anchor}
-			err := store.CheckSession(s)
+			err := store.checkSession(s)
 			if tt.wantErr == nil {
 				if err != nil {
 					t.Fatalf("CheckSession: %v, want nil", err)
@@ -116,13 +116,13 @@ func TestCheckSessionRefreshedAfterBumpStillRefused(t *testing.T) {
 		t.Fatalf("MintSession: %v", err)
 	}
 
-	if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
+	if err := store.bump(epochFixtureAddress, epochClock); err != nil {
 		t.Fatalf("Bump: %v", err)
 	}
 
-	_, refreshed := RefreshSession([]byte("session-secret"), session, epochClock.Add(time.Minute), time.Hour, 24*time.Hour)
+	_, refreshed := refreshSession([]byte("session-secret"), session, epochClock.Add(time.Minute), time.Hour, 24*time.Hour)
 
-	if err := store.CheckSession(refreshed); !errors.Is(err, ErrSessionRevoked) {
+	if err := store.checkSession(refreshed); !errors.Is(err, errSessionRevoked) {
 		t.Fatalf("CheckSession after refresh = %v, want ErrSessionRevoked", err)
 	}
 }
@@ -137,14 +137,14 @@ func TestCheckLink(t *testing.T) {
 		mintedAt time.Time
 		wantErr  error
 	}{
-		{"minted before the bump", epochClock.Add(-time.Minute), ErrLinkRevoked},
+		{"minted before the bump", epochClock.Add(-time.Minute), errLinkRevoked},
 		{"minted after the bump", epochClock.Add(time.Minute), nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			store := newEpochStore(t, stateDir)
-			if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
+			if err := store.bump(epochFixtureAddress, epochClock); err != nil {
 				t.Fatalf("Bump: %v", err)
 			}
 
@@ -153,7 +153,7 @@ func TestCheckLink(t *testing.T) {
 				MintedAt:  tt.mintedAt,
 				ExpiresAt: tt.mintedAt.Add(time.Hour),
 			}
-			err := store.CheckLink(tok)
+			err := store.checkLink(tok)
 			if tt.wantErr == nil {
 				if err != nil {
 					t.Fatalf("CheckLink: %v, want nil", err)
@@ -186,12 +186,12 @@ func TestCheckSessionNormalizesAddress(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
 			store := newEpochStore(t, stateDir)
-			if err := store.Bump(tt.bumpAddress, epochClock); err != nil {
+			if err := store.bump(tt.bumpAddress, epochClock); err != nil {
 				t.Fatalf("Bump: %v", err)
 			}
 
 			s := Session{Address: tt.sessAddress, AnchoredAt: epochClock.Add(-time.Minute)}
-			if err := store.CheckSession(s); !errors.Is(err, ErrSessionRevoked) {
+			if err := store.checkSession(s); !errors.Is(err, errSessionRevoked) {
 				t.Fatalf("CheckSession = %v, want ErrSessionRevoked", err)
 			}
 		})
@@ -211,18 +211,18 @@ func TestBackwardBumpKeepsTheRevocation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
-	if err := store.Bump(epochFixtureAddress, epochClock.Add(time.Minute)); err != nil {
+	if err := store.bump(epochFixtureAddress, epochClock.Add(time.Minute)); err != nil {
 		t.Fatalf("Bump forward: %v", err)
 	}
-	if err := store.CheckSession(session); !errors.Is(err, ErrSessionRevoked) {
+	if err := store.checkSession(session); !errors.Is(err, errSessionRevoked) {
 		t.Fatalf("CheckSession after the forward bump = %v, want ErrSessionRevoked", err)
 	}
 
-	if err := store.Bump(epochFixtureAddress, epochClock.Add(-time.Hour)); !errors.Is(err, ErrEpochBackward) {
+	if err := store.bump(epochFixtureAddress, epochClock.Add(-time.Hour)); !errors.Is(err, errEpochBackward) {
 		t.Errorf("Bump backward = %v, want ErrEpochBackward", err)
 	}
 
-	if err := store.CheckSession(session); !errors.Is(err, ErrSessionRevoked) {
+	if err := store.checkSession(session); !errors.Is(err, errSessionRevoked) {
 		t.Errorf("CheckSession after the backward bump = %v, want ErrSessionRevoked", err)
 	}
 	got, _, err := store.Read(epochFixtureAddress)
@@ -253,10 +253,10 @@ func TestConcurrentBumpsKeepTheLater(t *testing.T) {
 		for _, at := range []time.Time{earlier, later} {
 			wg.Go(func() {
 				<-start
-				// The earlier bump returns ErrEpochBackward
+				// The earlier bump returns errEpochBackward
 				// when it lands second; the stored value
 				// below is the assertion.
-				_ = store.Bump(address, at)
+				_ = store.bump(address, at)
 			})
 		}
 		close(start)
@@ -278,11 +278,11 @@ func TestBumpNoAddressInFilename(t *testing.T) {
 	stateDir := t.TempDir()
 	store := newEpochStore(t, stateDir)
 
-	if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
+	if err := store.bump(epochFixtureAddress, epochClock); err != nil {
 		t.Fatalf("Bump: %v", err)
 	}
 
-	entries, err := os.ReadDir(filepath.Join(DirPath(stateDir), epochSubdir))
+	entries, err := os.ReadDir(filepath.Join(dirPath(stateDir), epochSubdir))
 	if err != nil {
 		t.Fatalf("read epoch directory: %v", err)
 	}

@@ -123,7 +123,7 @@ func (cfg VerifyConfig) check(r *http.Request) gateCheck {
 
 func (c gateCheck) setRefreshed(w http.ResponseWriter) {
 	if c.v.RefreshedValue != "" {
-		http.SetCookie(w, SessionCookie(c.v.RefreshedValue, c.now, c.v.Session.ExpiresAt))
+		http.SetCookie(w, sessionCookie(c.v.RefreshedValue, c.now, c.v.Session.ExpiresAt))
 	}
 }
 
@@ -132,11 +132,11 @@ func (c gateCheck) setRefreshed(w http.ResponseWriter) {
 // whatever the read met.
 var gateRefusals = []error{
 	http.ErrNoCookie,
-	ErrSessionMalformed,
-	ErrSessionMAC,
-	ErrSessionCapReached,
-	ErrSessionExpired,
-	ErrSessionRevoked,
+	errSessionMalformed,
+	errSessionMAC,
+	errSessionCapReached,
+	errSessionExpired,
+	errSessionRevoked,
 	member.ErrMemberNotFound,
 }
 

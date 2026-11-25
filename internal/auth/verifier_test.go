@@ -195,7 +195,7 @@ func TestMagicLinkVerifier_VerifyIdentity_NeverCommandLine(t *testing.T) {
 // TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh proves that
 // refreshing a session cannot outrun a revocation aimed at its anchor:
 // the anchor a refresh never moves is what a later epoch bump compares
-// against, the property 5b-i's CheckSession doc records. The test
+// against, the property checkSession's doc records. The test
 // performs a refresh before the bump, so a check reading IssuedAt
 // instead of AnchoredAt would miss it.
 func TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
@@ -219,13 +219,13 @@ func TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T)
 	// which a check keyed on IssuedAt would miss and a check keyed on
 	// AnchoredAt (unmoved by the refresh) still catches.
 	bumpTime := verifierBirth.Add(30 * time.Minute)
-	if err := fx.epoch.Bump("member@example.com", bumpTime); err != nil {
+	if err := fx.epoch.bump("member@example.com", bumpTime); err != nil {
 		t.Fatalf("Bump: %v", err)
 	}
 
 	req2 := requestWithSession(t, refreshed.RefreshedValue)
 	_, err = fx.seam.VerifyIdentity(req2, refreshTime.Add(time.Minute), true)
-	if !errors.Is(err, ErrSessionRevoked) {
+	if !errors.Is(err, errSessionRevoked) {
 		t.Fatalf("VerifyIdentity (post-bump) error = %v, want ErrSessionRevoked", err)
 	}
 }
@@ -257,7 +257,7 @@ func TestMagicLinkVerifier_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T
 }
 
 // TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies proves that a
-// non-sentinel error from EpochStore.Read (via CheckSession) denies
+// non-sentinel error from EpochStore.Read (via checkSession) denies
 // exactly as a sentinel refusal would, the fail-closed discipline
 // security constraint 2 states. Named mutation 3 (treat a non-sentinel
 // error as "not refused") fails this row, because it would let a valid
@@ -283,7 +283,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if err == nil {
 		t.Fatalf("VerifyIdentity: got nil error, want a denial from the unreadable epoch directory")
 	}
-	if errors.Is(err, member.ErrMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
+	if errors.Is(err, member.ErrMemberNotFound) || errors.Is(err, errSessionRevoked) {
 		t.Fatalf("VerifyIdentity error = %v, want a non-sentinel I/O error", err)
 	}
 }
@@ -341,7 +341,7 @@ func TestMagicLinkVerifier_ReadsTheCapAtEveryVerification(t *testing.T) {
 		wantErr error
 	}{
 		{"the cap in force admits the session's age", verifierCap, nil},
-		{"a cap lowered below the session's age refuses it", 5 * 24 * time.Hour, ErrSessionCapReached},
+		{"a cap lowered below the session's age refuses it", 5 * 24 * time.Hour, errSessionCapReached},
 		{"the cap raised again admits it", verifierCap, nil},
 	} {
 		absoluteCap.set(tt.cap, nil)
@@ -446,8 +446,8 @@ func TestMagicLinkVerifier_CapReadFollowsTheMAC(t *testing.T) {
 		wantErr   error
 		wantReads int
 	}{
-		{"a value that does not parse", func(*testing.T) string { return "not-a-session" }, ErrSessionMalformed, 0},
-		{"a MAC under neither secret", func(t *testing.T) string { return mint(t, "an-unrelated-secret-of-enough-length") }, ErrSessionMAC, 0},
+		{"a value that does not parse", func(*testing.T) string { return "not-a-session" }, errSessionMalformed, 0},
+		{"a MAC under neither secret", func(t *testing.T) string { return mint(t, "an-unrelated-secret-of-enough-length") }, errSessionMAC, 0},
 		{"a valid session", func(t *testing.T) string { return mint(t, currentFixture) }, nil, 1},
 	}
 	for _, tt := range tests {

@@ -126,7 +126,7 @@ type HandlersConfig struct {
 	// SessionAbsoluteCap bounds how long a session can survive however
 	// many times it is refreshed. MintSession clamps every minted
 	// session's expiry to the value read when the consumption starts,
-	// the same clamp RefreshSession applies.
+	// the same clamp a refresh applies.
 	SessionAbsoluteCap settings.Reader[time.Duration]
 
 	// PublicOrigin is the configured public URL every mailed link is
@@ -333,7 +333,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.sendLink(r.Context(), now, vals.expiry, found.Address); err != nil {
 		h.logSendFailure(log, err)
-		if errors.Is(err, ErrRateLimited) {
+		if errors.Is(err, errRateLimited) {
 			writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 			return
 		}
@@ -347,7 +347,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 // sendLink charges the global mail ceiling, mints a link for address
 // expiring after expiry, and mails it.
 func (h *handlers) sendLink(ctx context.Context, now time.Time, expiry time.Duration, address string) error {
-	if err := h.cfg.Limiter.AllowLinkMail(now); err != nil {
+	if err := h.cfg.Limiter.allowLinkMail(now); err != nil {
 		return err
 	}
 	token, _, err := MintLink(h.cfg.LinkSecret, address, now, expiry)
@@ -370,7 +370,7 @@ func failSetting(w http.ResponseWriter, log *slog.Logger, err error) {
 }
 
 func (h *handlers) logSendFailure(log *slog.Logger, err error) {
-	if errors.Is(err, ErrRateLimited) {
+	if errors.Is(err, errRateLimited) {
 		log.Warn("auth rate limit tripped", "reason", err.Error())
 		return
 	}
@@ -415,7 +415,7 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 	clientIP := h.cfg.ClientIP(r)
 	log := h.cfg.Logger.With("client_ip", clientIP, "path", r.URL.Path)
 
-	if err := h.cfg.Limiter.AllowConsumption(now, clientIP); err != nil {
+	if err := h.cfg.Limiter.allowConsumption(now, clientIP); err != nil {
 		log.Warn("auth rate limit tripped", "reason", err.Error())
 		writeAnswer(w, http.StatusTooManyRequests, answer{Outcome: outcomeRateLimited})
 		return
@@ -439,7 +439,7 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeRefused})
 		return
 	}
-	http.SetCookie(w, SessionCookie(value, now, sess.ExpiresAt))
+	http.SetCookie(w, sessionCookie(value, now, sess.ExpiresAt))
 	log.Info("auth link consumed")
 	writeAnswer(w, http.StatusOK, answer{Outcome: outcomeSignedIn})
 }
@@ -455,7 +455,7 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 	if _, err := h.cfg.Roster.Lookup(ctx, tok.Address); err != nil {
 		return "", Session{}, err
 	}
-	if err := h.cfg.Epoch.CheckLink(tok); err != nil {
+	if err := h.cfg.Epoch.checkLink(tok); err != nil {
 		return "", Session{}, err
 	}
 	lifetime, err := readSetting(ctx, h.cfg.SessionLifetime)
@@ -466,7 +466,7 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 	if err != nil {
 		return "", Session{}, err
 	}
-	if err := h.cfg.Nonces.Insert(ctx, tok.Nonce, now, tok.ExpiresAt); err != nil {
+	if err := h.cfg.Nonces.insert(ctx, tok.Nonce, now, tok.ExpiresAt); err != nil {
 		return "", Session{}, err
 	}
 	return MintSession(h.cfg.SessionSecret, tok.Address, now, lifetime, absoluteCap)
@@ -481,7 +481,7 @@ func (h *handlers) signOut(w http.ResponseWriter, r *http.Request) {
 	if !readForm(w, r, h.cfg.BodyCapCeiling, log) {
 		return
 	}
-	http.SetCookie(w, ClearSessionCookie())
+	http.SetCookie(w, clearSessionCookie())
 	log.Info("auth signed out")
 	writeAnswer(w, http.StatusOK, answer{Outcome: outcomeSignedOut})
 }
