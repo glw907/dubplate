@@ -179,23 +179,20 @@ func TestValidateMagicLinkSource_SMTPPort(t *testing.T) {
 	}
 }
 
-// TestValidateMagicLinkSource_PortChecksJoinInOrder holds the order of
-// the join: the mail port's refusal comes before the serve port's, so
-// a configuration with both wrong reports them in that order. The
-// expected text is a literal, since a Contains match on each key would
-// pass with the two checks swapped.
-func TestValidateMagicLinkSource_PortChecksJoinInOrder(t *testing.T) {
+// TestValidateMagicLinkSource_LeavesServePort holds the serve port to
+// the binary's own check: with both ports wrong, the source refuses the
+// mail port alone, so a bad serve port is reported once, by serve's
+// bound, and never a second time from here.
+func TestValidateMagicLinkSource_LeavesServePort(t *testing.T) {
 	values := map[string]string{"DUBPLATE_SMTP_PORT": "abc"}
 	environ := []string{"DUBPLATE_SERVE_PORT=80"}
 
 	err := validateMagicLinkSource(values, environ)
 	if err == nil {
-		t.Fatal("validateMagicLinkSource() error = nil, want a joined refusal")
+		t.Fatal("validateMagicLinkSource() error = nil, want the mail port's refusal")
 	}
-	want := "DUBPLATE_SMTP_PORT: not an integer\n" +
-		"DUBPLATE_SERVE_PORT: 80 is below 1024: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port"
-	if err.Error() != want {
-		t.Errorf("error = %q, want %q", err.Error(), want)
+	if got, want := err.Error(), "DUBPLATE_SMTP_PORT: not an integer"; got != want {
+		t.Errorf("error = %q, want %q", got, want)
 	}
 }
 
@@ -258,40 +255,107 @@ func TestValidateMagicLinkSource_NoSecretInErrors(t *testing.T) {
 	}
 }
 
-// TestAuthSettingReaders_FailureNamesTheKey proves each reader serve hands
-// the handlers reports a failed read as an [*SettingError] carrying
-// the setting's key, the shape the handlers log by key alone. The
-// accessor is built over an empty registry, so every read fails before
-// it reaches a store.
-func TestAuthSettingReaders_FailureNamesTheKey(t *testing.T) {
-	acc := settings.NewAccessor(nil, config.NewRegistry())
+// magicLinkEnviron is a wall the magic-link source loads from: each
+// secret a distinct literal at the length floor, so a field wired to
+// the wrong key reads another key's value and fails its comparison.
+func magicLinkEnviron() []string {
+	return []string{
+		"DUBPLATE_LIBRARY_ROOT=/srv/music/library",
+		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
+		"DUBPLATE_SITE_NAME=Test Family",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
+		"DUBPLATE_IDENTITY_SOURCE=magic-link",
+		"DUBPLATE_MAGIC_LINK_SECRET=" + strings.Repeat("l", secretLengthFloor),
+		"DUBPLATE_MAGIC_LINK_SECRET_PREVIOUS=" + strings.Repeat("m", secretLengthFloor),
+		"DUBPLATE_SESSION_SECRET=" + strings.Repeat("s", secretLengthFloor),
+		"DUBPLATE_SESSION_SECRET_PREVIOUS=" + strings.Repeat("t", secretLengthFloor),
+		"DUBPLATE_PUBLIC_URL=https://music.example.org",
+		"DUBPLATE_SMTP_HOST=smtp.example.org",
+		"DUBPLATE_SMTP_PORT=587",
+		"DUBPLATE_SMTP_USER=mailer",
+		"DUBPLATE_SMTP_PASSWORD=fixture-password",
+		"DUBPLATE_SMTP_FROM=Music <music@example.org>",
+	}
+}
+
+// TestConfigFrom_ResolvesTheSource proves [ConfigFrom] resolves each
+// magic-link value from its own key. Every want is a literal from
+// [magicLinkEnviron].
+func TestConfigFrom_ResolvesTheSource(t *testing.T) {
+	reg := config.NewRegistry()
+	Register(reg)
+	cfg, err := config.Load(magicLinkEnviron(), reg)
+	if err != nil {
+		t.Fatalf("config.Load: %v", err)
+	}
+	got, err := ConfigFrom(cfg, settings.NewAccessor(nil, reg))
+	if err != nil {
+		t.Fatalf("ConfigFrom: %v", err)
+	}
+	for _, tt := range []struct {
+		name      string
+		got, want string
+	}{
+		{"LinkSecret", string(got.LinkSecret), strings.Repeat("l", secretLengthFloor)},
+		{"PreviousLinkSecret", string(got.PreviousLinkSecret), strings.Repeat("m", secretLengthFloor)},
+		{"SessionSecret", string(got.SessionSecret), strings.Repeat("s", secretLengthFloor)},
+		{"PreviousSessionSecret", string(got.PreviousSessionSecret), strings.Repeat("t", secretLengthFloor)},
+		{"PublicOrigin", got.PublicOrigin, "https://music.example.org"},
+	} {
+		if tt.got != tt.want {
+			t.Errorf("%s = %q, want %q", tt.name, tt.got, tt.want)
+		}
+	}
+}
+
+// TestConfigFrom_RefusesAnotherSource proves [ConfigFrom] refuses a
+// config whose selected source is not the magic-link source, so serve
+// never signs with the empty secrets such a config resolves to.
+func TestConfigFrom_RefusesAnotherSource(t *testing.T) {
+	_, err := ConfigFrom(&config.Config{}, settings.NewAccessor(nil, config.NewRegistry()))
+	if !errors.Is(err, errSourceNotSelected) {
+		t.Fatalf("ConfigFrom() error = %v, want errSourceNotSelected", err)
+	}
+}
+
+// TestConfigFrom_ReadersNameTheirKeys proves each reader [ConfigFrom]
+// wires reads its own setting and reports a failed read as a
+// [*settings.ReadError] carrying that setting's key, the shape the
+// handlers log by key alone. The accessor is built over an empty
+// registry, so every read fails before it reaches a store, and the key
+// in the failure names the setting the reader was wired to.
+func TestConfigFrom_ReadersNameTheirKeys(t *testing.T) {
+	reg := config.NewRegistry()
+	Register(reg)
+	cfg, err := config.Load(magicLinkEnviron(), reg)
+	if err != nil {
+		t.Fatalf("config.Load: %v", err)
+	}
+	ac, err := ConfigFrom(cfg, settings.NewAccessor(nil, config.NewRegistry()))
+	if err != nil {
+		t.Fatalf("ConfigFrom: %v", err)
+	}
 	tests := []struct {
 		name string
 		read func(context.Context) error
 		key  string
 	}{
-		{"duration", func(ctx context.Context) error {
-			_, err := DurationSetting(acc, SessionAbsoluteCapSetting)(ctx)
-			return err
-		}, "DUBPLATE_SESSION_ABSOLUTE_CAP"},
-		{"body cap", func(ctx context.Context) error {
-			_, err := BodyCap(acc)(ctx)
-			return err
-		}, "DUBPLATE_AUTH_REQUEST_BODY_CAP"},
-		{"generic answer", func(ctx context.Context) error {
-			_, err := GenericAnswer(acc)(ctx)
-			return err
-		}, "DUBPLATE_UNKNOWN_ADDRESS_ANSWER"},
+		{"LinkExpiry", func(ctx context.Context) error { _, err := ac.LinkExpiry(ctx); return err }, "DUBPLATE_MAGIC_LINK_EXPIRY"},
+		{"SessionLifetime", func(ctx context.Context) error { _, err := ac.SessionLifetime(ctx); return err }, "DUBPLATE_SESSION_LIFETIME"},
+		{"SessionAbsoluteCap", func(ctx context.Context) error { _, err := ac.SessionAbsoluteCap(ctx); return err }, "DUBPLATE_SESSION_ABSOLUTE_CAP"},
+		{"NonceRetention", func(ctx context.Context) error { _, err := ac.NonceRetention(ctx); return err }, "DUBPLATE_NONCE_RETENTION"},
+		{"BodyCap", func(ctx context.Context) error { _, err := ac.BodyCap(ctx); return err }, "DUBPLATE_AUTH_REQUEST_BODY_CAP"},
+		{"GenericAnswer", func(ctx context.Context) error { _, err := ac.GenericAnswer(ctx); return err }, "DUBPLATE_UNKNOWN_ADDRESS_ANSWER"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.read(t.Context())
-			se, ok := errors.AsType[*SettingError](err)
+			se, ok := errors.AsType[*settings.ReadError](err)
 			if !ok {
-				t.Fatalf("read error = %v, want an *SettingError", err)
+				t.Fatalf("read error = %v, want a *settings.ReadError", err)
 			}
 			if se.Key != tt.key {
-				t.Errorf("SettingError key = %q, want %q", se.Key, tt.key)
+				t.Errorf("ReadError key = %q, want %q", se.Key, tt.key)
 			}
 		})
 	}

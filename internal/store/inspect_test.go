@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,8 +12,6 @@ import (
 	"syscall"
 	"testing"
 	"time"
-
-	"github.com/glw907/dubplate/internal/id"
 )
 
 // childActionEnv and childStateDirEnv tell a re-executed test binary
@@ -268,34 +265,17 @@ func TestStateString(t *testing.T) {
 	}
 }
 
-// insertFinished inserts one terminal job record through h.
-func insertFinished(t *testing.T, h *Handle, kind, state string, finished int64, progress any) {
-	t.Helper()
-	err := h.Update(deadline(t, 5*time.Second), func(ctx context.Context, tx *Tx) error {
-		_, err := tx.Exec(ctx,
-			"INSERT INTO jobs (id, kind, at, state, owner_instance, actor, progress, updated_at, finished_at) VALUES (?, ?, 1, ?, ?, 'local:test', ?, ?, ?)",
-			id.New(), kind, state, testInstance, progress, finished, finished)
-		return err
-	})
-	if err != nil {
-		t.Fatalf("insert %s %s job: %v", kind, state, err)
-	}
-}
-
-// TestInspect_Facts: a current store reports its newest succeeded job
-// per kind, its -wal size, the free space on its filesystem, and the
-// count and size of its copies, a backup reference not among them.
-// Fixture: a write handle held open, so the -wal holds the inserts.
+// TestInspect_Facts: a current store reports its -wal size, the free
+// space on its filesystem, and the count and size of its copies, a
+// backup reference not among them. Fixture: a write handle held open,
+// so the -wal holds the insert.
 func TestInspect_Facts(t *testing.T) {
 	stateDir := currentStore(t)
 	l := newLeaf(stateDir)
 	h := writeHandle(t, stateDir)
-	// 2026-09-24T12:00:00Z and a day later, in microseconds.
-	const older, newest = 1790251200000000, 1790337600000000
-	insertFinished(t, h, "backup", "succeeded", older, "an earlier run")
-	insertFinished(t, h, "backup", "succeeded", newest, "prune skipped: a remote stamp is not older than this run's")
-	insertFinished(t, h, "backup", "failed", newest+1, "a later failure")
-	insertFinished(t, h, "scan", "succeeded", older, nil)
+	if err := insertJob(deadline(t, 5*time.Second), h, "scan"); err != nil {
+		t.Fatalf("insert job: %v", err)
+	}
 
 	if err := os.WriteFile(filepath.Join(l.snapshotsDir, "pre-migrate-v1.db"), []byte("five!"), 0o600); err != nil {
 		t.Fatal(err)
@@ -319,15 +299,6 @@ func TestInspect_Facts(t *testing.T) {
 		t.Fatalf("inspect = %v (%s), facts %v, want current with facts", r.State, r.Reason, r.Facts)
 	}
 	f := r.Facts
-	want := map[string]JobSuccess{
-		"backup": {Finished: time.Date(2026, 9, 25, 12, 0, 0, 0, time.UTC), Progress: "prune skipped: a remote stamp is not older than this run's"},
-		"scan":   {Finished: time.Date(2026, 9, 24, 12, 0, 0, 0, time.UTC)},
-	}
-	if !maps.EqualFunc(f.LastSuccess, want, func(a, b JobSuccess) bool {
-		return a.Finished.Equal(b.Finished) && a.Finished.Location() == time.UTC && a.Progress == b.Progress
-	}) {
-		t.Errorf("last success = %v, want %v", f.LastSuccess, want)
-	}
 	if f.WALSize != wal.Size() {
 		t.Errorf("-wal size = %d, want %d", f.WALSize, wal.Size())
 	}
@@ -340,8 +311,7 @@ func TestInspect_Facts(t *testing.T) {
 }
 
 // TestInspect_FactsEdges: a failed statfs reads unknown without
-// failing the inspection, no copy reads 0 and 0, and a store with no
-// succeeded job reports none.
+// failing the inspection, and no copy reads 0 and 0.
 func TestInspect_FactsEdges(t *testing.T) {
 	stateDir := currentStore(t)
 	l := newLeaf(stateDir)
@@ -358,8 +328,8 @@ func TestInspect_FactsEdges(t *testing.T) {
 	if r.State != StateCurrent || r.Facts == nil {
 		t.Fatalf("inspect = %v (%s), facts %v, want current with facts", r.State, r.Reason, r.Facts)
 	}
-	if f := *r.Facts; f.FreeKnown || f.FreeBytes != 0 || f.Copies != 0 || f.CopiesSize != 0 || len(f.LastSuccess) != 0 {
-		t.Errorf("facts = %+v, want free space unknown, no copies, and no success", f)
+	if f := *r.Facts; f.FreeKnown || f.FreeBytes != 0 || f.Copies != 0 || f.CopiesSize != 0 {
+		t.Errorf("facts = %+v, want free space unknown and no copies", f)
 	}
 }
 
@@ -375,7 +345,7 @@ func TestReadFacts_AbsentWAL(t *testing.T) {
 		t.Fatalf("remove the empty -wal: %v", err)
 	}
 
-	f, _, err := readFacts(context.Background(), l, InspectOptions{BusyTimeout: openBusy}, binaryHead)
+	f, err := readFacts(context.Background(), l, InspectOptions{BusyTimeout: openBusy}, binaryHead)
 	if err != nil {
 		t.Fatalf("readFacts: %v", err)
 	}
@@ -385,175 +355,90 @@ func TestReadFacts_AbsentWAL(t *testing.T) {
 }
 
 // TestInspect_NewerStoreHasNoFacts: this binary cannot trust a newer
-// store's schema, so it reads none of its facts.
+// store's schema, so it reads none of its facts and runs no reader.
 func TestInspect_NewerStoreHasNoFacts(t *testing.T) {
 	stateDir := t.TempDir()
 	l := buildStore(t, stateDir, binaryHead)
 	rawExec(t, l.dbPath, futureLedgerRow)
 
-	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+	ran := false
+	read := func(context.Context, Querier, int) error { ran = true; return nil }
+	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy, Readers: []Reader{read}})
 	if r.State != StateNewer {
 		t.Fatalf("inspect = %v (%s), want newer", r.State, r.Reason)
 	}
 	if r.Facts != nil {
 		t.Errorf("facts = %+v, want none for a newer store", r.Facts)
 	}
+	if ran {
+		t.Error("a reader ran against a newer store")
+	}
 }
 
-// insertSettingSQL inserts one settings row under the given source
-// spelling and bumps the generation by raw SQL, the shape a fixture
-// below the settings runner's own writer plants.
-const insertSettingSQL = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-	VALUES ('DUBPLATE_TEST_KEY', 'seven', '%s', 'seven', 'system', 1790251200000000);
-UPDATE settings_generation SET generation = 3 WHERE singleton = 1;`
-
-// TestInspect_SettingsFacts is R-6c10's own table, in-package: a
-// current store and an older store whose version holds the settings
-// table (0004, with 0005 pending) both read the stored row and the
-// generation; an older store below that version reads the table
-// absent marker instead, never an empty result mistaken for one. Each
-// store holds the source spelling its own version admits, and Inspect
-// reports the spelling the binary reads: an older store's env-seed
-// reads as the env_seed its migration will write.
-func TestInspect_SettingsFacts(t *testing.T) {
-	tests := []struct {
-		name       string
-		through    int
-		source     string
-		wantSource string
-	}{
-		{name: "current", through: binaryHead, source: "env_seed", wantSource: "env_seed"},
-		{name: "older, settings table present, 0005 pending", through: 4, source: "env-seed", wantSource: "env_seed"},
-		{name: "older, an admin row", through: 6, source: "admin", wantSource: "admin"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+// TestInspect_Readers: Inspect runs its readers in order, each with the
+// store's version and a connection that reads the store, on an older
+// store as on a current one. Fixture state: the ledger table holds a
+// row per applied migration, so a reader handed some other database
+// reads a different count.
+func TestInspect_Readers(t *testing.T) {
+	for _, through := range []int{factsVersion, binaryHead} {
+		t.Run(fmt.Sprintf("through %d", through), func(t *testing.T) {
 			stateDir := t.TempDir()
-			l := buildStore(t, stateDir, tt.through)
-			rawExec(t, l.dbPath, fmt.Sprintf(insertSettingSQL, tt.source))
+			buildStore(t, stateDir, through)
 
-			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
+			var order []string
+			read := func(name string) Reader {
+				return func(ctx context.Context, q Querier, version int) error {
+					var applied int
+					if err := q.QueryRowContext(ctx, "SELECT count(*) FROM migrations").Scan(&applied); err != nil {
+						return err
+					}
+					order = append(order, fmt.Sprintf("%s v%d n%d", name, version, applied))
+					return nil
+				}
+			}
+			r := Inspect(context.Background(), InspectOptions{
+				StateDir:    stateDir,
+				BusyTimeout: openBusy,
+				Readers:     []Reader{read("first"), read("second")},
+			})
 			if r.Facts == nil {
 				t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
 			}
-			f := r.Facts
-			if f.SettingsAbsent {
-				t.Fatalf("SettingsAbsent = true, want false for a store holding the settings table")
+			want := []string{
+				fmt.Sprintf("first v%d n%d", through, through),
+				fmt.Sprintf("second v%d n%d", through, through),
 			}
-			// Fixture state: the store holds one settings row, so an
-			// empty result here would pass a bug that never reads the
-			// table at all.
-			want := []SettingsRow{{Key: "DUBPLATE_TEST_KEY", Value: "seven", Source: tt.wantSource, SeedValue: "seven", Actor: "system", UpdatedAt: time.UnixMicro(1790251200000000).UTC()}}
-			if !slices.Equal(f.Settings, want) {
-				t.Errorf("settings = %+v, want %+v", f.Settings, want)
+			if !slices.Equal(order, want) {
+				t.Errorf("readers ran %q, want %q", order, want)
 			}
 		})
 	}
 }
 
-// TestInspect_SettingsAbsent: a store whose version predates the
-// settings table (through 0003) reports it absent, distinct from an
-// empty table, and holds no rows or generation.
-func TestInspect_SettingsAbsent(t *testing.T) {
-	stateDir := t.TempDir()
-	buildStore(t, stateDir, 3)
-
-	r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
-	if r.Facts == nil {
-		t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
+// TestInspect_ReaderErrorRefuses: a reader's error refuses the
+// inspection naming it, leaves no facts, and stops the readers after
+// it.
+func TestInspect_ReaderErrorRefuses(t *testing.T) {
+	stateDir := currentStore(t)
+	errRead := errors.New("the table is unreadable")
+	later := false
+	r := Inspect(context.Background(), InspectOptions{
+		StateDir:    stateDir,
+		BusyTimeout: openBusy,
+		Readers: []Reader{
+			func(context.Context, Querier, int) error { return errRead },
+			func(context.Context, Querier, int) error { later = true; return nil },
+		},
+	})
+	if r.State != StateRefused || !strings.Contains(r.Reason, errRead.Error()) {
+		t.Errorf("inspect = %v (%s), want refused naming %q", r.State, r.Reason, errRead)
 	}
-	f := r.Facts
-	if !f.SettingsAbsent {
-		t.Errorf("SettingsAbsent = false, want true for a store below the settings table's version")
+	if r.Facts != nil {
+		t.Errorf("facts = %+v, want none for a refused inspection", r.Facts)
 	}
-	if len(f.Settings) != 0 {
-		t.Errorf("settings = %+v, want none for a store predating the table", f.Settings)
-	}
-}
-
-const insertMembersSQL = `INSERT INTO users (id, address, display_name, username, admin, tombstoned_at, created_at, updated_at) VALUES
-	(x'01', 'boss@example.test', 'Boss', 'boss', 1, NULL, 1, 1),
-	(x'02', 'plain@example.test', 'Plain', 'plain', 0, NULL, 2, 2),
-	(x'03', 'gone-admin@example.test', 'Gone', 'goneadmin', 1, 3, 3, 3),
-	(x'04', 'gone-plain@example.test', 'Gone', 'goneplain', 0, 4, 4, 4);`
-
-// TestInspect_MemberFacts: a store whose version holds the users table
-// counts its live rows and the live admins among them, tombstoned rows
-// excluded from both. Fixture state: the table holds four rows, two of
-// them tombstoned and one of those an admin, so a count over every row
-// reads 4 and 2. An older store below the table's version reads no
-// counts and is not refused for the missing table.
-func TestInspect_MemberFacts(t *testing.T) {
-	tests := []struct {
-		name        string
-		through     int
-		insert      bool
-		wantMembers int
-		wantAdmins  int
-	}{
-		{name: "current", through: binaryHead, insert: true, wantMembers: 2, wantAdmins: 1},
-		{name: "older at the users table's own version", through: UsersVersion, insert: true, wantMembers: 2, wantAdmins: 1},
-		{name: "current, an empty table", through: binaryHead},
-		{name: "older, below the users table", through: UsersVersion - 1},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			stateDir := t.TempDir()
-			l := buildStore(t, stateDir, tt.through)
-			if tt.insert {
-				rawExec(t, l.dbPath, insertMembersSQL)
-			}
-
-			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy})
-			if r.Facts == nil {
-				t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
-			}
-			if r.Facts.Members != tt.wantMembers || r.Facts.Admins != tt.wantAdmins {
-				t.Errorf("members, admins = %d, %d, want %d, %d", r.Facts.Members, r.Facts.Admins, tt.wantMembers, tt.wantAdmins)
-			}
-		})
-	}
-}
-
-// TestInspect_Standing: Inspect reports the roster standing of the one
-// address its caller names, and the standing is not a fact: Facts holds
-// counts only. Fixture state: the table holds a live admin, a live
-// non-admin, a tombstoned admin, and a tombstoned non-admin, so a
-// lookup that ignores tombstones reads the tombstoned admin as an
-// admin. An older store below the table's version and a call that
-// names no address read no standing.
-func TestInspect_Standing(t *testing.T) {
-	tests := []struct {
-		name    string
-		through int
-		address string
-		want    Standing
-	}{
-		{name: "a live admin", through: binaryHead, address: "boss@example.test", want: StandingAdmin},
-		{name: "a live non-admin", through: binaryHead, address: "plain@example.test", want: StandingMember},
-		{name: "a tombstoned admin", through: binaryHead, address: "gone-admin@example.test", want: StandingRemoved},
-		{name: "a tombstoned non-admin", through: binaryHead, address: "gone-plain@example.test", want: StandingRemoved},
-		{name: "an address no row holds", through: binaryHead, address: "nobody@example.test", want: StandingNone},
-		{name: "no address named", through: binaryHead, address: "", want: StandingNotRead},
-		{name: "older, below the users table", through: UsersVersion - 1, address: "boss@example.test", want: StandingNotRead},
-		{name: "older at the users table's own version", through: UsersVersion, address: "boss@example.test", want: StandingAdmin},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			stateDir := t.TempDir()
-			l := buildStore(t, stateDir, tt.through)
-			if tt.through >= UsersVersion {
-				rawExec(t, l.dbPath, insertMembersSQL)
-			}
-
-			r := Inspect(context.Background(), InspectOptions{StateDir: stateDir, BusyTimeout: openBusy, Address: tt.address})
-			if r.Facts == nil {
-				t.Fatalf("inspect = %v (%s), want facts", r.State, r.Reason)
-			}
-			if r.Standing != tt.want {
-				t.Errorf("standing of %q = %d, want %d", tt.address, r.Standing, tt.want)
-			}
-		})
+	if later {
+		t.Error("a reader after the failing one ran")
 	}
 }
 

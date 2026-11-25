@@ -45,9 +45,14 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 				return err
 			}
 
-			r := store.Inspect(cmd.Context(), store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: d})
-			status, failed := r.RowStatus()
-			if _, err := fmt.Fprintf(stdout, "store: %s\n", status); err != nil {
+			var stored settings.Facts
+			r := store.Inspect(cmd.Context(), store.InspectOptions{
+				StateDir:    cfg.StateDir,
+				BusyTimeout: d,
+				Readers:     []store.Reader{stored.Reader()},
+			})
+			row := r.Row()
+			if _, err := fmt.Fprintf(stdout, "store: %s\n", row.Status); err != nil {
 				return err
 			}
 
@@ -60,15 +65,15 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			// settings verdict for one it never read would report on
 			// rows it never saw.
 			settingsFailed := false
-			if facts, ok := settings.SeedFacts(r); ok {
+			if facts, ok := settings.SeedFacts(r, stored); ok {
 				settingsFailed, err = printSettingsRows(stdout, environ, reg, facts)
 				if err != nil {
 					return err
 				}
 			}
 
-			if failed {
-				return fmt.Errorf("store: %s", status)
+			if row.Failed {
+				return fmt.Errorf("store: %s", row.Status)
 			}
 			if settingsFailed {
 				return errors.New("the settings seed rule refuses to start serve")
@@ -85,7 +90,7 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // always prints, and an outcome that leaves the value in force
 // unchanged never does, since check surfaces only what an operator
 // need act on. It reports whether any outcome refuses.
-func printSettingsRows(w io.Writer, environ []string, reg *config.Registry, facts store.Facts) (failed bool, err error) {
+func printSettingsRows(w io.Writer, environ []string, reg *config.Registry, facts settings.Facts) (failed bool, err error) {
 	ev := settings.EvaluateFacts(reg, environ, facts)
 	for _, o := range ev.Outcomes {
 		if o.Err == nil && o.Change == settings.Unchanged {

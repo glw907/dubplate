@@ -85,11 +85,25 @@ type InspectOptions struct {
 	// lock inside SQLite. It must be at least one millisecond.
 	BusyTimeout time.Duration
 
-	// Address, when set, names the one address whose roster standing
-	// [Report.Standing] reports. It is matched exactly against the
-	// stored address, which the roster keeps lowercase, so a caller
-	// folds case first.
-	Address string
+	// Readers read the facts the packages that own the store's tables
+	// report. [Inspect] runs them in order against a store it reads
+	// [Facts] from, and a reader's error refuses the inspection.
+	Readers []Reader
+}
+
+// A Reader reads the facts one package reports about the tables it
+// owns. [Inspect] calls it under the store's shared lock, through the
+// inspection's read-only connection pool, with the store's version, so
+// a reader tells a table the store predates from an empty one by
+// version alone. Readers share no transaction, so two of them may read
+// different snapshots.
+type Reader func(ctx context.Context, q Querier, version int) error
+
+// A Querier runs read queries. A [*sql.DB] is one, and so is the
+// read-only connection [Inspect] hands each [Reader].
+type Querier interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
 // Report is what [Inspect] found.
@@ -119,62 +133,21 @@ type Report struct {
 	// span hosts. It does not change State.
 	Warning string
 
-	// Facts is set for an older or current store whose version holds
-	// the jobs table, and nil otherwise: a newer store's schema is not
-	// this binary's to read.
+	// Facts is set for an older or current store at [factsVersion] or
+	// above, and nil otherwise: a newer store's schema is not this
+	// binary's to read. The options' readers ran exactly when it is set.
 	Facts *Facts
-
-	// Standing is the roster standing of the address the caller named
-	// in [InspectOptions.Address]. It stays [StandingNotRead] when the
-	// caller named none and for a store whose version holds no users
-	// table.
-	Standing Standing
 }
 
-// Standing is where one address stands in the roster. It is a report
-// field, not a fact: [Facts] carries counts only, and no address
-// enters it.
-type Standing int
+// factsVersion is the lowest store version [Inspect] reads [Facts]
+// from and runs its readers against. Version 1 is the bare migration
+// ledger, which holds nothing to report.
+const factsVersion = 2
 
-const (
-	// StandingNotRead is the zero value: no address was named, or the
-	// store holds no users table to look it up in.
-	StandingNotRead Standing = iota
-
-	// StandingNone is an address no users row holds.
-	StandingNone
-
-	// StandingRemoved is an address whose row is tombstoned, whatever
-	// its admin flag.
-	StandingRemoved
-
-	// StandingMember is an address held by a live member without the
-	// admin flag.
-	StandingMember
-
-	// StandingAdmin is an address held by a live admin.
-	StandingAdmin
-)
-
-// jobsVersion is the lowest store version holding the jobs table.
-const jobsVersion = 2
-
-// UsersVersion is the lowest store version holding the users table
-// (0003_catalog.sql), and so the lowest at which [Facts] counts members.
-const UsersVersion = 3
-
-// settingsVersion is the lowest store version holding the settings
-// table (0004_settings.sql).
-const settingsVersion = 4
-
-// Facts are the upkeep facts [Inspect] reads beside a store's state.
+// Facts are the upkeep facts [Inspect] reads about the database itself.
 // Every size comes from stat(2) or statfs(2), never from opening the
 // database or its -wal.
 type Facts struct {
-	// LastSuccess maps each job kind that has succeeded to its newest
-	// succeeded record.
-	LastSuccess map[string]JobSuccess
-
 	// WALSize is the -wal file's size in bytes, 0 when there is none.
 	WALSize int64
 
@@ -189,52 +162,6 @@ type Facts struct {
 	// reference is not a copy.
 	Copies     int
 	CopiesSize int64
-
-	// Settings holds every settings row as stored, in key order, for a
-	// store whose version holds the settings table. SettingsAbsent
-	// marks a store whose version predates it (through 0003), so a
-	// table absent is never confused with a table holding no rows;
-	// Settings is unset in that case.
-	Settings       []SettingsRow
-	SettingsAbsent bool
-
-	// Members counts the live users rows and Admins those holding the
-	// admin flag, for a store whose version holds the users table. A
-	// store that predates it (through 0002) leaves both zero, which a
-	// caller tells from an empty table by the report's StoreVersion.
-	Members int
-	Admins  int
-
-	// CollectionRoots holds every collection's root_path, relative to
-	// the library root, in root order, for a store whose version holds
-	// the collections table, which the users table's migration added.
-	CollectionRoots [][]byte
-}
-
-// A JobSuccess is a job kind's newest succeeded record.
-type JobSuccess struct {
-	// Finished is when the job finished, in UTC.
-	Finished time.Time
-
-	// Progress is the record's final progress text, "" when it has
-	// none.
-	Progress string
-}
-
-// A SettingsRow is one settings row as the store holds it.
-type SettingsRow struct {
-	Key   string
-	Value string
-	// Source is "env_seed" for a value the environment seeded and
-	// "admin" for one an administrator set.
-	Source string
-	// SeedValue is the environment seed the row's value came from or,
-	// on an admin row, replaced. It is empty when the row records
-	// none; an environment seed is never empty, since an empty
-	// environment value counts as unset.
-	SeedValue string
-	Actor     string
-	UpdatedAt time.Time
 }
 
 // Inspect reports the state of the store under opts.StateDir without
@@ -294,33 +221,31 @@ func Inspect(ctx context.Context, opts InspectOptions) Report {
 		return r.withError(err)
 	}
 	r = r.withClass(l, c, files)
-	if c.kind != dbStore || c.version < jobsVersion || c.version > len(files) {
+	if c.kind != dbStore || c.version < factsVersion || c.version > len(files) {
 		return r
 	}
-	if r.Facts, r.Standing, err = readFacts(ctx, l, opts, c.version); err != nil {
+	if r.Facts, err = readFacts(ctx, l, opts, c.version); err != nil {
 		return r.withError(err)
 	}
 	return r
 }
 
-// readFacts reads the upkeep facts of the store in l, whose version
-// holds the jobs table, on one shared read-only connection through the
-// inspect DSN: the jobs read and, when version holds the settings
-// table, the settings read. When version holds the users table it also
-// reads the standing of opts.Address, if one is named.
-func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_ *Facts, standing Standing, err error) {
+// readFacts reads the upkeep facts of the store in l, whose version is
+// at least [factsVersion], and runs opts' readers in order on one
+// read-only connection through the inspect DSN.
+func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_ *Facts, err error) {
 	f := &Facts{}
 	info, err := os.Stat(l.dbPath + "-wal")
 	switch {
 	case err == nil:
 		f.WALSize = info.Size()
 	case !errors.Is(err, fs.ErrNotExist):
-		return nil, StandingNotRead, refusal(StateRefused, "stat %s-wal: %w", l.dbPath, err)
+		return nil, refusal(StateRefused, "stat %s-wal: %w", l.dbPath, err)
 	}
 
 	db, err := sql.Open(sqliteDriverName, inspectDSN(l.dbPath, opts.BusyTimeout))
 	if err != nil {
-		return nil, StandingNotRead, refusal(StateRefused, "open %s: %w", l.dbPath, err)
+		return nil, refusal(StateRefused, "open %s: %w", l.dbPath, err)
 	}
 	defer func() {
 		if cerr := db.Close(); cerr != nil && err == nil {
@@ -328,29 +253,9 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 		}
 	}()
 
-	if f.LastSuccess, err = lastSuccesses(ctx, db, l.dbPath); err != nil {
-		return nil, StandingNotRead, err
-	}
-
-	if version >= settingsVersion {
-		if f.Settings, err = readSettingsFacts(ctx, db, l.dbPath); err != nil {
-			return nil, StandingNotRead, err
-		}
-	} else {
-		f.SettingsAbsent = true
-	}
-
-	if version >= UsersVersion {
-		if f.Members, f.Admins, err = countMembers(ctx, db, l.dbPath); err != nil {
-			return nil, StandingNotRead, err
-		}
-		if opts.Address != "" {
-			if standing, err = readStanding(ctx, db, l.dbPath, opts.Address); err != nil {
-				return nil, StandingNotRead, err
-			}
-		}
-		if f.CollectionRoots, err = readCollectionRoots(ctx, db, l.dbPath); err != nil {
-			return nil, StandingNotRead, err
+	for _, read := range opts.Readers {
+		if err := read(ctx, db, version); err != nil {
+			return nil, refusal(StateRefused, "inspect %s: %w", l.dbPath, err)
 		}
 	}
 
@@ -361,7 +266,7 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 
 	entries, err := os.ReadDir(l.snapshotsDir)
 	if err != nil {
-		return nil, StandingNotRead, refusal(StateRefused, "read %s: %w", l.snapshotsDir, err)
+		return nil, refusal(StateRefused, "read %s: %w", l.snapshotsDir, err)
 	}
 	for _, e := range entries {
 		if !e.Type().IsRegular() || !isCopy(e.Name()) {
@@ -369,129 +274,12 @@ func readFacts(ctx context.Context, l leaf, opts InspectOptions, version int) (_
 		}
 		info, err := e.Info()
 		if err != nil {
-			return nil, StandingNotRead, refusal(StateRefused, "stat %s: %w", filepath.Join(l.snapshotsDir, e.Name()), err)
+			return nil, refusal(StateRefused, "stat %s: %w", filepath.Join(l.snapshotsDir, e.Name()), err)
 		}
 		f.Copies++
 		f.CopiesSize += info.Size()
 	}
-	return f, standing, nil
-}
-
-// lastSuccesses returns each job kind's newest succeeded record in the
-// store db reads, breaking a tie in finish time by id.
-func lastSuccesses(ctx context.Context, db *sql.DB, dbPath string) (map[string]JobSuccess, error) {
-	rows, err := db.QueryContext(ctx, `SELECT kind, finished_at, progress FROM (
-	SELECT kind, finished_at, progress,
-		row_number() OVER (PARTITION BY kind ORDER BY finished_at DESC, id DESC) AS rank
-	FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
-) WHERE rank = 1`)
-	if err != nil {
-		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
-	}
-	defer func() { _ = rows.Close() }()
-
-	last := make(map[string]JobSuccess)
-	for rows.Next() {
-		var (
-			kind     string
-			finished int64
-			progress sql.NullString
-		)
-		if err := rows.Scan(&kind, &finished, &progress); err != nil {
-			return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
-		}
-		last[kind] = JobSuccess{Finished: Micros(finished), Progress: progress.String}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read jobs in %s: %w", dbPath, err)
-	}
-	return last, nil
-}
-
-// countMembers returns the live users rows db reads and how many of
-// them hold the admin flag.
-func countMembers(ctx context.Context, db *sql.DB, dbPath string) (members, admins int, err error) {
-	err = db.QueryRowContext(ctx, `SELECT count(*), coalesce(sum(admin), 0) FROM users WHERE tombstoned_at IS NULL`).Scan(&members, &admins)
-	if err != nil {
-		return 0, 0, refusal(StateRefused, "read users in %s: %w", dbPath, err)
-	}
-	return members, admins, nil
-}
-
-// readCollectionRoots returns every collection's root_path db reads, in
-// root order.
-func readCollectionRoots(ctx context.Context, db *sql.DB, dbPath string) ([][]byte, error) {
-	rows, err := db.QueryContext(ctx, `SELECT root_path FROM collections ORDER BY root_path`)
-	if err != nil {
-		return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
-	}
-	defer func() { _ = rows.Close() }()
-	var roots [][]byte
-	for rows.Next() {
-		var root []byte
-		if err := rows.Scan(&root); err != nil {
-			return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
-		}
-		roots = append(roots, root)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read collections in %s: %w", dbPath, err)
-	}
-	return roots, nil
-}
-
-// readStanding returns where address stands in the users table db
-// reads: a tombstoned row is removed whatever its admin flag, and an
-// address no row holds is none.
-func readStanding(ctx context.Context, db *sql.DB, dbPath, address string) (Standing, error) {
-	var admin, tombstoned bool
-	err := db.QueryRowContext(ctx, `SELECT admin, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, address).Scan(&admin, &tombstoned)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return StandingNone, nil
-	case err != nil:
-		return StandingNotRead, refusal(StateRefused, "read users in %s: %w", dbPath, err)
-	case tombstoned:
-		return StandingRemoved, nil
-	case admin:
-		return StandingAdmin, nil
-	}
-	return StandingMember, nil
-}
-
-// readSettingsFacts returns every settings row db reads, in key order.
-func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]SettingsRow, error) {
-	rows, err := db.QueryContext(ctx, `SELECT key, value, source, seed_value, actor, updated_at FROM settings ORDER BY key`)
-	if err != nil {
-		return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
-	}
-	defer func() { _ = rows.Close() }()
-
-	var settings []SettingsRow
-	for rows.Next() {
-		var (
-			r    SettingsRow
-			seed sql.NullString
-			at   int64
-		)
-		if err := rows.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
-			return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
-		}
-		// A store below 0007 still spells the seeded source env-seed,
-		// which the current settings CHECK refuses, so only such a store
-		// can hold it. Its rows read as the migration will leave them.
-		if r.Source == "env-seed" {
-			r.Source = "env_seed"
-		}
-		r.SeedValue = seed.String
-		r.UpdatedAt = Micros(at)
-		settings = append(settings, r)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
-	}
-
-	return settings, nil
+	return f, nil
 }
 
 // withError returns r carrying err's state and text: a refusal

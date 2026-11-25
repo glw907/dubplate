@@ -74,7 +74,7 @@ func TestAddSetting_Panics(t *testing.T) {
 		},
 		{
 			name:  "a key already a reserved class key",
-			setup: func(r *Registry) { r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{key}}) },
+			setup: func(r *Registry) { r.AddReservedClass(ReservedClass{Name: "test", Keys: []string{key}}) },
 			s:     testSetting(key),
 			want:  []string{key, familyReserved, familySettings},
 		},

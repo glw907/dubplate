@@ -28,6 +28,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -541,7 +542,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			}
 			t.Cleanup(func() { _ = srv.Close() })
 			shell := srv.shell
-			handlersConfig := authHandlersConfig(prefix, cfg, settings.NewAccessor(srv.store, productionRegistry()), nil, nil, nil, nil, nil, nil, nil)
+			handlersConfig := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())), nil, nil, nil, nil, nil, nil, nil)
 			if handlersConfig.Prefix != prefix.String() {
 				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
 			}
@@ -671,7 +672,7 @@ func mintServeSession(t *testing.T, environ []string, address string, issued tim
 	var lifetime, absoluteCap time.Duration
 	err := withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		if lifetime, err = acc.Duration(t.Context(), auth.SessionLifetimeSetting); err != nil {
+		if lifetime, err = acc.Duration(t.Context(), registeredSetting("DUBPLATE_SESSION_LIFETIME")); err != nil {
 			return err
 		}
 		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
@@ -700,6 +701,18 @@ func withStoreAccessor(ctx context.Context, environ []string, fn func(*settings.
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
 	return fn(settings.NewAccessor(h, productionRegistry()))
+}
+
+// registeredSetting returns the production registry's setting for key,
+// so a test reads a setting by its literal name. A key no package
+// registers panics, which fails the test that named it.
+func registeredSetting(key string) config.Setting {
+	for _, s := range productionRegistry().Settings() {
+		if s.Key == key {
+			return s
+		}
+	}
+	panic("no registered setting " + key)
 }
 
 // sessionRequest builds a request to target carrying session as its
@@ -1824,7 +1837,7 @@ func TestNewServeShell_RefusesABadTrustedProxyValue(t *testing.T) {
 }
 
 // TestServePortBound proves the serve port's bound reaches every verb
-// through [config.Load]: 0 would listen on an ephemeral port, and a
+// through [loadConfig]: 0 would listen on an ephemeral port, and a
 // port below 1024 cannot bind under the serve unit's empty capability
 // set, so both refuse naming the capability, while 1024 and 65535, the
 // bound's own ends, load.
@@ -1843,23 +1856,39 @@ func TestServePortBound(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.port, func(t *testing.T) {
 			environ := replaceKey(authEnviron(t), "DUBPLATE_SERVE_PORT", tt.port)
-			_, err := config.Load(environ, productionRegistry())
+			_, err := loadConfig(environ, productionRegistry())
 			if tt.wantErr == "" {
 				if err != nil {
-					t.Fatalf("config.Load() error = %v, want nil", err)
+					t.Fatalf("loadConfig() error = %v, want nil", err)
 				}
 				return
 			}
 			if err == nil {
-				t.Fatalf("config.Load() error = nil, want a refusal containing %q", tt.wantErr)
+				t.Fatalf("loadConfig() error = nil, want a refusal containing %q", tt.wantErr)
 			}
 			if !strings.Contains(err.Error(), tt.wantErr) {
-				t.Errorf("config.Load() error = %q, want it to contain %q", err, tt.wantErr)
+				t.Errorf("loadConfig() error = %q, want it to contain %q", err, tt.wantErr)
 			}
 			if strings.Contains(tt.wantErr, "below") && !strings.Contains(err.Error(), "CAP_NET_BIND_SERVICE") {
-				t.Errorf("config.Load() error = %q, want it to name CAP_NET_BIND_SERVICE", err)
+				t.Errorf("loadConfig() error = %q, want it to name CAP_NET_BIND_SERVICE", err)
 			}
 		})
+	}
+}
+
+// TestServePortBound_NoSourceSelected proves the serve port's bound
+// holds when no identity source is selected: the bound belongs to the
+// serve unit, so it never waits on the sign-in method. Fixture state:
+// DUBPLATE_IDENTITY_SOURCE unset, DUBPLATE_SERVE_PORT=80.
+func TestServePortBound_NoSourceSelected(t *testing.T) {
+	environ := append(dropKey(dropKey(baseEnviron(), "DUBPLATE_IDENTITY_SOURCE"), "DUBPLATE_SERVE_PORT"),
+		"DUBPLATE_SERVE_PORT=80")
+	_, err := loadConfig(environ, productionRegistry())
+	if err == nil {
+		t.Fatal("loadConfig() error = nil, want the serve port's refusal")
+	}
+	if want := "DUBPLATE_SERVE_PORT: 80 is below 1024"; !strings.Contains(err.Error(), want) {
+		t.Errorf("loadConfig() error = %q, want it to contain %q", err, want)
 	}
 }
 
@@ -1992,7 +2021,7 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
 		var mailed []string
-		hc := authHandlersConfig(prefix, cfg, settings.NewAccessor(h, productionRegistry()), auth.NewRoster(h, nil, nil), nil, nil,
+		hc := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())), member.NewRoster(h, nil, nil), nil, nil,
 			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
 			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
 		hc.Send = func(_ context.Context, _, _, body string) error {

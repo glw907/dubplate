@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+
+	"github.com/glw907/dubplate/internal/doctor"
 )
 
 // checkInstalled reports whether the table at stateDir's unidecode leaf
@@ -24,14 +26,22 @@ func checkInstalled(stateDir string) error {
 	return nil
 }
 
-// RowStatus renders doctor's "unidecode" row for the state directory
+// DoctorRows renders the unidecode row for the state directory
+// stateDir, which is "" when the environment does not set it.
+func DoctorRows(stateDir string) []doctor.Row {
+	row := doctor.Row{Name: "unidecode"}
+	row.Status, row.Failed = rowStatus(stateDir)
+	return []doctor.Row{row}
+}
+
+// rowStatus renders the unidecode row for the state directory
 // stateDir: "not checked" when stateDir is empty (the wall row already
 // fails), "ok (<version>)" for a table [Parse] accepts, "missing: ..."
 // when the read fails because the state directory, the leaf, or the
 // file is absent, and "invalid: ..." for every other failure (a
 // directory in the file's place, permission denied, a checksum or
 // format refusal).
-func RowStatus(stateDir string) (status string, failed bool) {
+func rowStatus(stateDir string) (status string, failed bool) {
 	if stateDir == "" {
 		return "not checked", false
 	}

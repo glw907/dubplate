@@ -74,6 +74,6 @@ func Register(reg *config.Registry) {
 
 // ReauthWindow returns the read of the re-authentication window in
 // force through acc, for [Config].Window.
-func ReauthWindow(acc *settings.Accessor) auth.Setting[time.Duration] {
-	return auth.DurationSetting(acc, reauthWindowSetting)
+func ReauthWindow(acc *settings.Accessor) settings.Reader[time.Duration] {
+	return acc.DurationReader(reauthWindowSetting)
 }

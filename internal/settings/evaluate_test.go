@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-
-	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestEvaluateFacts_ConvertsStoreRows: EvaluateFacts against a facts
@@ -14,7 +12,7 @@ import (
 // [Evaluate] against the same row through a handle.
 func TestEvaluateFacts_ConvertsStoreRows(t *testing.T) {
 	reg := newRegistry()
-	facts := store.Facts{Settings: []store.SettingsRow{
+	facts := Facts{Rows: []Row{
 		{Key: keyKeep, Value: "20", Source: "env_seed", SeedValue: "20"},
 	}}
 
@@ -76,7 +74,7 @@ func TestEvaluateFacts_TableAbsent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reg := newRegistry()
-			ev := EvaluateFacts(reg, tt.env, store.Facts{SettingsAbsent: true})
+			ev := EvaluateFacts(reg, tt.env, Facts{Absent: true})
 
 			if len(ev.Outcomes) != len(reg.Settings()) {
 				t.Fatalf("outcomes = %d, want %d, one per registered setting", len(ev.Outcomes), len(reg.Settings()))
@@ -145,7 +143,7 @@ func TestEvaluate_CorrelatedRuleRefusesBothRows(t *testing.T) {
 // text still names the key and the accepted form.
 func TestEvaluate_UnparseableRowWrapsParseError(t *testing.T) {
 	reg := newRegistry()
-	facts := store.Facts{Settings: []store.SettingsRow{
+	facts := Facts{Rows: []Row{
 		{Key: keyKeep, Value: "many", Source: "admin", SeedValue: "20"},
 	}}
 

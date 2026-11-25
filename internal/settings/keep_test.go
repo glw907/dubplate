@@ -24,50 +24,57 @@ func TestLocalSnapshotKeep(t *testing.T) {
 	key := store.LocalSnapshotKeepSetting.Key
 	retention := "DUBPLATE_JOB_RETENTION"
 
-	facts := func(rows ...store.SettingsRow) *store.Facts { return &store.Facts{Settings: rows} }
-	row := func(key, value, source string) store.SettingsRow {
-		return store.SettingsRow{Key: key, Value: value, Source: source, SeedValue: value}
+	facts := func(rows ...settings.Row) settings.Facts { return settings.Facts{Rows: rows} }
+	row := func(key, value, source string) settings.Row {
+		return settings.Row{Key: key, Value: value, Source: source, SeedValue: value}
 	}
-	current := func(f *store.Facts) store.Report { return store.Report{State: store.StateCurrent, Facts: f} }
-	older := func(f *store.Facts) store.Report { return store.Report{State: store.StateOlder, Facts: f} }
+	current := store.Report{State: store.StateCurrent, Facts: &store.Facts{}}
+	older := store.Report{State: store.StateOlder, Facts: &store.Facts{}}
 
 	tests := []struct {
 		name    string
 		report  store.Report
+		facts   settings.Facts
 		environ []string
 		want    int
 		wantErr []string
 	}{
 		{
 			name:   "env_seed row of 1, key unset in the environment",
-			report: older(facts(row(key, "1", "env_seed"))),
+			report: older,
+			facts:  facts(row(key, "1", "env_seed")),
 			want:   1,
 		},
 		{
 			name:    "in-bounds row, the environment names another in-bounds value",
-			report:  older(facts(row(key, "5", "env_seed"))),
+			report:  older,
+			facts:   facts(row(key, "5", "env_seed")),
 			environ: []string{key + "=7"},
 			want:    5,
 		},
 		{
 			name:    "admin row outside its bounds",
-			report:  older(facts(row(key, "500", "admin"))),
+			report:  older,
+			facts:   facts(row(key, "500", "admin")),
 			wantErr: []string{key, "above the ceiling 100"},
 		},
 		{
 			name:    "env_seed row outside its bounds, the environment re-seeds it in bounds",
-			report:  older(facts(row(key, "500", "env_seed"))),
+			report:  older,
+			facts:   facts(row(key, "500", "env_seed")),
 			environ: []string{key + "=4"},
 			want:    4,
 		},
 		{
 			name:   "env_seed row outside its bounds, the environment no longer sets it",
-			report: older(facts(row(key, "500", "env_seed"))),
+			report: older,
+			facts:  facts(row(key, "500", "env_seed")),
 			want:   3,
 		},
 		{
 			name:   "no keep row",
-			report: older(facts(row(retention, "48h", "env_seed"))),
+			report: older,
+			facts:  facts(row(retention, "48h", "env_seed")),
 			want:   3,
 		},
 		{
@@ -92,35 +99,40 @@ func TestLocalSnapshotKeep(t *testing.T) {
 		},
 		{
 			name:   "no settings table",
-			report: older(&store.Facts{SettingsAbsent: true}),
+			report: older,
+			facts:  settings.Facts{Absent: true},
 			want:   3,
 		},
 		{
 			name:    "older store, another setting's stored row refuses",
-			report:  older(facts(row(retention, "1h", "admin"))),
+			report:  older,
+			facts:   facts(row(retention, "1h", "admin")),
 			wantErr: []string{retention, "below the floor 24h"},
 		},
 		{
 			name:   "current store, another setting's stored row refuses: the seed decides",
-			report: current(facts(row(retention, "1h", "admin"))),
+			report: current,
+			facts:  facts(row(retention, "1h", "admin")),
 			want:   3,
 		},
 		{
 			name:    "older store, the environment's keep value does not parse",
-			report:  older(facts(row(retention, "48h", "env_seed"))),
+			report:  older,
+			facts:   facts(row(retention, "48h", "env_seed")),
 			environ: []string{key + "=many"},
 			wantErr: []string{key, "invalid value"},
 		},
 		{
 			name:    "current store, the environment's keep value does not parse: the seed decides",
-			report:  current(facts(row(retention, "48h", "env_seed"))),
+			report:  current,
+			facts:   facts(row(retention, "48h", "env_seed")),
 			environ: []string{key + "=many"},
 			want:    3,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := settings.LocalSnapshotKeep(tt.report, tt.environ, reg)
+			got, err := settings.LocalSnapshotKeep(tt.report, tt.facts, tt.environ, reg)
 			if len(tt.wantErr) > 0 {
 				if err == nil {
 					t.Fatalf("settings.LocalSnapshotKeep() = %d, nil, want an error naming %q", got, tt.wantErr)

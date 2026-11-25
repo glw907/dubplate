@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -27,7 +29,7 @@ var (
 // verifierFixture bundles one test's roster, epoch store, and seam, built
 // fresh so a chmod or a bump in one test never leaks into another.
 type verifierFixture struct {
-	roster *Roster
+	roster *member.Roster
 	users  *store.Handle
 	epoch  *EpochStore
 	seam   *MagicLinkVerifier
@@ -45,12 +47,12 @@ func newVerifierFixture(t *testing.T, rows ...userRow) verifierFixture {
 
 // newVerifierFixtureReading is [newVerifierFixture] with the verifier reading its
 // lifetime and absolute cap through lifetime and absoluteCap.
-func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap Setting[time.Duration], rows ...userRow) verifierFixture {
+func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap settings.Reader[time.Duration], rows ...userRow) verifierFixture {
 	t.Helper()
 	stateDir := t.TempDir()
 	_, users := newRosterOver(t, rows...)
 	epoch := newEpochStore(t, stateDir)
-	roster := NewRoster(users, epoch, fixedNow(rosterNow))
+	roster := member.NewRoster(users, epoch, fixedNow(rosterNow))
 
 	seam := NewMagicLinkVerifier(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
 	return verifierFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
@@ -108,13 +110,13 @@ func TestMagicLinkVerifier_VerifyIdentity(t *testing.T) {
 		{
 			name:    "address removed from roster",
 			address: "gone@example.com",
-			wantErr: ErrMemberNotFound,
+			wantErr: member.ErrMemberNotFound,
 		},
 		{
 			name:    "address tombstoned",
 			rows:    []userRow{{address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true}},
 			address: "gone@example.com",
-			wantErr: ErrMemberNotFound,
+			wantErr: member.ErrMemberNotFound,
 		},
 	}
 
@@ -281,7 +283,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if err == nil {
 		t.Fatalf("VerifyIdentity: got nil error, want a denial from the unreadable epoch directory")
 	}
-	if errors.Is(err, ErrMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
+	if errors.Is(err, member.ErrMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
 		t.Fatalf("VerifyIdentity error = %v, want a non-sentinel I/O error", err)
 	}
 }
@@ -293,7 +295,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 func TestMagicLinkVerifier_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkVerifier(NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
+	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
 	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
@@ -453,7 +455,7 @@ func TestMagicLinkVerifier_CapReadFollowsTheMAC(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var reads int
-			absoluteCap := Setting[time.Duration](func(context.Context) (time.Duration, error) {
+			absoluteCap := settings.Reader[time.Duration](func(context.Context) (time.Duration, error) {
 				reads++
 				return verifierCap, nil
 			})

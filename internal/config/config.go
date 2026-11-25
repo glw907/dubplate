@@ -325,7 +325,7 @@ func (w *wall) integrationEnabled(class IntegrationClass) (bool, error) {
 
 // rejectNamespace walks every DUBPLATE_*-prefixed name present in the
 // wall's environment and records an error for any that is not a row reg
-// owns: a reserved name errors naming its class and rung, a superseded
+// owns: a reserved name errors naming its class, a superseded
 // name errors naming its replacement, and anything else errors as
 // unknown. Owned rows are validated by their own require calls, not
 // here, so a valid owned value is never flagged. Names are walked in

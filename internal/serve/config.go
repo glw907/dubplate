@@ -48,10 +48,10 @@ const (
 
 // ValidatePort checks DUBPLATE_SERVE_PORT against
 // [portFloor] and [portCeiling], naming the capability a
-// privileged port would need. The magic-link source's validator calls
-// it, so [config.Load] refuses an out-of-range port for doctor and every verb
-// before serve ever binds. A value that does not parse returns
-// [config.ParseInt]'s own [config.KeyError].
+// privileged port would need. The binary runs it beside [config.Load],
+// so doctor and every verb refuse an out-of-range port before serve
+// ever binds. A value that does not parse returns [config.ParseInt]'s
+// [config.KeyError].
 func ValidatePort(environ []string) error {
 	port, err := config.ParseInt(environ, PortThreshold)
 	if err != nil {
@@ -137,7 +137,6 @@ const (
 // address and no forwarded header is ever read.
 var TrustedProxyClass = config.IntegrationClass{
 	Name: "trusted proxy",
-	Rung: 5,
 	Flag: config.KeyDecl{
 		Key:         "DUBPLATE_TRUSTED_PROXY_ENABLED",
 		Description: "turns on trusted-proxy mode, where a header from a trusted front names the client address",

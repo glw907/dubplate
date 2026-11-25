@@ -7,51 +7,50 @@ import (
 	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/doctor"
 )
 
-// DoctorRow resolves the store's state from environ and renders it as
-// doctor's and check's shared "store" row: the status text and
-// whether that state exits nonzero. It reads DUBPLATE_STATE_DIR and
-// DUBPLATE_ADMIN_EMAIL itself, because the store reads no environment
+// doctorRowName is the name of the "store" row doctor and check print.
+const doctorRowName = "store"
+
+// Doctor resolves the store's state from environ, running readers
+// against it, and renders it as the "store" row. It reads
+// DUBPLATE_STATE_DIR itself, because the store reads no environment
 // otherwise, so the row still renders when [config.Load] has already
 // failed on a different key. A missing state directory or a busy
 // timeout that fails to parse reports "not checked" without opening
 // anything; a busy timeout that parses outside its range reports "not
 // checked" naming the key and the bound.
 //
-// It also returns the [Report] it read and whether it ran [Inspect]
-// at all (checked), so a caller building further rows from the same
-// report never inspects the store twice: report is the zero value
-// whenever checked is false.
-func DoctorRow(ctx context.Context, environ []string) (status string, failed bool, report Report, checked bool) {
+// It also returns the [Report] it read, so a caller building further
+// rows from the same report never inspects the store twice. When it
+// never ran [Inspect], no reader ran and report is the zero value: its
+// State is zero, which [State.Vouches] refuses, and its Facts is nil.
+func Doctor(ctx context.Context, environ []string, readers ...Reader) (row doctor.Row, report Report) {
+	notChecked := doctor.Row{Name: doctorRowName, Status: "not checked"}
 	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 	if !ok {
-		return "not checked", false, Report{}, false
+		return notChecked, Report{}
 	}
 
 	d, err := BusyTimeout(environ)
 	switch {
 	case errors.Is(err, ErrOutOfRange):
-		return "not checked: " + err.Error(), true, Report{}, false
+		notChecked.Status, notChecked.Failed = "not checked: "+err.Error(), true
+		return notChecked, Report{}
 	case err != nil:
-		return "not checked", true, Report{}, false
+		notChecked.Failed = true
+		return notChecked, Report{}
 	}
 
-	// An unset or unparseable address names no one, so the inspection
-	// looks none up.
-	value, _ := config.Lookup(environ, "DUBPLATE_ADMIN_EMAIL")
-	address, _ := identity.NormalizeAddress(value)
-
-	r := Inspect(ctx, InspectOptions{StateDir: stateDir, BusyTimeout: d, Address: address})
-	status, failed = r.RowStatus()
-	return status, failed, r, true
+	r := Inspect(ctx, InspectOptions{StateDir: stateDir, BusyTimeout: d, Readers: readers})
+	return r.Row(), r
 }
 
-// RowStatus renders r as the "store" row's status text, and reports
-// whether r's state exits nonzero: every state [State.Vouches] cannot
-// vouch for does.
-func (r Report) RowStatus() (status string, failed bool) {
+// Row renders r as the "store" row. The row fails for every state
+// [State.Vouches] cannot vouch for.
+func (r Report) Row() doctor.Row {
+	var status string
 	switch r.State {
 	case StateAbsent:
 		status = "absent"
@@ -78,7 +77,7 @@ func (r Report) RowStatus() (status string, failed bool) {
 	if r.Warning != "" {
 		status += "; " + r.Warning
 	}
-	return status, !r.State.Vouches()
+	return doctor.Row{Name: doctorRowName, Status: status, Failed: !r.State.Vouches()}
 }
 
 // Vouches reports whether doctor vouches for a store in state s:

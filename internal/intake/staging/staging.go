@@ -1,8 +1,7 @@
-// Package staging holds the two operating-system-specific reads that
-// intake makes of its staging directory: which device and mount it sits
-// on, and how much space is free there. The reads are built for Linux;
-// elsewhere both refuse, so a server started on another platform stops
-// at its startup check.
+// Package staging holds the operating-system-specific read that intake
+// makes of its staging directory: which device and mount it sits on.
+// The read is built for Linux; elsewhere it refuses, so a server
+// started on another platform stops at its startup check.
 package staging
 
 import (
@@ -12,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-// ErrLinuxOnly is the refusal the reads give on a platform other than
+// ErrLinuxOnly is the refusal [Read] gives on a platform other than
 // Linux.
 var ErrLinuxOnly = errors.New("staging checks are built for Linux only")
 

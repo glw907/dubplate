@@ -7,8 +7,46 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/store"
 	"golang.org/x/sys/unix"
 )
+
+// TestDoctorRows_RootsNeedAReadStore proves the volume row lists the
+// collection roots only from a store inspection whose readers ran. A
+// refused inspection can leave roots in Facts that its report does not
+// vouch for. Fixture state: sibling staging and library directories,
+// and Facts holding the root "abab", which is not created.
+func TestDoctorRows_RootsNeedAReadStore(t *testing.T) {
+	f := newVolumeFixture(t)
+	facts := Facts{roots: [][]byte{[]byte("abab")}}
+	tests := []struct {
+		name   string
+		report store.Report
+		want   string
+	}{
+		{
+			name:   "a refused inspection",
+			report: store.Report{State: store.StateRefused},
+			want:   "ok: staging and the library root share one mount",
+		},
+		{
+			name:   "an inspection whose readers ran",
+			report: store.Report{State: store.StateCurrent, Facts: &store.Facts{}},
+			want:   "ok: staging and the library root share one mount; collection root " + f.library + "/abab not created",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rows := DoctorRows(f.cfg, tt.report, facts)
+			if len(rows) != 1 {
+				t.Fatalf("DoctorRows() returned %d rows, want 1", len(rows))
+			}
+			if rows[0].Status != tt.want || rows[0].Failed {
+				t.Errorf("DoctorRows() = %q (failed %v), want %q (not failed)", rows[0].Status, rows[0].Failed, tt.want)
+			}
+		})
+	}
+}
 
 // volumeFixture is a staging directory and a library root, siblings
 // under one temporary directory, with a config naming them.
@@ -65,7 +103,7 @@ func deviceOf(t *testing.T, path string) string {
 	return strconv.FormatUint(uint64(st.Dev), 10)
 }
 
-func TestVolumeRowStatus(t *testing.T) {
+func TestVolumeStatus(t *testing.T) {
 	const same = "ok: staging and the library root share one mount"
 	// A directory on a mount other than the temporary directory's: the
 	// shared-memory tmpfs is a mount of its own on every Linux host.
@@ -235,7 +273,7 @@ func TestVolumeRowStatus(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := newVolumeFixture(t)
 			tt.setup(t, &f)
-			status, failed := VolumeRowStatus(f.cfg, tt.roots)
+			status, failed := volumeStatus(f.cfg, tt.roots)
 			if want := tt.want(t, f); status != want {
 				t.Errorf("status = %q, want %q", status, want)
 			}
@@ -246,9 +284,9 @@ func TestVolumeRowStatus(t *testing.T) {
 	}
 
 	t.Run("a refused environment", func(t *testing.T) {
-		status, failed := VolumeRowStatus(nil, [][]byte{[]byte("abab")})
+		status, failed := volumeStatus(nil, [][]byte{[]byte("abab")})
 		if status != "not checked" || failed {
-			t.Errorf("VolumeRowStatus(nil) = %q, %v, want \"not checked\", false", status, failed)
+			t.Errorf("volumeStatus(nil) = %q, %v, want \"not checked\", false", status, failed)
 		}
 	})
 }

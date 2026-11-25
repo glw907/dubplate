@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"context"
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
@@ -16,7 +15,6 @@ const RemoteKey = "DUBPLATE_BACKUP_REMOTE"
 // required while it is on, the rclone destination a backup syncs to.
 var Class = config.IntegrationClass{
 	Name: "backup",
-	Rung: 6,
 	Flag: config.KeyDecl{
 		Key:         "DUBPLATE_BACKUP_ENABLED",
 		Description: "turns on backups to the remote",
@@ -101,13 +99,11 @@ func Register(reg *config.Registry) {
 // one reader per value a [Job] takes: the guard fraction, the snapshot
 // count, and the archive retention.
 func Readers(acc *settings.Accessor) (
-	guardFraction func(context.Context) (float64, error),
-	snapshotKeep func(context.Context) (int, error),
-	archiveRetention func(context.Context) (time.Duration, error),
+	guardFraction settings.Reader[float64],
+	snapshotKeep settings.Reader[int],
+	archiveRetention settings.Reader[time.Duration],
 ) {
-	return func(ctx context.Context) (float64, error) { return acc.Float(ctx, guardFractionSetting) },
-		func(ctx context.Context) (int, error) { return acc.Int(ctx, snapshotKeepSetting) },
-		func(ctx context.Context) (time.Duration, error) {
-			return acc.Duration(ctx, archiveRetentionSetting)
-		}
+	return acc.FloatReader(guardFractionSetting),
+		acc.IntReader(snapshotKeepSetting),
+		acc.DurationReader(archiveRetentionSetting)
 }

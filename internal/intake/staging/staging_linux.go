@@ -42,13 +42,3 @@ func Read(path string) Dir {
 	d.MountID = stx.Mnt_id
 	return d
 }
-
-// FreeBytes returns the bytes available to an unprivileged user on the
-// filesystem holding dir: f_bavail counts f_frsize units.
-func FreeBytes(dir string) (uint64, error) {
-	var st unix.Statfs_t
-	if err := unix.Statfs(dir, &st); err != nil {
-		return 0, fmt.Errorf("statfs %s: %w", dir, err)
-	}
-	return st.Bavail * uint64(st.Frsize), nil
-}

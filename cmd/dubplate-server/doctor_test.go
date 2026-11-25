@@ -44,7 +44,7 @@ const membersRowLines = 1
 // storeRowLines's own precedent: the backup remote row reads
 // "unavailable" rather than disappear while the flag is off, so both
 // constants carry the same total. Named separately, one per flag
-// state, because [backup.RemoteRowStatus]'s content, not its presence,
+// state, because the remote row's content, not its presence,
 // is what the flag controls, and a caller asserting a flag-off total
 // should never have to know that fact to pick the right constant.
 const (
@@ -162,7 +162,7 @@ func TestDoctorCmd(t *testing.T) {
 			}
 
 			for _, class := range reg.ReservedClasses() {
-				wantLine := fmt.Sprintf("%-32s disabled (arrives at rung %d)", class.Name, class.Rung)
+				wantLine := fmt.Sprintf("%-32s not yet available", class.Name)
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before reserved class %s", class.Name)
 				}
@@ -172,12 +172,9 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
+			// No case sets an integration flag, so every class reads off.
 			for _, class := range reg.IntegrationClasses() {
-				status := "disabled"
-				if enabled, err := class.Enabled(environ); err == nil && enabled {
-					status = "enabled"
-				}
-				wantLine := fmt.Sprintf("%-32s %s", class.Name, status)
+				wantLine := fmt.Sprintf("%-32s disabled", class.Name)
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before integration class %s", class.Name)
 				}
@@ -254,8 +251,9 @@ func TestDoctorCmd(t *testing.T) {
 			}
 			li++
 
-			// The four boundary rows follow the unidecode row.
-			for _, key := range []string{clientIPDoctorRow, webDoctorRow, bindAddrsDoctorRow, boundaryProbeDoctorRow} {
+			// The three serve boundary rows follow the unidecode row, then
+			// the web row.
+			for _, key := range []string{clientIPDoctorRow, bindAddrsDoctorRow, boundaryProbeDoctorRow, webDoctorRow} {
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before boundary row %s", key)
 				}
@@ -336,7 +334,6 @@ func TestDoctorCmd_LineCountFollowsRegistry(t *testing.T) {
 	// class carries.
 	reg.AddReservedClass(config.ReservedClass{
 		Name: "scratch reserved",
-		Rung: 99,
 		Keys: []string{
 			"DUBPLATE_TEST_SCRATCH_RESERVED_A",
 			"DUBPLATE_TEST_SCRATCH_RESERVED_B",
@@ -1079,6 +1076,46 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	}
 }
 
+// TestDoctorCmd_ClassRows pins the class rows' words against literals:
+// a reserved class reads "not yet available", and an integration class
+// whose flag will not parse prints the flag's refusal rather than
+// "disabled", since Load refuses the same value.
+func TestDoctorCmd_ClassRows(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(environ []string) []string
+		want  string
+	}{
+		{
+			name:  "reserved class",
+			setup: func(environ []string) []string { return environ },
+			want:  fmt.Sprintf("%-32s %s\n", "pipeline", "not yet available"),
+		},
+		{
+			name:  "integration flag off",
+			setup: func(environ []string) []string { return dropKey(environ, "DUBPLATE_BACKUP_ENABLED") },
+			want:  fmt.Sprintf("%-32s %s\n", "backup", "disabled"),
+		},
+		{
+			name: "integration flag unparseable",
+			setup: func(environ []string) []string {
+				return append(dropKey(environ, "DUBPLATE_BACKUP_ENABLED"), "DUBPLATE_BACKUP_ENABLED=maybe")
+			},
+			want: fmt.Sprintf("%-32s %s\n", "backup", `invalid: invalid value "maybe", want a boolean`),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cmd := newDoctorCmd(tt.setup(doctorEnviron(t)), productionRegistry(), &stdout, &stderr)
+			_ = cmd.Execute() // an unparseable flag fails Load; the table still prints
+			if !strings.Contains(stdout.String(), tt.want) {
+				t.Errorf("stdout = %q, want it to contain %q", stdout.String(), tt.want)
+			}
+		})
+	}
+}
+
 // TestDoctorCmd_IntegrationRow proves an integration class's row
 // reports its enable flag: disabled until the flag is set, enabled
 // once it is. The duration-threshold rendering that rides alongside it
@@ -1602,22 +1639,24 @@ func TestDoctorCmd_SMTPRefusalNamedOnce(t *testing.T) {
 
 // TestDoctorCmd_AuthSettingsGolden is spec criterion 10's doctor half:
 // after a start seeds every auth key from the environment, each row
-// prints the value in force, its env_seed source, its apply mode, and
-// the sensitive mark on the link expiry, the session lifetime, and the
-// absolute cap, whose values print like any other. Each value differs
-// from its default, so a row that read the default fails.
+// prints the value in force, its env_seed source, and its apply mode.
+// A sensitive key (the link expiry, the session lifetime, the absolute
+// cap, and the unknown-address answer) prints "(withheld)" in place of
+// its value, with the sensitive mark. Each value differs from its
+// default, so a row that read the default fails on its value or, for a
+// withheld one, on its source.
 func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 	want := []struct{ key, value, status string }{
-		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `"20m" (source env_seed, next operation, sensitive)`},
-		{"DUBPLATE_SESSION_LIFETIME", "1h", `"1h" (source env_seed, next operation, sensitive)`},
-		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `"4000h" (source env_seed, immediately, sensitive)`},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `(withheld) (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", `(withheld) (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `(withheld) (source env_seed, immediately, sensitive)`},
 		{"DUBPLATE_NONCE_RETENTION", "2h", `"2h" (source env_seed, next operation)`},
 		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", `"7" (source env_seed, restart)`},
 		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", `"22" (source env_seed, restart)`},
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env_seed, restart)`},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env_seed, restart)`},
 		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env_seed, next operation)`},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `(withheld) (source env_seed, next operation, sensitive)`},
 	}
 	environ := withMusicVolume(t, doctorEnviron(t))
 	for _, w := range want {

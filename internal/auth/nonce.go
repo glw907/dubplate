@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/glw907/dubplate/internal/settings"
 )
 
 // ErrNonceReplayed reports a nonce whose record already exists: the
@@ -62,7 +64,7 @@ type NonceStore struct {
 	// lowering the retention cannot shorten the life of a record
 	// already on disk. The value a sweep reads also answers for a
 	// record whose own carried value cannot be read.
-	retention Setting[time.Duration]
+	retention settings.Reader[time.Duration]
 
 	// linkExpiryCeiling is the registered ceiling on the magic-link
 	// expiry, never the value in force: the longest a token minted
@@ -88,7 +90,7 @@ type NonceSweep struct {
 // linkExpiryCeiling the registered ceiling on the magic-link expiry
 // (m5), and sweeps it once at now before returning. The caller runs
 // Sweep on an interval thereafter; this package owns no timer.
-func OpenNonceStore(ctx context.Context, leaf *Dir, retention Setting[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
+func OpenNonceStore(ctx context.Context, leaf *Dir, retention settings.Reader[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
 		leaf:              leaf,
 		dir:               leaf.subdir(nonceSubdir),
@@ -148,7 +150,7 @@ func RunSweep(ctx context.Context, sweep func(ctx context.Context, now time.Time
 // The retention is read before the record is created, so a failed read,
 // reported wrapping errSettingUnreadable, consumes nothing.
 func (s *NonceStore) Insert(ctx context.Context, nonce [NonceLength]byte, now, expiresAt time.Time) error {
-	retention, err := s.retention.read(ctx)
+	retention, err := readSetting(ctx, s.retention)
 	if err != nil {
 		return err
 	}
@@ -203,7 +205,7 @@ func (s *NonceStore) Insert(ctx context.Context, nonce [NonceLength]byte, now, e
 // deployment defect this store cannot route around, unlike a single
 // unreadable record.
 func (s *NonceStore) Sweep(ctx context.Context, now time.Time) (NonceSweep, error) {
-	retention, err := s.retention.read(ctx)
+	retention, err := readSetting(ctx, s.retention)
 	if err != nil {
 		return NonceSweep{}, fmt.Errorf("sweep consumed nonces: %w", err)
 	}

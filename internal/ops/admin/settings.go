@@ -5,9 +5,9 @@ import (
 	"slices"
 	"time"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -137,7 +137,7 @@ func (s *Service) writeSetting(ctx context.Context, actor identity.Actor, key st
 		}
 	}
 	guard := func(ctx context.Context, tx *store.Tx) error {
-		return auth.CheckAdmin(ctx, tx, actor.UserID())
+		return member.CheckAdmin(ctx, tx, actor.UserID())
 	}
 	writeCtx, cancel := context.WithTimeout(ctx, writeWait)
 	defer cancel()

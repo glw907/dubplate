@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/glw907/dubplate/internal/fsys"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -514,9 +515,13 @@ func (s source) checkLibrary(ctx context.Context, root string, out io.Writer) er
 	if err != nil {
 		return err
 	}
-	free, mount, err := rootSpace(root)
+	free, err := fsys.FreeBytes(root)
 	if err != nil {
-		return err
+		return fmt.Errorf("restore the library: %w", err)
+	}
+	mount, err := fsys.MountPoint(root)
+	if err != nil {
+		return fmt.Errorf("restore the library: %w", err)
 	}
 	kind := "not a mount point"
 	if mount {
@@ -530,37 +535,6 @@ func (s source) checkLibrary(ctx context.Context, root string, out io.Writer) er
 		return fmt.Errorf("restore the library: free space on %s: %d bytes free, need %d", root, free, size.Bytes)
 	}
 	return nil
-}
-
-// rootSpace reports the free bytes on root's file system, and whether
-// root is a mount point: whether its device differs from its parent
-// directory's.
-func rootSpace(root string) (free uint64, mount bool, err error) {
-	var st syscall.Statfs_t
-	if err := syscall.Statfs(root, &st); err != nil {
-		return 0, false, fmt.Errorf("restore the library: statfs %s: %w", root, err)
-	}
-	dev, err := device(root)
-	if err != nil {
-		return 0, false, err
-	}
-	parent, err := device(filepath.Dir(root))
-	if err != nil {
-		return 0, false, err
-	}
-	return st.Bavail * uint64(st.Frsize), dev != parent, nil
-}
-
-func device(p string) (uint64, error) {
-	info, err := os.Stat(p)
-	if err != nil {
-		return 0, fmt.Errorf("restore the library: %w", err)
-	}
-	st, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		return 0, fmt.Errorf("restore the library: %s: no device in its file info", p)
-	}
-	return st.Dev, nil
 }
 
 // makeDisplaced creates the displaced directory at mode 0700, since

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
@@ -609,7 +610,7 @@ func TestMemberRemoveCmd_NotFound(t *testing.T) {
 
 	for _, address := range []string{"b@example.test", "nobody@example.test", "not an address"} {
 		_, stderr, err := runMember(t, environ, "remove", address)
-		if !errors.Is(err, auth.ErrMemberNotFound) {
+		if !errors.Is(err, member.ErrMemberNotFound) {
 			t.Errorf("remove %q error = %v, want ErrMemberNotFound", address, err)
 		}
 		if stderr != "" {
@@ -647,7 +648,7 @@ func TestMemberDemoteCmd(t *testing.T) {
 	if err != nil || stderr != "" {
 		t.Errorf("demote of a member with no flag = %v, stderr %q, want nil and no record", err, stderr)
 	}
-	if _, _, err := runMember(t, environ, "demote", "nobody@example.test"); !errors.Is(err, auth.ErrMemberNotFound) {
+	if _, _, err := runMember(t, environ, "demote", "nobody@example.test"); !errors.Is(err, member.ErrMemberNotFound) {
 		t.Errorf("demote of an unknown address error = %v, want ErrMemberNotFound", err)
 	}
 }
@@ -670,7 +671,7 @@ func TestMemberCmd_LastAdminRefused(t *testing.T) {
 
 			_, stderr, err := runMember(t, environ, verb, "a@example.test")
 
-			if !errors.Is(err, auth.ErrNoAdmin) {
+			if !errors.Is(err, member.ErrNoAdmin) {
 				t.Fatalf("%s error = %v, want ErrNoAdmin", verb, err)
 			}
 			if stderr != "" {

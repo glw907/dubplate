@@ -12,6 +12,7 @@ import (
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -42,7 +43,7 @@ type Config struct {
 	// start reads it fresh before it queues a record, since a stored
 	// value applies at the next operation that reads it; it must not
 	// be nil.
-	Retention func(ctx context.Context) (time.Duration, error)
+	Retention settings.Reader[time.Duration]
 
 	// Now returns the current time. It stamps every job record and
 	// the backup run, and it must not be nil.
@@ -67,9 +68,9 @@ type BackupConfig struct {
 	// three before it queues a record, so a reader error fails the
 	// start naming the key and leaves no job record; they must not be
 	// nil while Enabled is true.
-	GuardFraction    func(ctx context.Context) (float64, error)
-	SnapshotKeep     func(ctx context.Context) (int, error)
-	ArchiveRetention func(ctx context.Context) (time.Duration, error)
+	GuardFraction    settings.Reader[float64]
+	SnapshotKeep     settings.Reader[int]
+	ArchiveRetention settings.Reader[time.Duration]
 }
 
 // A Runner runs jobs in this process and answers the start, status,
@@ -80,7 +81,7 @@ type Runner struct {
 	lease     *store.InstanceLease
 	logger    *slog.Logger
 	backup    BackupConfig
-	retention func(ctx context.Context) (time.Duration, error)
+	retention settings.Reader[time.Duration]
 	now       func() time.Time
 
 	// mu guards jobs and closed. Every wg.Add happens under mu while

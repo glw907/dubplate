@@ -245,16 +245,26 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	plantSettingRow(t, path, "720h", "env_seed")
 	reg := productionRegistry()
 
+	inspect := func() (store.Report, settings.Facts) {
+		t.Helper()
+		var stored settings.Facts
+		report := store.Inspect(context.Background(), store.InspectOptions{
+			StateDir: stateDir, BusyTimeout: testBackupBusy, Readers: []store.Reader{stored.Reader()},
+		})
+		return report, stored
+	}
 	doctorRow := func() string {
 		t.Helper()
-		report := storeReport(t, stateDir)
-		rows, failed := settingsDoctorRows(environ, reg, report, true)
-		if failed {
-			t.Fatalf("doctor rows refuse: %v", rows)
+		report, stored := inspect()
+		rows := settings.DoctorRows(environ, reg, report, stored)
+		for _, r := range rows {
+			if r.Failed {
+				t.Fatalf("doctor rows refuse: %v", rows)
+			}
 		}
 		for _, r := range rows {
-			if r.key == key {
-				return r.status
+			if r.Name == key {
+				return r.Status
 			}
 		}
 		t.Fatalf("no doctor row for %s in %v", key, rows)
@@ -262,9 +272,9 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	}
 	backupLog := func() string {
 		t.Helper()
-		report := storeReport(t, stateDir)
+		_, stored := inspect()
 		var logs bytes.Buffer
-		logSettingsEvaluation(slog.New(slog.NewTextHandler(&logs, nil)), settings.EvaluateFacts(reg, environ, *report.Facts))
+		logSettingsEvaluation(slog.New(slog.NewTextHandler(&logs, nil)), settings.EvaluateFacts(reg, environ, stored))
 		return logs.String()
 	}
 

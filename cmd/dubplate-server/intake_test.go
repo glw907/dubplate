@@ -16,10 +16,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/store"
 )
 
@@ -468,7 +468,7 @@ func TestTusMaxSizeIsTheAlbumCapCeiling(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = h.Close() })
-	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now, EarliestAdmin: auth.EarliestAdmin})
+	in, err := intake.New(intake.Config{Store: h, Log: slog.New(slog.DiscardHandler), Staging: t.TempDir(), Now: time.Now, EarliestAdmin: member.EarliestAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -513,7 +513,7 @@ func TestStallMailGoesToLiveAdminsOnly(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = h.Close() })
 
-	got, err := liveAdminAddresses(auth.NewRoster(h, nil, nil))(t.Context())
+	got, err := liveAdminAddresses(member.NewRoster(h, nil, nil))(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}

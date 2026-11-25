@@ -12,10 +12,10 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 )
 
-// FinishedMessage is the [Job.Run] result for a run whose prune
+// finishedMessage is the [Job.Run] result for a run whose prune
 // reported nothing of its own: the clean case, with no skip or
 // failure to surface.
-const FinishedMessage = "backup finished"
+const finishedMessage = "backup finished"
 
 // A Job is one backup run's inputs. Every field is required.
 type Job struct {
@@ -178,7 +178,7 @@ func (j Job) Run(ctx context.Context, progress func(phase string) error) (string
 		snapshotKeep: j.SnapshotKeep, archiveRetention: j.ArchiveRetention}
 	result := p.run(ctx, j.Logger)
 	if result == "" {
-		result = FinishedMessage
+		result = finishedMessage
 	}
 	return result, nil
 }

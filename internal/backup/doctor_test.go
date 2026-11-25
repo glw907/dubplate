@@ -13,8 +13,8 @@ import (
 	"github.com/glw907/dubplate/internal/backup"
 )
 
-// probeOpts is the bound the command fills the row with.
-var probeOpts = backup.RemoteRowOptions{FeaturesTimeout: 10 * time.Second}
+// probeTimeout is the bound [backup.DoctorRows] runs the probe under.
+const probeTimeout = 10 * time.Second
 
 // cryptWarning is the text a remote that is not an rclone crypt remote
 // carries, written out so the tests do not read it from the code they
@@ -35,12 +35,12 @@ func useBackendScript(t *testing.T, stdout, stderr string, code int) {
 	t.Setenv("PATH", bin)
 }
 
-// TestBackupRemoteRowStatus is the golden test for the row's name,
+// TestRemoteStatus is the golden test for the row's name,
 // colon, and credential checks: every case here is pure string and
 // environment logic, run against a constructed environ with no rclone
 // on PATH at all, since none of these states reaches the features
 // probe.
-func TestBackupRemoteRowStatus(t *testing.T) {
+func TestRemoteStatus(t *testing.T) {
 	on := func(kv ...string) []string {
 		return append([]string{"DUBPLATE_BACKUP_ENABLED=true"}, kv...)
 	}
@@ -106,7 +106,7 @@ func TestBackupRemoteRowStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("PATH", t.TempDir()) // no rclone reachable: these states never look for it
-			status, failed := backup.RemoteRowStatus(context.Background(), tt.environ, probeOpts)
+			status, failed := backup.RemoteStatus(context.Background(), tt.environ, probeTimeout)
 			if status != tt.wantStatus {
 				t.Errorf("status = %q, want %q", status, tt.wantStatus)
 			}
@@ -117,17 +117,17 @@ func TestBackupRemoteRowStatus(t *testing.T) {
 	}
 }
 
-// TestBackupRemoteRowStatus_RcloneNotFound proves the "rclone not
+// TestRemoteStatus_RcloneNotFound proves the "rclone not
 // found" row: a valid, fully-credentialed remote whose PATH holds no
 // rclone binary at all.
-func TestBackupRemoteRowStatus_RcloneNotFound(t *testing.T) {
+func TestRemoteStatus_RcloneNotFound(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 	environ := []string{
 		"DUBPLATE_BACKUP_ENABLED=true",
 		"DUBPLATE_BACKUP_REMOTE=name:dir",
 		"RCLONE_CONFIG_NAME_TYPE=local",
 	}
-	status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+	status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 	if status != "rclone not found" {
 		t.Errorf("status = %q, want %q", status, "rclone not found")
 	}
@@ -136,12 +136,12 @@ func TestBackupRemoteRowStatus_RcloneNotFound(t *testing.T) {
 	}
 }
 
-// TestBackupRemoteRowStatus_NoSubprocessWhenFlagOff proves the flag-off
+// TestRemoteStatus_NoSubprocessWhenFlagOff proves the flag-off
 // state runs no subprocess: the stand-in alone on PATH records no
 // invocation.
-func TestBackupRemoteRowStatus_NoSubprocessWhenFlagOff(t *testing.T) {
+func TestRemoteStatus_NoSubprocessWhenFlagOff(t *testing.T) {
 	s := useStandin(t, standinConfig{})
-	status, failed := backup.RemoteRowStatus(context.Background(), nil, probeOpts)
+	status, failed := backup.RemoteStatus(context.Background(), nil, probeTimeout)
 	if status != "unavailable: backup integration disabled" {
 		t.Errorf("status = %q", status)
 	}
@@ -153,10 +153,10 @@ func TestBackupRemoteRowStatus_NoSubprocessWhenFlagOff(t *testing.T) {
 	}
 }
 
-// TestBackupRemoteRowStatus_Features is the golden test for the
+// TestRemoteStatus_Features is the golden test for the
 // features probe's own states, each run through the rclone stand-in
 // rather than a real backend.
-func TestBackupRemoteRowStatus_Features(t *testing.T) {
+func TestRemoteStatus_Features(t *testing.T) {
 	t.Run("crypt _REMOTE a plain path skips the wrapped check; the probe decides", func(t *testing.T) {
 		useBackendScript(t, `{"Features":{"Copy":false,"Move":true}}`, "", 0)
 		environ := []string{
@@ -165,7 +165,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"RCLONE_CONFIG_NAME_TYPE=crypt",
 			"RCLONE_CONFIG_NAME_REMOTE=/plain/path",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if status != "ok" {
 			t.Errorf("status = %q, want %q (no wrapped remote's _TYPE is set, so the wrapped check must have been skipped)", status, "ok")
 		}
@@ -182,7 +182,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"RCLONE_CONFIG_NAME_TYPE=crypt",
 			"RCLONE_CONFIG_NAME_REMOTE=:local,type=vfat:/mnt",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if status != "ok" {
 			t.Errorf("status = %q, want %q", status, "ok")
 		}
@@ -198,7 +198,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
 			"RCLONE_CONFIG_NAME_TYPE=http",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if !strings.Contains(status, "lacks server-side move and copy") {
 			t.Errorf("status = %q, want it to name the backend and rclone's --backup-dir requirement", status)
 		}
@@ -219,7 +219,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub",
 			"RCLONE_CONFIG_WRAPPED_TYPE=local",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if status != "401 bad_auth_token" {
 			t.Errorf("status = %q, want the last non-blank stderr line %q", status, "401 bad_auth_token")
 		}
@@ -237,13 +237,13 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub",
 			"RCLONE_CONFIG_WRAPPED_TYPE=local",
 		}
-		short := backup.RemoteRowOptions{FeaturesTimeout: 30 * time.Millisecond}
+		const short = 30 * time.Millisecond
 		begun := time.Now()
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, short)
+		status, failed := backup.RemoteStatus(context.Background(), environ, short)
 		// The stand-in sleeps for a minute, so only the option's bound
 		// can end the probe this soon.
 		if took := time.Since(begun); took > 10*time.Second {
-			t.Errorf("the probe took %v, want it ended by its %v bound", took, short.FeaturesTimeout)
+			t.Errorf("the probe took %v, want it ended by its %v bound", took, short)
 		}
 		if status != "not checked: rclone backend features timed out" {
 			t.Errorf("status = %q, want %q", status, "not checked: rclone backend features timed out")
@@ -260,7 +260,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"DUBPLATE_BACKUP_REMOTE=name:dir",
 			"RCLONE_CONFIG_NAME_TYPE=s3",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if want := "ok; " + cryptWarning; status != want {
 			t.Errorf("status = %q, want %q", status, want)
 		}
@@ -278,7 +278,7 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 			"RCLONE_CONFIG_NAME_REMOTE=wrapped:sub",
 			"RCLONE_CONFIG_WRAPPED_TYPE=local",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if status != "ok" {
 			t.Errorf("status = %q, want %q", status, "ok")
 		}
@@ -288,11 +288,11 @@ func TestBackupRemoteRowStatus_Features(t *testing.T) {
 	})
 }
 
-// TestBackupRemoteRowStatus_EndToEnd runs RemoteRowStatus against the
+// TestRemoteStatus_EndToEnd runs the remote row against the
 // real rclone binary rather than the stand-in: a valid local remote, an
 // http remote at a closed loopback port (both features false), and a
 // crypt remote wrapping an undefined remote.
-func TestBackupRemoteRowStatus_EndToEnd(t *testing.T) {
+func TestRemoteStatus_EndToEnd(t *testing.T) {
 	if _, err := exec.LookPath("rclone"); err != nil {
 		t.Fatalf("rclone is a prerequisite of this test: %v", err)
 	}
@@ -304,7 +304,7 @@ func TestBackupRemoteRowStatus_EndToEnd(t *testing.T) {
 			"DUBPLATE_BACKUP_REMOTE=e2elocal:" + t.TempDir(),
 			"RCLONE_CONFIG_E2ELOCAL_TYPE=local",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		// local is not crypt, so the encryption warning is appended.
 		if !strings.HasPrefix(status, "ok; ") {
 			t.Errorf("status = %q, want it to start with %q", status, "ok; ")
@@ -323,7 +323,7 @@ func TestBackupRemoteRowStatus_EndToEnd(t *testing.T) {
 			"RCLONE_CONFIG_E2EHTTP_TYPE=http",
 			"RCLONE_CONFIG_E2EHTTP_URL=http://127.0.0.1:9/",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if !strings.Contains(status, "lacks server-side move and copy") {
 			t.Errorf("status = %q, want it to report both features false", status)
 		}
@@ -341,7 +341,7 @@ func TestBackupRemoteRowStatus_EndToEnd(t *testing.T) {
 			"RCLONE_CONFIG_E2ECRYPT_TYPE=crypt",
 			"RCLONE_CONFIG_E2ECRYPT_REMOTE=e2eundefined:sub",
 		}
-		status, failed := backup.RemoteRowStatus(context.Background(), environ, probeOpts)
+		status, failed := backup.RemoteStatus(context.Background(), environ, probeTimeout)
 		if status != "invalid remote: wrapped remote e2eundefined: RCLONE_CONFIG_E2EUNDEFINED_TYPE is not set" {
 			t.Errorf("status = %q", status)
 		}

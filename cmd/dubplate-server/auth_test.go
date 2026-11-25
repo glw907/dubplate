@@ -18,7 +18,6 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
-	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestRegisterAuthConfig_SelectorIsOwnedNow proves the selector lands as
@@ -409,23 +408,23 @@ func TestAuthCorrelatedRules(t *testing.T) {
 		lifetime  = "DUBPLATE_SESSION_LIFETIME"
 		absCap    = "DUBPLATE_SESSION_ABSOLUTE_CAP"
 	)
-	row := func(key, value, source string) store.SettingsRow {
-		return store.SettingsRow{Key: key, Value: value, Source: source, SeedValue: value}
+	row := func(key, value, source string) settings.Row {
+		return settings.Row{Key: key, Value: value, Source: source, SeedValue: value}
 	}
 	tests := []struct {
 		name     string
-		rows     []store.SettingsRow
+		rows     []settings.Row
 		env      []string
 		wantKeys []string // nil: passes
 	}{
 		{
 			name: "retention and expiry raised together in one seed set",
-			rows: []store.SettingsRow{row(expiry, "15m", "env_seed"), row(retention, "30m", "env_seed")},
+			rows: []settings.Row{row(expiry, "15m", "env_seed"), row(retention, "30m", "env_seed")},
 			env:  []string{expiry + "=45m", retention + "=1h"},
 		},
 		{
 			name:     "only the expiry raised past the stored retention",
-			rows:     []store.SettingsRow{row(expiry, "15m", "env_seed"), row(retention, "30m", "admin")},
+			rows:     []settings.Row{row(expiry, "15m", "env_seed"), row(retention, "30m", "admin")},
 			env:      []string{expiry + "=45m"},
 			wantKeys: []string{expiry, retention},
 		},
@@ -441,7 +440,7 @@ func TestAuthCorrelatedRules(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ev := settings.EvaluateFacts(productionRegistry(), tt.env, store.Facts{Settings: tt.rows})
+			ev := settings.EvaluateFacts(productionRegistry(), tt.env, settings.Facts{Rows: tt.rows})
 			if tt.wantKeys == nil {
 				if ev.Err != nil {
 					t.Fatalf("Err = %v, want the pair to pass", ev.Err)
@@ -496,15 +495,17 @@ func TestPrepareServe_RefusesAuthCorrelatedRule(t *testing.T) {
 // serve wires for the key reads that value. The handler readers are
 // read from [authHandlersConfig]'s own return value, the limits through
 // [auth.ReadLimits], and the retention from the nonce store
-// [openNonceStore] opens, the one serve opens: a record inserted at t0
+// [openNonceStore] opens with [auth.ConfigFrom]'s retention reader, as
+// serve does: a record inserted at t0
 // is kept by a sweep at t0 plus the retention and removed by one a
 // second later. Each want is a literal, so a reader wired to the wrong
 // key fails its row.
 func TestAuthSettings_SeedFromEnv(t *testing.T) {
 	type readers struct {
-		handlers auth.HandlersConfig
-		acc      *settings.Accessor
-		stateDir string
+		handlers  auth.HandlersConfig
+		acc       *settings.Accessor
+		retention settings.Reader[time.Duration]
+		stateDir  string
 	}
 	limit := func(pick func(auth.Limits) int) func(context.Context, readers) (any, error) {
 		return func(ctx context.Context, r readers) (any, error) {
@@ -521,7 +522,7 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 		{"DUBPLATE_SESSION_LIFETIME", "1h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionLifetime(ctx) }, time.Hour},
 		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionAbsoluteCap(ctx) }, 4000 * time.Hour},
 		{"DUBPLATE_NONCE_RETENTION", "2h", func(ctx context.Context, r readers) (any, error) {
-			return sweptAround(ctx, r.acc, r.stateDir, 2*time.Hour)
+			return sweptAround(ctx, r.retention, r.stateDir, 2*time.Hour)
 		}, [2]int{0, 1}},
 		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", limit(func(l auth.Limits) int { return l.LinkRequestsPerAddress }), 7},
 		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", limit(func(l auth.Limits) int { return l.LinkRequestsPerClient }), 22},
@@ -549,7 +550,8 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 				t.Fatalf("config.Load: %v", err)
 			}
 			err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
-				r := readers{handlers: authHandlersConfig(serve.Prefix{}, cfg, acc, nil, nil, nil, nil, nil, nil, nil), acc: acc, stateDir: cfg.StateDir}
+				ac := authConfigFor(t, cfg, acc)
+				r := readers{handlers: authHandlersConfig(serve.Prefix{}, ac, nil, nil, nil, nil, nil, nil, nil), acc: acc, retention: ac.NonceRetention, stateDir: cfg.StateDir}
 				got, err := tt.got(t.Context(), r)
 				if err != nil {
 					return err
@@ -567,16 +569,17 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 }
 
 // sweptAround inserts one consumed nonce at a fixed instant t0 into the
-// nonce store [openNonceStore] opens under stateDir, then sweeps it at
+// nonce store [openNonceStore] opens under stateDir with the retention
+// reader, then sweeps it at
 // t0 plus retention and again a second later. It returns the two
 // sweeps' removed counts: [2]int{0, 1} when the store's retention is
 // retention, since a record at exactly its expiry is kept.
-func sweptAround(ctx context.Context, acc *settings.Accessor, stateDir string, retention time.Duration) ([2]int, error) {
+func sweptAround(ctx context.Context, reader settings.Reader[time.Duration], stateDir string, retention time.Duration) ([2]int, error) {
 	authDir, err := auth.Open(stateDir)
 	if err != nil {
 		return [2]int{}, err
 	}
-	nonces, err := openNonceStore(ctx, authDir, acc, time.Now())
+	nonces, err := openNonceStore(ctx, authDir, reader, time.Now())
 	if err != nil {
 		return [2]int{}, err
 	}
@@ -627,4 +630,15 @@ func TestAuthSettings_StringRowSecondStart(t *testing.T) {
 		t.Errorf("after the second start: settings %v, %d audit rows, generation %d; want %v, %d, %d",
 			rows2, len(audit2), generation2, rows, len(audit), generation)
 	}
+}
+
+// authConfigFor is [auth.ConfigFrom] for a test whose cfg selects the
+// magic-link source, failing the test on a refusal.
+func authConfigFor(t *testing.T, cfg *config.Config, acc *settings.Accessor) auth.Config {
+	t.Helper()
+	ac, err := auth.ConfigFrom(cfg, acc)
+	if err != nil {
+		t.Fatalf("auth.ConfigFrom: %v", err)
+	}
+	return ac
 }

@@ -3,9 +3,9 @@ package admin
 import (
 	"context"
 
-	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
@@ -30,8 +30,8 @@ func (s *Service) AddMember(ctx context.Context, actor identity.Actor, req ops.A
 	if err := s.requireFresh(ctx, actor); err != nil {
 		return ops.AddMemberResponse{}, err
 	}
-	candidate := auth.Member{Address: req.Address, DisplayName: req.DisplayName, Username: req.Username}
-	var added auth.Member
+	candidate := member.Member{Address: req.Address, DisplayName: req.DisplayName, Username: req.Username}
+	var added member.Member
 	if err := writeMember(ctx, func(ctx context.Context) (err error) {
 		added, err = s.cfg.Roster.AddMember(ctx, candidate, actor, s.cfg.Logger)
 		return err
@@ -83,7 +83,7 @@ func writeMember(ctx context.Context, write func(context.Context) error) error {
 }
 
 // wireMember is m as the admin operations carry it.
-func wireMember(m auth.Member) ops.Member {
+func wireMember(m member.Member) ops.Member {
 	return ops.Member{
 		UserID:      id.ID(m.ID),
 		Address:     m.Address,

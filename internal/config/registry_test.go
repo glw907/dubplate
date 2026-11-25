@@ -96,14 +96,14 @@ func TestCollisionGate_WithinFamily(t *testing.T) {
 		{
 			name: "reserved classes",
 			fn: func(r *Registry) {
-				r.AddReservedClass(ReservedClass{Name: "test a", Rung: 99, Keys: []string{"DUBPLATE_TEST_DUP"}})
-				r.AddReservedClass(ReservedClass{Name: "test b", Rung: 99, Keys: []string{"DUBPLATE_TEST_DUP"}})
+				r.AddReservedClass(ReservedClass{Name: "test a", Keys: []string{"DUBPLATE_TEST_DUP"}})
+				r.AddReservedClass(ReservedClass{Name: "test b", Keys: []string{"DUBPLATE_TEST_DUP"}})
 			},
 		},
 		{
 			name: "reserved classes, single class repeats its own key",
 			fn: func(r *Registry) {
-				r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_DUP", "DUBPLATE_TEST_DUP"}})
+				r.AddReservedClass(ReservedClass{Name: "test", Keys: []string{"DUBPLATE_TEST_DUP", "DUBPLATE_TEST_DUP"}})
 			},
 		},
 		{
@@ -143,7 +143,7 @@ func TestCollisionGate_WithinFamily(t *testing.T) {
 // (mutation 2).
 func TestCollisionGate_CrossFamily(t *testing.T) {
 	r := NewRegistry()
-	r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_CROSS"}})
+	r.AddReservedClass(ReservedClass{Name: "test", Keys: []string{"DUBPLATE_TEST_CROSS"}})
 
 	msg := panicMessage(t, func() {
 		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: testKey("DUBPLATE_TEST_FLAG", NotSensitive), Required: []KeyDecl{testKey("DUBPLATE_TEST_CROSS", NotSensitive)}})
@@ -162,7 +162,7 @@ func TestCollisionGate_CrossFamily(t *testing.T) {
 // families, rather than registering silently.
 func TestCollisionGate_RequiredCrossFamily(t *testing.T) {
 	r := NewRegistry()
-	r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_REQUIRED_CROSS"}})
+	r.AddReservedClass(ReservedClass{Name: "test", Keys: []string{"DUBPLATE_TEST_REQUIRED_CROSS"}})
 
 	msg := panicMessage(t, func() {
 		r.AddIntegrationClass(IntegrationClass{Name: "test", Flag: testKey("DUBPLATE_TEST_FLAG", NotSensitive), Required: []KeyDecl{testKey("DUBPLATE_TEST_REQUIRED_CROSS", NotSensitive)}})
@@ -189,7 +189,7 @@ func TestCollisionGate_MissingPrefix(t *testing.T) {
 		{
 			name: "reserved classes",
 			fn: func(r *Registry) {
-				r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"BAD_NO_PREFIX"}})
+				r.AddReservedClass(ReservedClass{Name: "test", Keys: []string{"BAD_NO_PREFIX"}})
 			},
 		},
 		{
@@ -411,7 +411,7 @@ func TestCollisionGate_IdentitySource(t *testing.T) {
 		{
 			name: "a key another family already claimed",
 			fn: func(r *Registry) {
-				r.AddReservedClass(ReservedClass{Name: "test", Rung: 99, Keys: []string{"DUBPLATE_TEST_CROSS"}})
+				r.AddReservedClass(ReservedClass{Name: "test", Keys: []string{"DUBPLATE_TEST_CROSS"}})
 				r.AddIdentitySource(IdentitySource{Name: "test", Selector: "DUBPLATE_TEST_SELECTOR", Required: []KeyDecl{testKey("DUBPLATE_TEST_CROSS", NotSensitive)}})
 			},
 			want: "DUBPLATE_TEST_CROSS: already declared in " + familyReserved + ", cannot also declare in " + familyIdentitySource,

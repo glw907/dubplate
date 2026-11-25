@@ -155,7 +155,14 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   host `cmd/dubplate-server/rendered_test.go`) that says what it intercepts and what it reaches for
   real. `web/` has no component test runner.
 - Layering. A spec names each import edge its packages must not gain, and a test or the two
-  import-graph tests ("Gate") holds each.
+  import-graph tests ("Gate") holds each. `internal/webapp/layering_test.go` holds these rows:
+  - `internal/webapp` imports none of `auth`, `ops`, `settings`, `store`, or `engine/...`.
+  - `internal/fsys` is a leaf: it imports no module package.
+  - `internal/doctor` is a leaf, so every package that reports a doctor row can import it.
+  - `internal/auth` does not import `serve`.
+  - `internal/member` imports neither `auth` nor `serve`: it reaches revocation through its `Revoker`.
+  - `internal/settings` imports none of `auth`, `serve`, `member`, `notify`, `intake/...`,
+    `backup/...`, or `ops/...`: those packages read their settings through it.
 - Exports follow record 0003.
 - Config keys follow record 0010; `newProductionRegistry` is in `cmd/dubplate-server/main.go`.
 - Skills. Go work runs under `go-conventions`. `web/` work runs under `svelte-conventions`,

@@ -4,9 +4,19 @@ import (
 	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/doctor"
 )
 
-// RowStatus renders doctor's "web" row from resolve, the construction
+// DoctorRows renders the web row for cfg, which is nil when
+// [config.Load] refused the environment, from resolve, the
+// construction serve startup runs over the same inputs.
+func DoctorRows(cfg *config.Config, resolve func(*config.Config) error) []doctor.Row {
+	row := doctor.Row{Name: "web"}
+	row.Status, row.Failed = rowStatus(cfg, resolve)
+	return []doctor.Row{row}
+}
+
+// rowStatus renders the web row from resolve, the construction
 // serve startup runs over the same inputs. The command supplies it, so
 // doctor and serve cannot disagree about the theme match, the palette,
 // the branding value, or the operator stylesheet. A nil error reads
@@ -15,7 +25,7 @@ import (
 // ([config.Load] refused the environment) reads "not checked", adds no
 // failure, and never calls resolve: Load's report already fails
 // doctor.
-func RowStatus(cfg *config.Config, resolve func(*config.Config) error) (status string, failed bool) {
+func rowStatus(cfg *config.Config, resolve func(*config.Config) error) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}

@@ -16,7 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/atomicfile"
 )
 
-// installVerb is the command the installer's refusals and [RowStatus]
+// installVerb is the command the installer's refusals and [DoctorRows]
 // name as the fix for a missing or invalid table.
 const installVerb = "unidecode install"
 
@@ -44,7 +44,7 @@ type InstallOptions struct {
 }
 
 // tablePath returns the table file that [Install] writes and
-// [RowStatus] reads, under stateDir's unidecode leaf.
+// [DoctorRows] reads, under stateDir's unidecode leaf.
 func tablePath(stateDir string) string {
 	return filepath.Join(stateDir, leafName, TableFileName)
 }

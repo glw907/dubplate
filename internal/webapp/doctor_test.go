@@ -49,7 +49,7 @@ func TestRowStatus(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var got *config.Config
 			called := false
-			status, failed := RowStatus(tt.cfg, func(cfg *config.Config) error {
+			status, failed := rowStatus(tt.cfg, func(cfg *config.Config) error {
 				called, got = true, cfg
 				return tt.resolveErr
 			})

@@ -225,8 +225,8 @@ func TestPrune_FirstRun(t *testing.T) {
 
 	_, st := runBackup(t, h, remote, lib)
 	wantState(t, st, ops.JobSucceeded, "")
-	if st.Phase != backup.FinishedMessage {
-		t.Errorf("progress %q, want %q for a clean prune", st.Phase, backup.FinishedMessage)
+	if st.Phase != "backup finished" {
+		t.Errorf("progress %q, want %q for a clean prune", st.Phase, "backup finished")
 	}
 }
 

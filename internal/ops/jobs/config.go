@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"context"
 	"time"
 
 	"github.com/glw907/dubplate/internal/backup"
@@ -33,10 +32,8 @@ func Register(reg *config.Registry) {
 // JobRetention returns the closure over acc that [Config.Retention]
 // reads before every job start: the accessor's typed read of
 // DUBPLATE_JOB_RETENTION.
-func JobRetention(acc *settings.Accessor) func(context.Context) (time.Duration, error) {
-	return func(ctx context.Context) (time.Duration, error) {
-		return acc.Duration(ctx, jobRetentionSetting)
-	}
+func JobRetention(acc *settings.Accessor) settings.Reader[time.Duration] {
+	return acc.DurationReader(jobRetentionSetting)
 }
 
 // BackupConfigFrom builds the backup job's configuration from cfg and

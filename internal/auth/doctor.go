@@ -10,86 +10,29 @@ import (
 	"syscall"
 
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/internal/doctor"
 	"golang.org/x/sys/unix"
 )
 
-// adminEmailKey is the owned wall row naming the operator's address.
-// The environment only seeds the first admin: the roster alone decides
-// who is one, so the admin email row warns when the address no longer
-// names a live admin.
-const adminEmailKey = "DUBPLATE_ADMIN_EMAIL"
+// dirRowName is the name of the row reporting the auth leaf serve
+// opens.
+const dirRowName = "auth dir"
 
-// The two warnings the admin email row can carry. A removed member and
-// an address no member holds share the first, since one action fixes
-// both: member add with --admin reactivates a removed row, and the
-// variable may instead name a live admin. A live non-admin has no verb
-// to promote it, since member add refuses a live address, so the only
-// action is to name a live admin.
-const (
-	adminEmailNotMember = "warning: this address is not a live member; run dubplate-server member add <address> --admin, or set " + adminEmailKey + " to a live admin"
-	adminEmailNotAdmin  = "warning: this address is a live member without the admin flag; set " + adminEmailKey + " to a live admin"
-)
-
-// AdminAddressRowStatus renders the admin email row from the wall's own
-// status and the report the store row read. The wall's status stands
-// unless it is "ok". An "ok" stays when the store cannot speak for the
-// roster (not checked, not vouched for, absent, older than the users
-// table) and when the roster holds no live member, which the members
-// row already fails. Otherwise the roster standing decides: a live
-// admin is "ok", and any other standing is a warning in the row's
-// status text, which never fails doctor.
-func AdminAddressRowStatus(wall string, r store.Report, checked bool) string {
-	switch {
-	case wall != "ok", !checked, !r.State.Vouches():
-		return wall
-	case r.Facts == nil, r.StoreVersion < store.UsersVersion, r.Facts.Members == 0:
-		return wall
-	}
-	switch r.Standing {
-	case store.StandingNone, store.StandingRemoved:
-		return adminEmailNotMember
-	case store.StandingMember:
-		return adminEmailNotAdmin
-	}
-	return wall
+// DoctorRows renders the auth dir row for cfg, which is nil when
+// [config.Load] refused the environment.
+func DoctorRows(cfg *config.Config) []doctor.Row {
+	row := doctor.Row{Name: dirRowName}
+	row.Status, row.Failed = dirStatus(cfg, dirOptions{geteuid: os.Geteuid})
+	return []doctor.Row{row}
 }
 
-// MembersRowStatus renders the members row from the report the store
-// row read, and reports whether the row fails. It decides on the
-// report's StoreVersion, never on whether Facts is present, since a
-// version 1 store carries no facts while a version 2 store carries
-// facts without the users table. A store the store row cannot vouch
-// for reads "not read"; the row fails only for a store that holds the
-// users table and no live admin, since nobody could then add a member
-// through the page.
-func MembersRowStatus(r store.Report, checked bool) (status string, failed bool) {
-	switch {
-	case !checked:
-		return "not read", false
-	case r.State == store.StateAbsent:
-		return "no store yet; start serve, then member add --admin", false
-	case !r.State.Vouches():
-		return "not read", false
-	case r.StoreVersion < store.UsersVersion:
-		return fmt.Sprintf("members not recorded before store version %d", store.UsersVersion), false
-	case r.Facts == nil:
-		return "not read", false
-	case r.Facts.Members == 0:
-		return "no members; run dubplate-server member add --admin", true
-	case r.Facts.Admins == 0:
-		return fmt.Sprintf("members: %d, admins: 0; run dubplate-server member add --admin", r.Facts.Members), true
-	}
-	return fmt.Sprintf("members: %d, admins: %d", r.Facts.Members, r.Facts.Admins), false
+// dirOptions are the process facts [dirStatus] reads.
+type dirOptions struct {
+	// geteuid returns the effective uid the leaf must belong to.
+	geteuid func() int
 }
 
-// DirRowOptions are the process facts [DirRowStatus] reads.
-type DirRowOptions struct {
-	// Geteuid returns the effective uid the leaf must belong to.
-	Geteuid func() int
-}
-
-// DirRowStatus reports, without writing, whether serve could open
+// dirStatus reports, without writing, whether serve could open
 // the auth leaf under cfg's state directory: "ok" when the leaf is at
 // most 0700, owned by the effective uid, and each record directory is
 // writable; "absent; serve creates it" when the leaf is missing and
@@ -99,7 +42,7 @@ type DirRowOptions struct {
 // shape a path outside the unit's ReadWritePaths takes. A nil cfg reads
 // "not checked" and adds no failure of its own, since Load's own
 // report already fails doctor.
-func DirRowStatus(cfg *config.Config, opts DirRowOptions) (status string, failed bool) {
+func dirStatus(cfg *config.Config, opts dirOptions) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
@@ -126,7 +69,7 @@ func DirRowStatus(cfg *config.Config, opts DirRowOptions) (status string, failed
 	// (can return nil)"; on Linux, os.Stat's carries a *syscall.Stat_t.
 	if st, ok := info.Sys().(*syscall.Stat_t); !ok {
 		problems = append(problems, fmt.Sprintf("leaf %s: cannot determine its owner", leaf))
-	} else if euid := opts.Geteuid(); int(st.Uid) != euid {
+	} else if euid := opts.geteuid(); int(st.Uid) != euid {
 		problems = append(problems, fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, st.Uid, euid))
 	}
 	for _, name := range []string{nonceSubdir, epochSubdir} {

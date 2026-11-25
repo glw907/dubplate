@@ -105,10 +105,7 @@ VALUES (?, ?, ?, 'queued', ?, ?, ?)`, id, kind, at, r.lease.Instance(), actor.St
 		if _, err := tx.Exec(ctx, `DELETE FROM jobs
 WHERE state IN ('succeeded', 'failed', 'canceled', 'interrupted')
 	AND finished_at < ?
-	AND id NOT IN (SELECT id FROM (
-		SELECT id, row_number() OVER (PARTITION BY kind ORDER BY finished_at DESC, id DESC) AS rank
-		FROM jobs WHERE state = 'succeeded' AND finished_at IS NOT NULL
-	) WHERE rank = 1)`, cutoff); err != nil {
+	AND id NOT IN (SELECT id FROM (`+newestSucceeded+`))`, cutoff); err != nil {
 			return fmt.Errorf("prune jobs: %w", err)
 		}
 		return nil

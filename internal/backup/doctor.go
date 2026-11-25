@@ -12,6 +12,9 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/doctor"
+	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/store"
 )
 
 // featuresWaitDelay bounds how long the features probe's child has to
@@ -24,19 +27,134 @@ const featuresWaitDelay = 5 * time.Second
 // unencrypted at the provider.
 const cryptWarning = "the backup remote is not wrapped in an rclone crypt remote; a snapshot carries member data unencrypted at the provider"
 
-// RemoteRowOptions are the process facts [RemoteRowStatus] reads.
-type RemoteRowOptions struct {
-	// FeaturesTimeout bounds the `rclone backend features` probe.
-	FeaturesTimeout time.Duration
+// featuresTimeout bounds the `rclone backend features` probe behind
+// the backup remote row.
+const featuresTimeout = 10 * time.Second
+
+// The backup rows, apart from the integration class's "backup" row,
+// which reads enabled or disabled.
+const (
+	lastSuccessRowName = "backup last success"
+	walSizeRowName     = "backup wal size"
+	freeSpaceRowName   = "backup free space"
+	localCopiesRowName = "backup local copies"
+	remoteRowName      = "backup remote"
+)
+
+// DoctorRows renders the backup's five doctor rows: the four read-only
+// facts the store inspection into report read, then the remote. last
+// is the newest succeeded job of each kind the same inspection read,
+// and now is the time the last success's age is measured from.
+//
+// Every facts row prints, reading "not checked" when report carries no
+// Facts: the store row never ran [store.Inspect], or it left Facts nil
+// for a store this binary cannot read as current: absent, busy, mid-restore, not a store,
+// refused, newer, or older below the version that added the jobs
+// table. Only the remote row can fail.
+func DoctorRows(ctx context.Context, environ []string, now time.Time, report store.Report, last map[string]ops.JobSuccess) []doctor.Row {
+	rows := factsRows(now, report, last)
+	remote := doctor.Row{Name: remoteRowName}
+	remote.Status, remote.Failed = remoteStatus(ctx, environ, featuresTimeout)
+	return append(rows, remote)
 }
 
-// RemoteRowStatus renders doctor's "backup remote" row: unavailable
-// while the flag is off, without running any subprocess; the parse,
-// _TYPE, and crypt checks doctor alone runs, since [Job.Run] reads no
-// environment; and the features probe last, under opts.FeaturesTimeout.
-// It calls [ParseRemote], the same validator the job's first phase
-// calls, so the two never disagree about a well-formed remote.
-func RemoteRowStatus(ctx context.Context, environ []string, opts RemoteRowOptions) (status string, failed bool) {
+func factsRows(now time.Time, report store.Report, last map[string]ops.JobSuccess) []doctor.Row {
+	if report.Facts == nil {
+		return []doctor.Row{
+			{Name: lastSuccessRowName, Status: "not checked"},
+			{Name: walSizeRowName, Status: "not checked"},
+			{Name: freeSpaceRowName, Status: "not checked"},
+			{Name: localCopiesRowName, Status: "not checked"},
+		}
+	}
+	f := report.Facts
+	return []doctor.Row{
+		{Name: lastSuccessRowName, Status: lastSuccessStatus(now, last)},
+		{Name: walSizeRowName, Status: formatBytes(f.WALSize)},
+		{Name: freeSpaceRowName, Status: freeSpaceStatus(f)},
+		{Name: localCopiesRowName, Status: localCopiesStatus(f)},
+	}
+}
+
+// lastSuccessStatus renders the backup kind's newest succeeded record
+// out of last: "never" when it has none, otherwise its age rounded to
+// minutes, with its final progress text appended when that text names
+// a skipped or failed prune (anything but finishedMessage, the clean
+// case).
+func lastSuccessStatus(now time.Time, last map[string]ops.JobSuccess) string {
+	success, ok := last[ops.KindBackup]
+	if !ok {
+		return "never"
+	}
+	status := formatAge(now.Sub(success.Finished)) + " ago"
+	if success.Progress != "" && success.Progress != finishedMessage {
+		status += ": " + success.Progress
+	}
+	return status
+}
+
+// formatAge renders d, rounded to whole minutes, as "<N>m" or, past an
+// hour or a day, "<N>h<N>m" or "<N>d<N>h": a negative or sub-minute d
+// (a finish time in the future, or in the last minute) renders as
+// "0m".
+func formatAge(d time.Duration) string {
+	if d < 0 {
+		d = 0
+	}
+	minutes := int64(d.Round(time.Minute) / time.Minute)
+	hours := minutes / 60
+	minutes %= 60
+	days := hours / 24
+	hours %= 24
+	switch {
+	case days > 0:
+		return fmt.Sprintf("%dd%dh", days, hours)
+	case hours > 0:
+		return fmt.Sprintf("%dh%dm", hours, minutes)
+	default:
+		return fmt.Sprintf("%dm", minutes)
+	}
+}
+
+// freeSpaceStatus renders f's free-space fact: "unknown" when statfs
+// failed, its byte count otherwise.
+func freeSpaceStatus(f *store.Facts) string {
+	if !f.FreeKnown {
+		return "unknown"
+	}
+	return formatBytes(int64(f.FreeBytes))
+}
+
+func localCopiesStatus(f *store.Facts) string {
+	if f.Copies == 0 {
+		return "0 copies"
+	}
+	return fmt.Sprintf("%d copies, %s", f.Copies, formatBytes(f.CopiesSize))
+}
+
+// formatBytes renders n in binary units (KiB, MiB, GiB, ...), the same
+// scale most disk-usage tools use: a value under 1024 renders as
+// "<n> B", and each larger unit carries one decimal place.
+func formatBytes(n int64) string {
+	const unit = 1024
+	if n < unit {
+		return fmt.Sprintf("%d B", n)
+	}
+	div, exp := int64(unit), 0
+	for v := n / unit; v >= unit; v /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %ciB", float64(n)/float64(div), "KMGTPE"[exp])
+}
+
+// remoteStatus renders the backup remote row: unavailable while the
+// flag is off, without running any subprocess; the parse, _TYPE, and
+// crypt checks doctor alone runs, since [Job.Run] reads no
+// environment; and the features probe last, under timeout. It calls
+// [ParseRemote], the same validator the job's first phase calls, so
+// the two never disagree about a well-formed remote.
+func remoteStatus(ctx context.Context, environ []string, timeout time.Duration) (status string, failed bool) {
 	enabled, _ := Class.Enabled(environ)
 	if !enabled {
 		return "unavailable: backup integration disabled", false
@@ -66,7 +184,7 @@ func RemoteRowStatus(ctx context.Context, environ []string, opts RemoteRowOption
 		return "rclone not found", true
 	}
 
-	status, failed = featuresStatus(ctx, bin, name, opts.FeaturesTimeout)
+	status, failed = featuresStatus(ctx, bin, name, timeout)
 	if remoteType != "crypt" {
 		status += "; " + cryptWarning
 	}
