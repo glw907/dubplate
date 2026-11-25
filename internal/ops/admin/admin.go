@@ -45,9 +45,9 @@ type Config struct {
 	Environ []string
 	Roster  *member.Roster
 
-	// Window reads the re-authentication window in force. It is read
-	// before each gated write, outside the write's transaction.
-	Window settings.Reader[time.Duration]
+	// Settings reads the re-authentication window in force, before
+	// each gated write and outside the write's transaction.
+	Settings *settings.Accessor
 
 	// Send delivers one mail. It is notify.Mailer's Send in
 	// production.
@@ -60,34 +60,35 @@ type Config struct {
 
 // A Service is the admin operations' implementation for serve.
 type Service struct {
-	cfg      Config
-	settings map[string]config.Setting
+	cfg         Config
+	window      settings.Reader[time.Duration]
+	sensitivity map[string]config.Sensitivity
 }
 
 var _ ops.Admin = (*Service)(nil)
 
 // New returns a [Service] over cfg.
 func New(cfg Config) *Service {
-	byKey := make(map[string]config.Setting)
+	sensitivity := make(map[string]config.Sensitivity)
 	for _, s := range cfg.Registry.Settings() {
-		byKey[s.Key] = s
+		sensitivity[s.Key] = s.Sensitivity
 	}
-	return &Service{cfg: cfg, settings: byKey}
+	return &Service{cfg: cfg, window: cfg.Settings.DurationReader(reauthWindowSetting), sensitivity: sensitivity}
 }
 
-// requireFresh is the re-authentication gate: it refuses unless the
-// session behind actor was signed in, its anchor, less than the window
-// in force before now. A refresh never moves the anchor, so staying
-// signed in never renews it, and a local actor's zero anchor is never
-// fresh. A window that cannot be read refuses the call rather than
-// falling back to a default. It first refuses any actor off the cookie
-// channel, since the roster treats a command-line actor as the box
-// operator and skips its admin check.
+// requireFresh is the re-authentication gate: it refuses unless actor's
+// session was signed in (its anchor) within the window in force. A
+// refresh never moves the anchor, so staying signed in never renews it,
+// and a local actor's zero anchor is never fresh. A window that cannot
+// be read refuses the call rather than falling back to a default. It
+// first refuses any actor off the cookie channel, since the roster
+// treats a command-line actor as the box operator and skips its admin
+// check.
 func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error {
 	if actor.Channel() != identity.ChannelCookie {
 		return ops.NewError(ops.CodeForbidden, "this change needs a member's session")
 	}
-	window, err := s.cfg.Window(ctx)
+	window, err := s.window(ctx)
 	if err != nil {
 		return fmt.Errorf("read the re-authentication window: %w", err)
 	}
@@ -108,6 +109,16 @@ func memberID(v id.ID) (identity.UserID, error) {
 		return identity.UserID{}, ops.NewError(ops.CodeInvalidRequest, "user_id is missing or names no member")
 	}
 	return identity.UserID(v), nil
+}
+
+// bounded runs write under writeWait and maps its refusal.
+func bounded(ctx context.Context, write func(context.Context) error) error {
+	ctx, cancel := context.WithTimeout(ctx, writeWait)
+	defer cancel()
+	if err := write(ctx); err != nil {
+		return refusal(err)
+	}
+	return nil
 }
 
 // refusal maps a write's error to the operation's answer: an [*ops.Error]
@@ -142,9 +153,8 @@ func refusal(err error) error {
 	case errors.Is(err, settings.ErrEnvironmentSets):
 		answer = ops.NewError(ops.CodeConflict, "the server's environment file sets this key").WithDetail(ops.DetailEnvironmentSets)
 	case errors.Is(err, settings.ErrNotSetting), errors.Is(err, settings.ErrInvalidValue):
-		// The seed rule that phrases these reads store-homed keys
-		// alone, so the reason never carries a wall or integration
-		// value.
+		// err's text names only store-homed keys, so it is safe as the
+		// wire reason.
 		answer = ops.NewError(ops.CodeInvalidRequest, err.Error())
 	default:
 		return err

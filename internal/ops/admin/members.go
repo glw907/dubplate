@@ -27,12 +27,9 @@ func (s *Service) ListMembers(ctx context.Context, _ identity.Actor, _ ops.ListM
 // admin flag, which the request cannot carry. It is gated, since the
 // access it grants outlives the cookie that asked for it.
 func (s *Service) AddMember(ctx context.Context, actor identity.Actor, req ops.AddMemberRequest) (ops.AddMemberResponse, error) {
-	if err := s.requireFresh(ctx, actor); err != nil {
-		return ops.AddMemberResponse{}, err
-	}
 	candidate := member.Member{Address: req.Address, DisplayName: req.DisplayName, Username: req.Username}
 	var added member.Member
-	if err := writeMember(ctx, func(ctx context.Context) (err error) {
+	if err := s.writeMember(ctx, actor, func(ctx context.Context) (err error) {
 		added, err = s.cfg.Roster.AddMember(ctx, candidate, actor, s.cfg.Logger)
 		return err
 	}); err != nil {
@@ -48,10 +45,7 @@ func (s *Service) RemoveMember(ctx context.Context, actor identity.Actor, req op
 	if err != nil {
 		return ops.RemoveMemberResponse{}, err
 	}
-	if err := s.requireFresh(ctx, actor); err != nil {
-		return ops.RemoveMemberResponse{}, err
-	}
-	return ops.RemoveMemberResponse{}, writeMember(ctx, func(ctx context.Context) error {
+	return ops.RemoveMemberResponse{}, s.writeMember(ctx, actor, func(ctx context.Context) error {
 		return s.cfg.Roster.RemoveMember(ctx, target, actor, s.cfg.Logger)
 	})
 }
@@ -63,23 +57,18 @@ func (s *Service) DemoteMember(ctx context.Context, actor identity.Actor, req op
 	if err != nil {
 		return ops.DemoteMemberResponse{}, err
 	}
-	if err := s.requireFresh(ctx, actor); err != nil {
-		return ops.DemoteMemberResponse{}, err
-	}
-	return ops.DemoteMemberResponse{}, writeMember(ctx, func(ctx context.Context) error {
+	return ops.DemoteMemberResponse{}, s.writeMember(ctx, actor, func(ctx context.Context) error {
 		return s.cfg.Roster.DemoteMember(ctx, target, actor, s.cfg.Logger)
 	})
 }
 
-// writeMember runs one roster write under writeWait and maps its
-// refusal.
-func writeMember(ctx context.Context, write func(context.Context) error) error {
-	ctx, cancel := context.WithTimeout(ctx, writeWait)
-	defer cancel()
-	if err := write(ctx); err != nil {
-		return refusal(err)
+// writeMember runs one roster write for actor: the gate, then write,
+// bounded.
+func (s *Service) writeMember(ctx context.Context, actor identity.Actor, write func(context.Context) error) error {
+	if err := s.requireFresh(ctx, actor); err != nil {
+		return err
 	}
-	return nil
+	return bounded(ctx, write)
 }
 
 // wireMember is m as the admin operations carry it.

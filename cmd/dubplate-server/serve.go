@@ -246,8 +246,8 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 
 	adminService := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
-		Window: admin.ReauthWindow(acc),
-		Send:   mailer.Send, Now: time.Now, Logger: shell.Logger(),
+		Settings: acc,
+		Send:     mailer.Send, Now: time.Now, Logger: shell.Logger(),
 	})
 	in, err = newIntake(ctx, h, cfg, acc, allowlist, roster, mailer.Send, shell.Logger())
 	if err != nil {

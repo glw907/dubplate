@@ -198,11 +198,12 @@ func newFixtureWith(t *testing.T, opts fixtureOptions) *fixture {
 		Registry: opts.reg,
 		Environ:  opts.env,
 		Roster:   member.NewRoster(h, epoch, func() time.Time { return testNow }),
-		Window:   opts.window,
+		Settings: settings.NewAccessor(h, opts.reg),
 		Send:     mail.send,
 		Now:      func() time.Time { return testNow },
 		Logger:   slog.New(slog.NewTextHandler(&lockedWriter{w: logs}, nil)),
 	})
+	seam.window = opts.window
 	return &fixture{seam: seam, h: h, dir: dir, reg: opts.reg, mail: mail, logs: logs, epoch: epoch}
 }
 

@@ -79,6 +79,29 @@ type SettingEntry struct {
 	SeedValue   *string `json:"seed_value,omitempty"`
 }
 
+// The homes a [SettingEntry] names: the store's settings table, which an
+// admin edits, or the server's environment, which only an operator with
+// box access changes.
+const (
+	HomeStore       = "store"
+	HomeEnvironment = "environment"
+)
+
+// The apply modes a [SettingEntry] or a setting write's response names:
+// when a changed value takes effect.
+const (
+	ApplyImmediately   = "immediately"
+	ApplyNextOperation = "next_operation"
+	ApplyRestart       = "restart"
+)
+
+// The sensitivities a [SettingEntry] names. A sensitive key's change is
+// held to a fresh sign-in and mailed to every admin.
+const (
+	Sensitive    = "sensitive"
+	NotSensitive = "not_sensitive"
+)
+
 // A ListSettingsResponse carries every registered key
 // [Admin.ListSettings] read.
 type ListSettingsResponse struct {
@@ -106,11 +129,7 @@ type ResetSettingRequest struct {
 
 // A ResetSettingResponse names the key reset, the apply mode that says
 // when the reset takes effect, and the source in force afterwards.
-type ResetSettingResponse struct {
-	Key    string `json:"key"`
-	Apply  string `json:"apply"`
-	Source string `json:"source"`
-}
+type ResetSettingResponse SetSettingResponse
 
 // The admin operations.
 const (
