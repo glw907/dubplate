@@ -829,7 +829,7 @@ func TestUsersRoster_Lookup(t *testing.T) {
 		if err == nil || errors.Is(err, ErrMemberNotFound) {
 			t.Fatalf("Lookup of a short-id row = %+v, %v; want an error that is not ErrMemberNotFound", got, err)
 		}
-		if !strings.Contains(err.Error(), "3 bytes") {
+		if !strings.Contains(err.Error(), "length 3") {
 			t.Errorf("Lookup error = %q, want it to name the 3-byte id", err)
 		}
 	})
@@ -907,7 +907,7 @@ func TestUsersRoster_List(t *testing.T) {
 		if err == nil || got != nil {
 			t.Fatalf("List with a short-id row = %+v, %v; want nil and an error", got, err)
 		}
-		if !strings.Contains(err.Error(), "3 bytes") {
+		if !strings.Contains(err.Error(), "length 3") {
 			t.Errorf("List error = %q, want it to name the 3-byte id", err)
 		}
 	})

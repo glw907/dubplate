@@ -62,7 +62,7 @@ func (s *submissions) readFree() freeRead {
 func checkCreate(ctx context.Context, tx *store.Tx, uploader identity.UserID, total int64, lim limits, free freeRead) error {
 	var mayUpload, sessionCap sql.NullInt64
 	err := tx.QueryRow(ctx, `SELECT may_upload, upload_concurrency_cap FROM member_overrides WHERE user_id = ?`,
-		uploader[:]).Scan(&mayUpload, &sessionCap)
+		uploader).Scan(&mayUpload, &sessionCap)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("read member overrides: %w", err)
 	}
@@ -76,7 +76,7 @@ func checkCreate(ctx context.Context, tx *store.Tx, uploader identity.UserID, to
 	}
 	var uploading int64
 	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE user_id = ? AND state = ?`,
-		uploader[:], stateUploading).Scan(&uploading); err != nil {
+		uploader, stateUploading).Scan(&uploading); err != nil {
 		return fmt.Errorf("count upload sessions: %w", err)
 	}
 	if uploading >= sessions {
@@ -91,7 +91,7 @@ func checkCreate(ctx context.Context, tx *store.Tx, uploader identity.UserID, to
 // sum; nil leaves none out.
 func checkSpace(ctx context.Context, tx *store.Tx, uploader identity.UserID, except []byte, total int64, lim limits, free freeRead) error {
 	var quota sql.NullInt64
-	err := tx.QueryRow(ctx, `SELECT quota_bytes FROM member_overrides WHERE user_id = ?`, uploader[:]).Scan(&quota)
+	err := tx.QueryRow(ctx, `SELECT quota_bytes FROM member_overrides WHERE user_id = ?`, uploader).Scan(&quota)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("read member quota: %w", err)
 	}
@@ -147,7 +147,7 @@ func memberUse(ctx context.Context, tx *store.Tx, uploader identity.UserID, exce
 	var use int64
 	err := tx.QueryRow(ctx, `SELECT coalesce((SELECT charged_bytes FROM member_quota WHERE user_id = ?1), 0)
 		+ coalesce((SELECT sum(reserved_bytes) FROM submissions
-			WHERE user_id = ?1 AND `+openSubmission+` AND id IS NOT ?2), 0)`, uploader[:], except).Scan(&use)
+			WHERE user_id = ?1 AND `+openSubmission+` AND id IS NOT ?2), 0)`, uploader, except).Scan(&use)
 	if err != nil {
 		return 0, fmt.Errorf("read member use: %w", err)
 	}
@@ -164,7 +164,7 @@ func (s *submissions) reserveExtracted(ctx context.Context, id []byte, total int
 	free := s.readFree()
 	var refused reject.Code
 	err := s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
-		var uploader []byte
+		var uploader identity.UserID
 		var current state
 		err := tx.QueryRow(ctx, `SELECT user_id, state FROM submissions WHERE id = ?`, id).Scan(&uploader, &current)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -177,7 +177,7 @@ func (s *submissions) reserveExtracted(ctx context.Context, id []byte, total int
 			return fmt.Errorf("%w: reserving for a %s submission", errWrongState, current)
 		}
 
-		err = checkSpace(ctx, tx, identity.UserID(uploader), id, total, lim, free)
+		err = checkSpace(ctx, tx, uploader, id, total, lim, free)
 		var lr *limitRefusal
 		switch {
 		case err == nil:

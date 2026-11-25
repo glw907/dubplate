@@ -146,7 +146,7 @@ func (s *Service) ListSubmissions(ctx context.Context, actor identity.Actor, _ o
 		sum.CreatedAt, sum.UpdatedAt = store.Micros(createdAt), store.Micros(updatedAt)
 		return sum, nil
 	}, `SELECT id, state, verdict_unit, created_at, updated_at FROM submissions
-		WHERE user_id = ? ORDER BY created_at DESC, id DESC`, uploader[:])
+		WHERE user_id = ? ORDER BY created_at DESC, id DESC`, uploader)
 	if err != nil {
 		return ops.ListSubmissionsResponse{}, fmt.Errorf("list submissions: %w", err)
 	}
@@ -219,7 +219,7 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, sub id.I
 	var coll []byte
 	var createdAt, updatedAt int64
 	err := s.subs.store.QueryRow(ctx, `SELECT state, verdict_unit, container, source, collection_id, created_at, updated_at
-		FROM submissions WHERE id = ? AND user_id = ?`, sub, uploader[:]).
+		FROM submissions WHERE id = ? AND user_id = ?`, sub, uploader).
 		Scan(&out.State, &out.VerdictUnit, &out.Container, &out.Source, &coll, &createdAt, &updatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, notFound()

@@ -3,6 +3,7 @@
 package identity
 
 import (
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"net/mail"
@@ -163,6 +164,12 @@ func (u UserID) String() string { return id.ID(u).String() }
 
 // IsZero reports whether u is the zero UserID, which names no member.
 func (u UserID) IsZero() bool { return id.ID(u).IsZero() }
+
+// Value implements [driver.Valuer] as [id.ID.Value] does.
+func (u UserID) Value() (driver.Value, error) { return id.ID(u).Value() }
+
+// Scan implements [database/sql.Scanner] as [id.ID.Scan] does.
+func (u *UserID) Scan(src any) error { return (*id.ID)(u).Scan(src) }
 
 // Identity is a verified login. The zero value is not a valid
 // Identity; call [Identity.Valid] before trusting one.
