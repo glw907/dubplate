@@ -505,7 +505,7 @@ func TestSweepRetainsCrashTruncatedRecord(t *testing.T) {
 
 // TestOpenSweeps proves the sweep at open is real: a store opened over
 // a root holding an expired record prunes it before the caller's first
-// insert, with [RunSweep]'s own interval driver never called.
+// insert, with [NonceStore.RunSweep] never called.
 func TestOpenSweeps(t *testing.T) {
 	stateDir := t.TempDir()
 	first := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
@@ -582,30 +582,32 @@ func TestConcurrentInsertAdmitsOne(t *testing.T) {
 }
 
 // TestRunSweepRunsOnTickWithoutWaitingSweepInterval proves the driver
-// calls sweep on receipt of a tick rather than on a real-time schedule:
-// the test drives tick directly and never waits SweepInterval (one
-// hour, the production ticker's period) out.
+// sweeps on receipt of a tick rather than on a real-time schedule: the
+// test drives tick directly and never waits SweepInterval (one hour,
+// the production ticker's period) out.
 func TestRunSweepRunsOnTickWithoutWaitingSweepInterval(t *testing.T) {
 	if SweepInterval != time.Hour {
 		t.Fatalf("SweepInterval = %v, want 1h", SweepInterval)
 	}
 
-	calls := make(chan struct{}, 1)
-	sweep := func(context.Context, time.Time) (NonceSweep, error) {
-		calls <- struct{}{}
-		return NonceSweep{Removed: 1}, nil
+	stateDir := t.TempDir()
+	nonces := newNonceStore(t, stateDir, fixtureRetention, nonceClock)
+	if err := nonces.Insert(t.Context(), consumedSample, nonceClock, sampleExpiry); err != nil {
+		t.Fatalf("Insert: %v", err)
 	}
+	logs := newLogCapture()
 	tick := make(chan time.Time, 1)
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	go RunSweep(ctx, sweep, func() time.Time { return nonceClock }, tick, discardLogger())
+	go nonces.RunSweep(ctx, tick, func() time.Time { return nonceClock.Add(fixtureRetention + time.Second) }, slog.New(slog.NewJSONHandler(logs, nil)))
 
 	tick <- nonceClock
-	select {
-	case <-calls:
-	case <-time.After(5 * time.Second):
-		t.Fatal("RunSweep did not call sweep after a tick")
+	if rec := logs.waitFor(t, "nonce sweep completed"); rec["removed"] != float64(1) {
+		t.Errorf("removed = %v, want 1", rec["removed"])
+	}
+	if entries := nonceDirEntries(t, stateDir); len(entries) != 0 {
+		t.Errorf("nonce directory holds %d records after the tick's sweep, want 0", len(entries))
 	}
 }
 
@@ -613,14 +615,14 @@ func TestRunSweepRunsOnTickWithoutWaitingSweepInterval(t *testing.T) {
 // stops the driver's goroutine, proved by a channel the goroutine
 // itself closes on return rather than by inspecting RunSweep's source.
 func TestRunSweepStopsWithContext(t *testing.T) {
-	sweep := func(context.Context, time.Time) (NonceSweep, error) { return NonceSweep{}, nil }
+	nonces := newNonceStore(t, t.TempDir(), fixtureRetention, nonceClock)
 	tick := make(chan time.Time)
 	ctx, cancel := context.WithCancel(t.Context())
 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		RunSweep(ctx, sweep, func() time.Time { return nonceClock }, tick, discardLogger())
+		nonces.RunSweep(ctx, tick, func() time.Time { return nonceClock }, discardLogger())
 	}()
 
 	cancel()
@@ -632,34 +634,32 @@ func TestRunSweepStopsWithContext(t *testing.T) {
 }
 
 // TestRunSweepLogsAFailureAndContinues proves a failed sweep never
-// stops the driver: a second tick after a failing sweep still reaches
-// sweep, since a sweep's own error is never fatal after startup.
+// stops the driver: a second tick after a failing sweep still sweeps,
+// since a sweep's own error is never fatal after startup.
 func TestRunSweepLogsAFailureAndContinues(t *testing.T) {
-	calls := make(chan struct{}, 2)
-	first := true
-	sweep := func(context.Context, time.Time) (NonceSweep, error) {
-		calls <- struct{}{}
-		if first {
-			first = false
-			return NonceSweep{}, errors.New("boom")
-		}
-		return NonceSweep{}, nil
+	store, err := Open(t.TempDir())
+	if err != nil {
+		t.Fatalf("Open: %v", err)
 	}
-	tick := make(chan time.Time, 2)
+	retention := newSettingFake(fixtureRetention)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	if err != nil {
+		t.Fatalf("OpenNonceStore: %v", err)
+	}
+	retention.set(0, errFixtureRead)
+
+	logs := newLogCapture()
+	tick := make(chan time.Time, 1)
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	go RunSweep(ctx, sweep, func() time.Time { return nonceClock }, tick, discardLogger())
+	go nonces.RunSweep(ctx, tick, func() time.Time { return nonceClock }, slog.New(slog.NewJSONHandler(logs, nil)))
 
 	tick <- nonceClock
+	logs.waitFor(t, "nonce sweep failed")
+	retention.set(fixtureRetention, nil)
 	tick <- nonceClock
-	for range 2 {
-		select {
-		case <-calls:
-		case <-time.After(5 * time.Second):
-			t.Fatal("RunSweep stopped calling sweep after the first call failed")
-		}
-	}
+	logs.waitFor(t, "nonce sweep completed")
 }
 
 // discardLogger returns a logger RunSweep's tests can pass without
@@ -761,8 +761,8 @@ func TestNonceStore_RetentionReadFailure(t *testing.T) {
 }
 
 // TestRunSweep_RetentionReadFailureLogsTheKey proves the sweep driver
-// logs a failed retention read naming the key and deletes nothing,
-// driving a real store's Sweep.
+// logs a failed retention read at Error under the fixed reason naming
+// the key, never the reader's own error text, and deletes nothing.
 func TestRunSweep_RetentionReadFailureLogsTheKey(t *testing.T) {
 	stateDir := t.TempDir()
 	store, err := Open(stateDir)
@@ -783,13 +783,10 @@ func TestRunSweep_RetentionReadFailureLogsTheKey(t *testing.T) {
 	tick := make(chan time.Time, 1)
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
-	go RunSweep(ctx, nonces.Sweep, func() time.Time { return nonceClock.Add(10 * fixtureRetention) }, tick, slog.New(slog.NewJSONHandler(logs, nil)))
+	go nonces.RunSweep(ctx, tick, func() time.Time { return nonceClock.Add(10 * fixtureRetention) }, slog.New(slog.NewJSONHandler(logs, nil)))
 	tick <- nonceClock
 
-	rec := logs.waitFor(t, "nonce sweep failed")
-	if reason, _ := rec["reason"].(string); !strings.Contains(reason, "DUBPLATE_FIXTURE_KEY") {
-		t.Errorf("log reason = %q, want it to name the key", reason)
-	}
+	wantSettingRecord(t, logs.waitFor(t, "nonce sweep failed"))
 	if got := len(nonceDirEntries(t, stateDir)); got != 1 {
 		t.Errorf("records after the failed sweep = %d, want the 1 inserted", got)
 	}

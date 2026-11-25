@@ -112,24 +112,26 @@ func OpenNonceStore(ctx context.Context, leaf *Dir, retention settings.Reader[ti
 // depends on how promptly a swept record disappears.
 const SweepInterval = time.Hour
 
-// RunSweep calls sweep, a NonceStore's own Sweep method in production,
-// once for every value received on tick, passing it ctx and, as the
-// sweep's instant, now(), until ctx is done. The caller owns tick's
-// ticker, which is what lets a test drive one sweep without waiting
-// SweepInterval out.
+// RunSweep calls [NonceStore.Sweep] at now() once for every value
+// received on tick, until ctx is done. The caller owns tick's ticker.
 //
 // A sweep's own error is logged and never returned: after startup, a
 // record's presence, not its readability, is what blocks a replay, so
-// one failed sweep must not stop the ones after it.
-func RunSweep(ctx context.Context, sweep func(ctx context.Context, now time.Time) (NonceSweep, error), now func() time.Time, tick <-chan time.Time, logger *slog.Logger) {
+// one failed sweep must not stop the ones after it. A failed setting
+// read logs the fixed reason naming its key, never the read's text.
+func (s *NonceStore) RunSweep(ctx context.Context, tick <-chan time.Time, now func() time.Time, logger *slog.Logger) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-tick:
-			result, err := sweep(ctx, now())
+			result, err := s.Sweep(ctx, now())
 			if err != nil {
-				logger.Error("nonce sweep failed", "reason", err.Error())
+				reason := err.Error()
+				if errors.Is(err, errSettingUnreadable) {
+					reason = settingFailureReason(err)
+				}
+				logger.Error("nonce sweep failed", "reason", reason)
 				continue
 			}
 			logger.Info("nonce sweep completed", "removed", result.Removed, "malformed", result.Malformed)

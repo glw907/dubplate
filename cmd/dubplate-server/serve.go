@@ -411,5 +411,5 @@ func methodOnly(method string, h http.Handler) http.Handler {
 func sweepNonces(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) {
 	ticker := time.NewTicker(auth.SweepInterval)
 	defer ticker.Stop()
-	auth.RunSweep(ctx, nonces.Sweep, time.Now, ticker.C, logger)
+	nonces.RunSweep(ctx, ticker.C, time.Now, logger)
 }
