@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/glw907/dubplate/internal/identity"
 )
 
 // The fixtures below are visibly synthetic and deliberately low
@@ -307,8 +305,8 @@ func TestMintLink(t *testing.T) {
 		t.Error("two mints share a nonce, want a fresh 128-bit value per link")
 	}
 
-	if _, _, err := MintLink([]byte(currentFixture), "not-an-address", now, fixtureExpiry); !errors.Is(err, identity.ErrInvalidAddress) {
-		t.Errorf("MintLink of an unparseable address error = %v, want identity.ErrInvalidAddress", err)
+	if _, _, err := MintLink([]byte(currentFixture), "not-an-address", now, fixtureExpiry); err == nil || !strings.Contains(err.Error(), "invalid address") {
+		t.Errorf("MintLink of an unparseable address error = %v, want an invalid address", err)
 	}
 }
 
@@ -325,8 +323,8 @@ func TestMintLinkRefusesAnUnrevocableAddress(t *testing.T) {
 	} {
 		t.Run(address, func(t *testing.T) {
 			_, _, err := MintLink([]byte(currentFixture), address, fixtureMint, fixtureExpiry)
-			if !errors.Is(err, identity.ErrInvalidAddress) {
-				t.Fatalf("MintLink(%q) error = %v, want identity.ErrInvalidAddress", address, err)
+			if err == nil || !strings.Contains(err.Error(), "invalid address") {
+				t.Fatalf("MintLink(%q) error = %v, want an invalid address", address, err)
 			}
 		})
 	}

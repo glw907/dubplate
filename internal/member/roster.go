@@ -76,9 +76,9 @@ var (
 	ErrDuplicateUsername = errors.New("duplicate username")
 
 	// ErrInvalidMemberAddress reports that a record's address does not
-	// normalize as a login address. A write's refusal wraps it beside
-	// [identity.ErrInvalidAddress], whose detail names the rule the
-	// address broke and never quotes the address.
+	// normalize as a login address. A write's refusal carries the
+	// normalizer's reason beside it, which names the rule the address
+	// broke and never quotes the address.
 	ErrInvalidMemberAddress = errors.New("address does not parse as a login address")
 
 	// ErrInvalidDisplayName reports that a record's display name

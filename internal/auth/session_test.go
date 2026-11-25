@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/glw907/dubplate/internal/identity"
 )
 
 // sessionBirth, sessionLifetimeFixture, and sessionCapFixture pin the
@@ -520,8 +518,8 @@ func TestMintSession(t *testing.T) {
 		t.Errorf("verified session = %+v, want %+v", parsed, minted)
 	}
 
-	if _, _, err := MintSession([]byte(currentFixture), "not-an-address", now, sessionLifetimeFixture, sessionCapFixture); !errors.Is(err, identity.ErrInvalidAddress) {
-		t.Errorf("MintSession of an unparseable address error = %v, want identity.ErrInvalidAddress", err)
+	if _, _, err := MintSession([]byte(currentFixture), "not-an-address", now, sessionLifetimeFixture, sessionCapFixture); err == nil || !strings.Contains(err.Error(), "invalid address") {
+		t.Errorf("MintSession of an unparseable address error = %v, want an invalid address", err)
 	}
 }
 

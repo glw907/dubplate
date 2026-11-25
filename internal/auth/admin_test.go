@@ -105,12 +105,10 @@ func notFoundFor(r *http.Request) response {
 // fixture's first admin.
 var fixtureAdmin = VerifiedIdentity{
 	Identity: identity.Identity{
-		Address:     "admin@example.com",
-		UserID:      identity.UserID{0xad, 0x01},
-		Principal:   "groupadmin",
-		DisplayName: "Group Admin",
-		Source:      magicLinkSource,
-		Channel:     identity.ChannelCookie,
+		Address:  "admin@example.com",
+		UserID:   identity.UserID{0xad, 0x01},
+		Username: "groupadmin",
+		Channel:  identity.ChannelCookie,
 	},
 	Admin: true,
 }

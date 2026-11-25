@@ -42,12 +42,10 @@ func TestActor_ZeroNamesNobody(t *testing.T) {
 // validIdentity is a cookie-verified login, valid by construction.
 func validIdentity() Identity {
 	return Identity{
-		Address:     "geoff@example.com",
-		UserID:      UserID{0x01},
-		Principal:   "geoff",
-		DisplayName: "Geoff",
-		Source:      "magic-link",
-		Channel:     ChannelCookie,
+		Address:  "geoff@example.com",
+		UserID:   UserID{0x01},
+		Username: "geoff",
+		Channel:  ChannelCookie,
 	}
 }
 
@@ -78,13 +76,13 @@ func TestNetworkActor(t *testing.T) {
 
 // TestNetworkActor_WireFormFollowsUserID proves the wire form is the
 // durable key alone: two logins with one UserID and different
-// principals render one form, in lowercase, and a login with another
+// usernames render one form, in lowercase, and a login with another
 // UserID renders another.
 func TestNetworkActor_WireFormFollowsUserID(t *testing.T) {
-	login := func(user UserID, principal string) Identity {
-		id := validIdentity()
-		id.UserID, id.Principal = user, principal
-		return id
+	login := func(user UserID, username string) Identity {
+		i := validIdentity()
+		i.UserID, i.Username = user, username
+		return i
 	}
 	shared := UserID{0xab, 0xcd, 0xef}
 	const wantShared = "member:abcdef00000000000000000000000000"
@@ -93,8 +91,8 @@ func TestNetworkActor_WireFormFollowsUserID(t *testing.T) {
 		id   Identity
 		want string
 	}{
-		{"principal geoff", login(shared, "geoff"), wantShared},
-		{"principal renamed", login(shared, "geoffrey"), wantShared},
+		{"username geoff", login(shared, "geoff"), wantShared},
+		{"username renamed", login(shared, "geoffrey"), wantShared},
 		{"another member", login(UserID{0x02}, "geoff"), "member:02000000000000000000000000000000"},
 	}
 	for _, tt := range tests {

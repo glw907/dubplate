@@ -252,11 +252,8 @@ func TestValidateWriteCandidate_Fields(t *testing.T) {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("validateWriteCandidate() error = %v, want it to wrap %v", err, tt.wantErr)
 				}
-				// An address refusal carries the normalizer's
-				// sentinel too, so the roster and the config wall
-				// refuse one address for one reason.
-				if tt.wantErr == ErrInvalidMemberAddress && !errors.Is(err, identity.ErrInvalidAddress) {
-					t.Errorf("validateWriteCandidate() error = %v, want it to wrap identity.ErrInvalidAddress", err)
+				if tt.wantErr == ErrInvalidMemberAddress && !strings.Contains(err.Error(), "invalid address") {
+					t.Errorf("validateWriteCandidate() error = %v, want it to carry the normalizer's reason", err)
 				}
 				return
 			}
@@ -727,8 +724,8 @@ var operator = identity.LocalActor("operator")
 // builds, writing from clientIP.
 func memberActor(id identity.UserID, clientIP string) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
-		Address: "member@example.invalid", UserID: id, Principal: "member",
-		Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: "member@example.invalid", UserID: id, Username: "member",
+		Channel: identity.ChannelCookie,
 	}, rosterNow, clientIP)
 }
 

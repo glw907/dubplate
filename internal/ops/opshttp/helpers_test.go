@@ -26,12 +26,10 @@ var testID = id.ID{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0
 
 // ann is the verified member the admitting authorizers answer with.
 var ann = identity.Identity{
-	Address:     "ann@example.com",
-	UserID:      identity.UserID{0x01},
-	Principal:   "ann",
-	DisplayName: "Ann",
-	Source:      "magic-link",
-	Channel:     identity.ChannelCookie,
+	Address:  "ann@example.com",
+	UserID:   identity.UserID{0x01},
+	Username: "ann",
+	Channel:  identity.ChannelCookie,
 }
 
 // annWire is ann's network actor's wire form, written out rather than

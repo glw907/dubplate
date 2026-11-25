@@ -412,7 +412,7 @@ func TestServeHTTPDenials(t *testing.T) {
 	)
 	planted := ann
 	planted.Address = address
-	planted.Principal = principal
+	planted.Username = principal
 	tests := []struct {
 		name       string
 		decide     func(op string) (identity.Actor, ops.Privilege, error)

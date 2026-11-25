@@ -223,8 +223,7 @@ func (l *lockedWriter) Write(p []byte) (int, error) {
 // anchor.
 func actor(m fixtureMember, anchor time.Time) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
-		Address: m.address, UserID: m.id, Principal: m.username, DisplayName: m.display,
-		Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: m.address, UserID: m.id, Username: m.username, Channel: identity.ChannelCookie,
 	}, anchor, "192.0.2.1")
 }
 
