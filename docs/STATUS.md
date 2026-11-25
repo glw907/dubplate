@@ -38,11 +38,9 @@ at the weekly usage ceiling on 2026-11-24. Tasks 1 to 3 are merged: `vocabulary`
 or let a session finish from that worktree. The chain runs in the session Geoff talks to, from this checkout, by
 building-from-specs "Chains": after the weekly reset (2026-11-27, 23:00 America/Anchorage) the ceiling drops to 85
 percent, and that session re-arms the spec's `/loop 15m` line. A second session in this checkout makes
-`claude-worktree-busy` refuse every launch. Clear the leftover files in `/tmp` first: the gate's `go test` leg failed
-on a full tmpfs.
+`claude-worktree-busy` refuse every launch. Clear `/tmp` first: the gate's `go test` leg failed on a full tmpfs.
 
-`intake-2` takes #159 after the chain's last task, `web`, merges.
-PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
+`intake-2` takes #159 after the chain's last task, `web`, merges. PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
 Before any deploy that carries `cleanup-store`, check read-only that the box store holds no restore-intent record (#148).
 
 ## Open decisions
