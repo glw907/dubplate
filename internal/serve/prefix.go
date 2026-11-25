@@ -40,22 +40,12 @@ func validatePrefix(value string) error {
 	if !strings.HasPrefix(value, "/") {
 		return fmt.Errorf("%q: must begin with a separator: %w", value, ErrInvalidPrefix)
 	}
-	// A bare "/" also satisfies HasSuffix(value, "/"), so this same
-	// check refuses the root path as an owned prefix along with every
-	// other trailing separator: the root owns nothing distinguishable
-	// from the paths outside the prefix.
+	// The check also refuses a bare "/", which owns nothing.
 	if strings.HasSuffix(value, "/") {
 		return fmt.Errorf("%q: must carry no trailing separator: %w", value, ErrInvalidPrefix)
 	}
-	// The three shape checks run before the escaping check below, and
-	// their order is the whole point of their existing separately. A
-	// bare URL{Path: value}.EscapedPath escapes a backslash, a space, a
-	// tab, and a "!" alike, so the escaping check refuses every one of
-	// them; put first, it would report "must carry no percent-encoded
-	// byte" for a prefix carrying no percent sign at all, which sends an
-	// adopter looking for an encoding they never wrote. Each shape
-	// reports itself here, and the escaping check keeps only what is
-	// left.
+	// The shape checks run before the escaping check, which would
+	// otherwise report each of them as a percent-encoded byte.
 	if strings.Contains(value, `\`) {
 		return fmt.Errorf("%q: must carry no backslash: %w", value, ErrInvalidPrefix)
 	}
@@ -65,32 +55,14 @@ func validatePrefix(value string) error {
 	if strings.Contains(value, "%") {
 		return fmt.Errorf("%q: must carry no percent-encoded byte: %w", value, ErrInvalidPrefix)
 	}
-	// A bare URL{Path: value} never decodes value, so its EscapedPath
-	// is the default escaping of value's literal bytes; a mismatch that
-	// survives the three checks above means value carries some other
-	// byte a request path may not carry unescaped, and [Normalize]'s
-	// raw-versus-decoded rule would refuse it there.
 	if escaped := (&url.URL{Path: value}).EscapedPath(); escaped != value {
 		return fmt.Errorf("%q: must carry only bytes a request path admits unescaped: %w", value, ErrInvalidPrefix)
 	}
-	// The leading separator opens the path rather than closing a
-	// segment, so it is trimmed before the split. An empty segment
-	// anywhere but last is a doubled separator; an empty segment last
-	// is the trailing separator the check above already refused on
-	// its own, so a mutation that drops that check surfaces here as a
-	// double separator at match time (p.value+"/" against a path that
-	// already ends p.value+"/") rather than a second refusal of the
-	// same shape.
-	segments := strings.Split(strings.TrimPrefix(value, "/"), "/")
-	for i, segment := range segments {
-		switch segment {
-		case ".", "..":
-			return fmt.Errorf("%q: must carry no %q or %q segment: %w", value, ".", "..", ErrInvalidPrefix)
-		case "":
-			if i != len(segments)-1 {
-				return fmt.Errorf("%q: must carry no doubled separator: %w", value, ErrInvalidPrefix)
-			}
-		}
+	switch dot, doubled := segmentFault(value); {
+	case dot:
+		return fmt.Errorf("%q: must carry no %q or %q segment: %w", value, ".", "..", ErrInvalidPrefix)
+	case doubled:
+		return fmt.Errorf("%q: must carry no doubled separator: %w", value, ErrInvalidPrefix)
 	}
 	return nil
 }
