@@ -678,6 +678,25 @@ func TestRequestLink_GenericAnswersAlike(t *testing.T) {
 	}
 }
 
+// TestRequestLink_RefusalLogsTheNormalizerReason proves a refused
+// address logs the rule it broke, by code point, and never the address.
+func TestRequestLink_RefusalLogsTheNormalizerReason(t *testing.T) {
+	fx := newHandlerFixture(t, fixtureOptions{})
+	const address = "\"me​mber\"@example.com"
+	w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(address)))
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+	rec := fx.logs.waitFor(t, "auth link request refused")
+	const want = "invalid address: carries a control character or invisible character (U+200B)"
+	if got := rec["reason"]; got != want {
+		t.Errorf("reason = %q, want %q", got, want)
+	}
+	if strings.Contains(fx.logs.text(), "mber") {
+		t.Errorf("a log record carries the address:\n%s", fx.logs.text())
+	}
+}
+
 // TestRequestLink_GenericDoesNotWaitOnSend holds the known address's
 // send open and requires the response anyway. A handler that answered
 // only after the send would carry the transport's whole delay, which

@@ -269,11 +269,9 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 	if !readForm(w, r, vals.bodyCap, log) {
 		return
 	}
-	// The normalizer's error can quote its input, so it is dropped
-	// rather than logged.
 	address, err := identity.NormalizeAddress(r.PostForm.Get(addressField))
 	if err != nil {
-		log.Info("auth link request refused", "reason", "address does not parse")
+		log.Info("auth link request refused", "reason", err.Error())
 		writeAnswer(w, http.StatusBadRequest, answer{Outcome: outcomeInvalid})
 		return
 	}
