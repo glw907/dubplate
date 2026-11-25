@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/atomicfile"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -182,7 +183,10 @@ func (s *NonceStore) insert(ctx context.Context, nonce [nonceLength]byte, now, e
 	// consumption can lose the record while the link that produced
 	// it is still within its expiry, which is single use lost to a
 	// power cut.
-	return syncDir(s.dir)
+	if err := atomicfile.SyncDir(s.dir); err != nil {
+		return fmt.Errorf("sync nonce directory: %w", err)
+	}
+	return nil
 }
 
 // sweep removes every record whose carried expiry has passed at now and
@@ -349,23 +353,6 @@ func writeAndSync(f *os.File, data []byte) error {
 	}
 	if err != nil {
 		return fmt.Errorf("write consumed nonce record: %w", err)
-	}
-	return nil
-}
-
-// syncDir fsyncs dir so a rename or a creation within it survives a
-// crash.
-func syncDir(dir string) error {
-	d, err := os.Open(dir)
-	if err != nil {
-		return fmt.Errorf("open nonce directory: %w", err)
-	}
-	err = d.Sync()
-	if closeErr := d.Close(); err == nil {
-		err = closeErr
-	}
-	if err != nil {
-		return fmt.Errorf("sync nonce directory: %w", err)
 	}
 	return nil
 }
