@@ -17,7 +17,7 @@ import (
 // measuring exactly 2048 bytes is admitted, and 2049 is refused.
 const maxPathBytes = 2048
 
-// Normalize returns a handler that answers every request breaking one
+// normalize returns a handler that answers every request breaking one
 // of six path rules and hands every other request to next untouched.
 // It is a gate, never a rewriter: an admitted request reaches next
 // with the path it arrived on, byte for byte.
@@ -26,7 +26,7 @@ const maxPathBytes = 2048
 // decision sees a refused request, which is what makes the rules a
 // boundary rather than a filter.
 //
-// Normalize wraps the mux and is never registered as a route on one.
+// normalize wraps the mux and is never registered as a route on one.
 // http.ServeMux cleans a path and redirects before any route runs, so
 // a check registered as a route would run after the decision it exists
 // to guard. TestServeMuxCleansBeforeARouteRuns measures that redirect.
@@ -75,7 +75,7 @@ const maxPathBytes = 2048
 // Every rule but the length bound refuses with 400, so a client cannot tell which
 // smuggling rule refused it. The length bound answers 414, a shape
 // already distinguishable from outside by its own size.
-func Normalize(next http.Handler) http.Handler {
+func normalize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if status, refused := pathRefusal(r.URL); refused {
 			refuse(w, r, status)

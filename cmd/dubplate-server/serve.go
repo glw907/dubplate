@@ -194,8 +194,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	strip := serve.NewStrip(proxyConfig)
-	shell := serve.NewShell(prefix, strip, logger)
+	shell := serve.NewShell(prefix, proxyConfig, logger)
 	routes := mount(shell)
 	if sendsHSTS(authConfig.PublicOrigin) {
 		shell.EnableHSTS()

@@ -241,7 +241,7 @@ func TestDoctorBoundaryRows_NeutralBrandingLogsNothingToStdout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	if _, err := newWebRoutes(environ, listen.Prefix,fixtureSiteName, privateFiles{}, slog.New(slog.NewTextHandler(&logs, nil))); err != nil {
+	if _, err := newWebRoutes(environ, listen.Prefix, fixtureSiteName, privateFiles{}, slog.New(slog.NewTextHandler(&logs, nil))); err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
 	if logs.Len() == 0 {

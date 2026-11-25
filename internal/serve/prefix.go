@@ -8,9 +8,9 @@ import (
 	"unicode"
 )
 
-// ErrInvalidPrefix is the sentinel [NewPrefix] wraps when a candidate
+// errInvalidPrefix is the sentinel [NewPrefix] wraps when a candidate
 // prefix value fails construction validation.
-var ErrInvalidPrefix = errors.New("invalid serve prefix")
+var errInvalidPrefix = errors.New("invalid serve prefix")
 
 // Prefix is the one path prefix dubplate owns end to end: every route
 // the shell registers lives under it, and every path outside it
@@ -24,9 +24,9 @@ type Prefix struct {
 
 // NewPrefix validates value and returns the [Prefix] it names. value
 // must begin with a separator, carry no trailing separator, and carry
-// no character Normalize's rules would refuse in a request path: no
+// no character normalize would refuse in a request path: no
 // empty, ".", or ".." segment, no backslash, and no percent-encoded
-// byte. A failure wraps [ErrInvalidPrefix] rather than surfacing as a
+// byte. A failure wraps [errInvalidPrefix] rather than surfacing as a
 // runtime 500, since a misconfigured prefix is a construction-time
 // mistake rather than a per-request one.
 func NewPrefix(value string) (Prefix, error) {
@@ -38,31 +38,31 @@ func NewPrefix(value string) (Prefix, error) {
 
 func validatePrefix(value string) error {
 	if !strings.HasPrefix(value, "/") {
-		return fmt.Errorf("%q: must begin with a separator: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must begin with a separator: %w", value, errInvalidPrefix)
 	}
 	// The check also refuses a bare "/", which owns nothing.
 	if strings.HasSuffix(value, "/") {
-		return fmt.Errorf("%q: must carry no trailing separator: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry no trailing separator: %w", value, errInvalidPrefix)
 	}
 	// The shape checks run before the escaping check, which would
 	// otherwise report each of them as a percent-encoded byte.
 	if strings.Contains(value, `\`) {
-		return fmt.Errorf("%q: must carry no backslash: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry no backslash: %w", value, errInvalidPrefix)
 	}
 	if strings.ContainsFunc(value, unicode.IsSpace) {
-		return fmt.Errorf("%q: must carry no whitespace: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry no whitespace: %w", value, errInvalidPrefix)
 	}
 	if strings.Contains(value, "%") {
-		return fmt.Errorf("%q: must carry no percent-encoded byte: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry no percent-encoded byte: %w", value, errInvalidPrefix)
 	}
 	if escaped := (&url.URL{Path: value}).EscapedPath(); escaped != value {
-		return fmt.Errorf("%q: must carry only bytes a request path admits unescaped: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry only bytes a request path admits unescaped: %w", value, errInvalidPrefix)
 	}
 	switch dot, doubled := segmentFault(value); {
 	case dot:
-		return fmt.Errorf("%q: must carry no %q or %q segment: %w", value, ".", "..", ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry no %q or %q segment: %w", value, ".", "..", errInvalidPrefix)
 	case doubled:
-		return fmt.Errorf("%q: must carry no doubled separator: %w", value, ErrInvalidPrefix)
+		return fmt.Errorf("%q: must carry no doubled separator: %w", value, errInvalidPrefix)
 	}
 	return nil
 }

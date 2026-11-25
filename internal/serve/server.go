@@ -13,10 +13,7 @@ import (
 	"time"
 )
 
-// Named timeouts and MaxHeaderBytes for the http.Server C6 constructs
-// (R-H, R-V). Each carries the reason it is sized the way it is, so the
-// number is a decision recorded once rather than an unexplained literal
-// repeated at every call site.
+// Timeouts and the header ceiling for the server [Run] builds.
 const (
 	// readHeaderTimeout bounds how long a client has to finish sending
 	// request headers before the connection is abandoned, independent
@@ -41,35 +38,26 @@ const (
 	// holding it until the OS's own (much longer) default.
 	idleTimeout = 120 * time.Second
 
-	// maxHeaderBytes (R-H) is set explicitly rather than inherited from
-	// net/http's own package default, so the ceiling on header-driven
-	// memory an unauthenticated client can force the server to hold is
-	// a decision this package states rather than a value read from
-	// http.DefaultMaxHeaderBytes.
+	// maxHeaderBytes bounds the header memory an unauthenticated client
+	// can make the server hold.
 	maxHeaderBytes = 1 << 20 // 1 MiB
 
-	// shutdownGrace bounds Run's own drain wait for an in-flight
-	// request once ctx is done. A supervising unit's own stop timeout
-	// (5d's concern, not this package's) is the real backstop, so this
-	// only needs to be generous, not exact.
+	// shutdownGrace bounds Run's drain wait for an in-flight request
+	// once ctx is done. The supervising unit's stop timeout is the real
+	// backstop, so this only needs to be generous, not exact.
 	shutdownGrace = 25 * time.Second
 
-	// defaultWriteTimeout protects every ordinary response, the ones
-	// that never call the extension mechanism below. An SSE stream or
-	// an audio response can legitimately run past 30 seconds, and a
-	// single fixed write timeout would kill both, which is the mistake
-	// the salvage server made. The mechanism that saves the streaming case is
-	// http.ResponseController.SetWriteDeadline: a streaming handler can
-	// extend or clear its own deadline before this default expires,
-	// while every handler that never calls it stays bound by this
-	// default.
+	// defaultWriteTimeout bounds every ordinary response. An SSE stream
+	// or an audio response can legitimately run longer: such a handler
+	// extends or clears its own deadline through
+	// [http.ResponseController.SetWriteDeadline] before this one
+	// expires.
 	defaultWriteTimeout = 30 * time.Second
 )
 
-// newHTTPServer builds the http.Server C6 constructs over handler,
-// carrying all four named timeouts above and the explicit
-// MaxHeaderBytes. It sets no Addr and opens no listener: Run pairs it
-// with the listener set Listen opens.
+// newHTTPServer builds the server Run serves handler with. It sets no
+// Addr and opens no listener: Run pairs it with the listener set listen
+// opens.
 //
 // ErrorLog is wired to logger through [slog.NewLogLogger] at warn
 // level. net/http writes its own protocol errors (a bad request line, a
@@ -90,15 +78,15 @@ func newHTTPServer(handler http.Handler, logger *slog.Logger) *http.Server {
 	}
 }
 
-// Listen opens one TCP listener per address in addrs, all on port, each
+// listen opens one TCP listener per address in addrs, all on port, each
 // carrying the freebindControl hook. Binding exactly this list, never
 // the all-interfaces wildcard address, is what refuses a
 // connection to any address not named in it, since nothing listens
 // there. A failure partway through the set closes every listener
-// already opened before Listen returns, so a partial bind leaks no
-// file descriptor. The listeners Listen returns carry their
+// already opened before listen returns, so a partial bind leaks no
+// file descriptor. The listeners listen returns carry their
 // actually-bound addresses, readable through Addr().
-func Listen(ctx context.Context, addrs []netip.Addr, port int) ([]net.Listener, error) {
+func listen(ctx context.Context, addrs []netip.Addr, port int) ([]net.Listener, error) {
 	lc := net.ListenConfig{Control: freebindControl}
 	listeners := make([]net.Listener, 0, len(addrs))
 	for _, addr := range addrs {
@@ -127,7 +115,7 @@ func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs [
 	if logger == nil {
 		logger = slog.Default()
 	}
-	listeners, err := Listen(ctx, addrs, port)
+	listeners, err := listen(ctx, addrs, port)
 	if err != nil {
 		return err
 	}
@@ -138,10 +126,7 @@ func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs [
 // calls http.Server.Shutdown with a fresh shutdownGrace-bounded context
 // derived via context.WithoutCancel: deriving directly from the
 // already-canceled ctx would hand Shutdown a context that is already
-// done, so the drain would never wait for an in-flight request. Split
-// out from Run so a test can exercise the drain behavior against a
-// minimal handler and a listener set it already knows the address of,
-// without going through Run's own address resolution.
+// done, so the drain would never wait for an in-flight request.
 func serveUntilDone(ctx context.Context, srv *http.Server, listeners []net.Listener) error {
 	errCh := make(chan error, len(listeners))
 	var serving sync.WaitGroup

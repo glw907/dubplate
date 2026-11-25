@@ -19,7 +19,7 @@ import (
 // whole value is that a consumer brings one.
 type Shell struct {
 	prefix   Prefix
-	strip    Strip
+	strip    strip
 	origin   *originCheck
 	logger   *slog.Logger
 	mux      *http.ServeMux
@@ -38,20 +38,16 @@ type Shell struct {
 	handlerBuilt bool
 }
 
-// NewShell builds a [Shell] that owns prefix and strips ingress traffic
-// through strip. logger receives the shell's one structured log record
-// (the refusal record doc.go describes); a nil logger falls back to
-// [slog.Default]. NewShell reads no environment and no [internal/config]
-// value: every input is a construction-time argument. Only config.go and
-// doctor.go in this package import configuration, and the import test in
-// internal/settings holds it.
-func NewShell(prefix Prefix, strip Strip, logger *slog.Logger) *Shell {
+// NewShell builds a [Shell] that owns prefix and reads client addresses
+// by proxy. logger receives the shell's refusal record; a nil logger
+// falls back to [slog.Default].
+func NewShell(prefix Prefix, proxy TrustedProxyConfig, logger *slog.Logger) *Shell {
 	if logger == nil {
 		logger = slog.Default()
 	}
 	return &Shell{
 		prefix:   prefix,
-		strip:    strip,
+		strip:    newStrip(proxy),
 		origin:   newOriginCheck(),
 		logger:   logger,
 		mux:      http.NewServeMux(),
@@ -108,7 +104,7 @@ func (s *Shell) Register(name string, h http.Handler) {
 //     matches any single segment, and "{x...}" matches the rest of the
 //     path.
 //   - Whitespace cannot appear in a request path this shell admits
-//     (Normalize refuses a space as an unescaped byte), so a name
+//     (normalize refuses a space as an unescaped byte), so a name
 //     carrying it registers a pattern nothing can ever reach: a silent
 //     no-op rather than a widening, and still a wiring mistake.
 func subtreeNameRefusal(name string) string {
@@ -147,10 +143,10 @@ func subtreeNameRefusal(name string) string {
 func (s *Shell) Handler() http.Handler {
 	s.handlerBuilt = true
 
-	protected := s.origin.wrap(s.terminated())
+	protected := s.origin.wrap(s.dispatch())
 	guarded := refuseEchoMethods(protected)
-	normalized := Normalize(guarded)
-	stripped := s.strip.Wrap(normalized)
+	normalized := normalize(guarded)
+	stripped := s.strip.wrap(normalized)
 	return securityHeaders(s.hsts, s.logRefusal(s.warnForwardedFromLocalPeer(stripped)))
 }
 
@@ -173,7 +169,7 @@ func (s *Shell) Handler() http.Handler {
 // property and no access-control input; it decides only whether to
 // log.
 func (s *Shell) warnForwardedFromLocalPeer(next http.Handler) http.Handler {
-	if s.strip.proxy.Mode() != ModeDirect {
+	if s.strip.proxy.mode() != proxyDirect {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +179,7 @@ func (s *Shell) warnForwardedFromLocalPeer(next http.Handler) http.Handler {
 }
 
 func (s *Shell) noteForwardedFromLocalPeer(r *http.Request) {
-	peer := PeerAddress(r)
+	peer := peerIP(r)
 	addr, err := netip.ParseAddr(peer)
 	if err != nil {
 		return
@@ -234,7 +230,7 @@ func refuseEchoMethods(next http.Handler) http.Handler {
 	})
 }
 
-// terminated dispatches a request to the registered subtree that
+// dispatch dispatches a request to the registered subtree that
 // claims its path and answers every other path with
 // [http.NotFoundHandler]. The 404 is wired here explicitly rather than
 // left to [http.ServeMux]'s own default, which answers the same status
@@ -242,7 +238,7 @@ func refuseEchoMethods(next http.Handler) http.Handler {
 // decision. Subtrees register patterns that end on a segment boundary,
 // so a path sharing a subtree's bytes without the boundary is claimed
 // by none.
-func (s *Shell) terminated() http.Handler {
+func (s *Shell) dispatch() http.Handler {
 	notFound := http.NotFoundHandler()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h, pattern := s.mux.Handler(r)

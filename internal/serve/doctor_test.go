@@ -356,7 +356,7 @@ func TestDoctorBoundaryProbe_ListenerAnswers(t *testing.T) {
 				w.WriteHeader(tt.status)
 				_, _ = io.WriteString(w, tt.body)
 			})
-			status, failed := boundaryProbeStatus(t.Context(), environ,loadRowConfig(t, environ))
+			status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 			if status != tt.wantStatus {
 				t.Errorf("status = %q, want %q", status, tt.wantStatus)
 			}
@@ -389,7 +389,7 @@ func TestDoctorBoundaryProbe_WedgedListener(t *testing.T) {
 	cfg := loadRowConfig(t, environ)
 
 	start := time.Now()
-	status, failed := boundaryProbeStatus(t.Context(), environ,cfg)
+	status, failed := boundaryProbeStatus(t.Context(), environ, cfg)
 	elapsed := time.Since(start)
 	if want := "127.0.0.1 unexpected answer: timeout"; status != want {
 		t.Errorf("status = %q, want %q", status, want)
@@ -500,7 +500,7 @@ func TestBoundaryProbeStatus_MixedTrustedBind(t *testing.T) {
 		"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
 		"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1,127.0.0.2",
 	)
-	status, failed := boundaryProbeStatus(t.Context(), environ,loadRowConfig(t, environ))
+	status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 	if want := "127.0.0.1 no listener (a trusted proxy, identity only), 127.0.0.2 no listener"; status != want {
 		t.Errorf("status = %q, want %q", status, want)
 	}
@@ -544,7 +544,7 @@ func TestDoctorBoundaryProbe_TrustedAnswers(t *testing.T) {
 			environ := cannedRoute(t, func(w http.ResponseWriter) {
 				_, _ = io.WriteString(w, tt.body)
 			}, trustedLoopback...)
-			status, failed := boundaryProbeStatus(t.Context(), environ,loadRowConfig(t, environ))
+			status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 			if status != tt.wantStatus {
 				t.Errorf("status = %q, want %q", status, tt.wantStatus)
 			}
@@ -574,7 +574,7 @@ func TestDoctorBoundaryProbe_SendsTheConfiguredHeader(t *testing.T) {
 		"DUBPLATE_TRUSTED_PROXY_HEADER=X-House-Client-Address",
 		"DUBPLATE_SERVE_PORT="+strconv.Itoa(listenerPort(t, srv.Listener)),
 	)
-	status, failed := boundaryProbeStatus(t.Context(), environ,loadRowConfig(t, environ))
+	status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 	if failed {
 		t.Fatalf("failed = true (status %q), want the strip's refusal to pass", status)
 	}

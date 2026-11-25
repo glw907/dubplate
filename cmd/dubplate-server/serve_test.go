@@ -166,7 +166,7 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 // validates the wall and resolves configuration, refusing before ever
 // calling serve.Run: an unsatisfied owned wall, an invalid prefix, or
 // an unparseable bind list each surfaces through RunE with the
-// underlying sentinel intact, and no case opens a listener, since all
+// underlying refusal intact, and no case opens a listener, since all
 // three refusals precede resolution's own return.
 //
 // Each case runs under an already-canceled context so a regression
@@ -175,24 +175,24 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 // gate's own timeout.
 func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 	tests := []struct {
-		name    string
-		environ []string
-		wantErr error
+		name     string
+		environ  []string
+		wantText string
 	}{
 		{
-			name:    "unsatisfied owned wall",
-			environ: dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
-			wantErr: config.ErrMissing,
+			name:     "unsatisfied owned wall",
+			environ:  dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
+			wantText: "required setting unset",
 		},
 		{
-			name:    "invalid prefix",
-			environ: append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
-			wantErr: serve.ErrInvalidPrefix,
+			name:     "invalid prefix",
+			environ:  append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
+			wantText: "invalid serve prefix",
 		},
 		{
-			name:    "unparseable bind list",
-			environ: append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
-			wantErr: serve.ErrInvalidBindAddr,
+			name:     "unparseable bind list",
+			environ:  append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
+			wantText: "invalid bind address",
 		},
 	}
 
@@ -205,8 +205,8 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 			cancel()
 
 			err := cmd.ExecuteContext(ctx)
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Execute() error = %v, want it to wrap %v", err, tt.wantErr)
+			if err == nil || !strings.Contains(err.Error(), tt.wantText) {
+				t.Fatalf("Execute() error = %v, want it to carry %q", err, tt.wantText)
 			}
 		})
 	}
@@ -221,8 +221,8 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // The second half proves the wiring carries the production registry
 // and the process environment rather than a construction that only
 // looks right: dispatching "serve" through the root command with an
-// invalid prefix in the environment refuses with the resolution
-// sentinel, which can only happen if the added command resolved
+// invalid prefix in the environment refuses with the prefix refusal,
+// which can only happen if the added command resolved
 // configuration. No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	var serveCmd, doctorCmd bool
@@ -263,8 +263,8 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
 
-	if err := root.Execute(); !errors.Is(err, serve.ErrInvalidPrefix) {
-		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want it to wrap %v", err, serve.ErrInvalidPrefix)
+	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "invalid serve prefix") {
+		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want the prefix refusal", err)
 	}
 }
 
@@ -1245,7 +1245,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	shell := serve.NewShell(prefix, serve.NewStrip(serve.TrustedProxyConfig{}), discardTestLogger())
+	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, discardTestLogger())
 	registerWebRoutes(shell, routes)
 	shell.Register(membersRouteName, routes.Members)
 	shell.Register(serverSettingsRouteName, routes.ServerSettings)

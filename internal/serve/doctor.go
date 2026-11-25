@@ -64,14 +64,14 @@ func clientIPStatus(cfg *config.Config) (status string, failed bool) {
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
-	if proxy.Mode() == ModeDirect {
-		return proxy.Mode().String() + ": " + directAssumption, false
+	if proxy.mode() == proxyDirect {
+		return proxy.mode().String() + ": " + directAssumption, false
 	}
 	noun := "addresses"
 	if len(proxy.proxies) == 1 {
 		noun = "address"
 	}
-	return fmt.Sprintf("%s: %s from %d %s", proxy.Mode(), proxy.header, len(proxy.proxies), noun), false
+	return fmt.Sprintf("%s: %s from %d %s", proxy.mode(), proxy.header, len(proxy.proxies), noun), false
 }
 
 // bindAddrsStatus reports, for each address
@@ -92,7 +92,7 @@ func clientIPStatus(cfg *config.Config) (status string, failed bool) {
 // key is the registered loopback default; a refused value reads
 // "invalid: " plus its refusal.
 func bindAddrsStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
-	raw, err := config.ParseString(environ, BindAddrsThreshold)
+	raw, err := config.ParseString(environ, bindAddrsThreshold)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
@@ -173,7 +173,7 @@ const allTrustedUnproven = "forwarded and Connection-listed removal unproven: ev
 
 // boundaryProbeStatus dials each configured bind address on the
 // configured port, from that same address, sends the one probe request
-// [NewProbeRequest] builds, and reports what the running server's probe
+// [newProbeRequest] builds, and reports what the running server's probe
 // route counted. Per address: "refused" when every count is zero;
 // "passed ..." naming each group that reached the route, which fails
 // the row; "no listener" when the dial is refused or times out, which
@@ -287,52 +287,52 @@ func probeAddress(ctx context.Context, prefix Prefix, ip netip.Addr, port int, p
 // identity count is required, and the other two read as zero whatever
 // the body holds. The error it returns is the text the row prints after
 // "unexpected answer: ".
-func probeExchange(ctx context.Context, conn net.Conn, prefix Prefix, host string, proxy TrustedProxyConfig, trusted bool) (ProbeCounts, error) {
+func probeExchange(ctx context.Context, conn net.Conn, prefix Prefix, host string, proxy TrustedProxyConfig, trusted bool) (probeCounts, error) {
 	if deadline, ok := ctx.Deadline(); ok {
 		if err := conn.SetDeadline(deadline); err != nil {
-			return ProbeCounts{}, err
+			return probeCounts{}, err
 		}
 	}
-	req, err := NewProbeRequest(ctx, prefix, host, proxy)
+	req, err := newProbeRequest(ctx, prefix, host, proxy)
 	if err != nil {
-		return ProbeCounts{}, err
+		return probeCounts{}, err
 	}
 	if err := req.Write(conn); err != nil {
-		return ProbeCounts{}, answerError(err)
+		return probeCounts{}, answerError(err)
 	}
 	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
 	if err != nil {
-		return ProbeCounts{}, answerError(err)
+		return probeCounts{}, answerError(err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
-		return ProbeCounts{}, errors.New(resp.Status)
+		return probeCounts{}, errors.New(resp.Status)
 	}
 	unparseable := fmt.Errorf("%s with an unparseable body", resp.Status)
 	var answer probeAnswer
 	if err := json.NewDecoder(io.LimitReader(resp.Body, probeAnswerCap)).Decode(&answer); err != nil {
 		if isTimeout(err) {
-			return ProbeCounts{}, errProbeTimeout
+			return probeCounts{}, errProbeTimeout
 		}
-		return ProbeCounts{}, unparseable
+		return probeCounts{}, unparseable
 	}
 	if answer.Identity == nil {
-		return ProbeCounts{}, unparseable
+		return probeCounts{}, unparseable
 	}
 	if trusted {
-		return ProbeCounts{Identity: *answer.Identity}, nil
+		return probeCounts{Identity: *answer.Identity}, nil
 	}
 	if answer.Forwarded == nil || answer.Sentinel == nil {
-		return ProbeCounts{}, unparseable
+		return probeCounts{}, unparseable
 	}
-	return ProbeCounts{
+	return probeCounts{
 		Identity:  *answer.Identity,
 		Forwarded: *answer.Forwarded,
 		Sentinel:  *answer.Sentinel,
 	}, nil
 }
 
-// probeAnswer is [ProbeCounts] as the probe reads it, with each count a
+// probeAnswer is [probeCounts] as the probe reads it, with each count a
 // pointer so a key the body leaves out stays nil. A 200 whose body
 // lacks any count, or is JSON null, did not come from the route, and
 // reading it as all zeros would report a strip that never ran.
@@ -364,7 +364,7 @@ func isTimeout(err error) bool {
 // countsResult renders the route's counts: "refused" when every
 // count is zero, and otherwise each group that reached the route,
 // which fails the row.
-func countsResult(c ProbeCounts) probeResult {
+func countsResult(c probeCounts) probeResult {
 	var passed []string
 	if c.Identity > 0 {
 		passed = append(passed, fmt.Sprintf("%d identity header(s)", c.Identity))

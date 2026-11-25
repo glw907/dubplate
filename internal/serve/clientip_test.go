@@ -8,7 +8,7 @@ import (
 )
 
 // addrs parses each of ss with [netip.MustParseAddr], the parsed form
-// [NewTrustedProxyConfig] takes.
+// [newTrustedProxyConfig] takes.
 func addrs(ss ...string) []netip.Addr {
 	out := make([]netip.Addr, 0, len(ss))
 	for _, s := range ss {
@@ -45,9 +45,9 @@ func TestPeerAddress(t *testing.T) {
 		},
 		{
 			// Threat-model claim 3: a client-address header naming a
-			// different address never changes PeerAddress's answer,
+			// different address never changes peerIP's answer,
 			// even though the peer here would be an allowlisted proxy
-			// under a live TrustedProxyConfig. PeerAddress takes no
+			// under a live TrustedProxyConfig. peerIP takes no
 			// TrustedProxyConfig at all, so mode cannot reach it.
 			name:       "claim 3: header naming a different address is ignored",
 			remoteAddr: "203.0.113.10:54321",
@@ -64,8 +64,8 @@ func TestPeerAddress(t *testing.T) {
 				r.Header.Set("X-Forwarded-For", tt.header)
 			}
 
-			if got := PeerAddress(r); got != tt.want {
-				t.Errorf("PeerAddress() = %q, want %q", got, tt.want)
+			if got := peerIP(r); got != tt.want {
+				t.Errorf("peerIP() = %q, want %q", got, tt.want)
 			}
 		})
 	}
@@ -286,7 +286,7 @@ func TestClientIP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTrustedProxyConfig(tt.proxies, tt.header)
+			cfg := newTrustedProxyConfig(tt.proxies, tt.header)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = tt.remoteAddr
@@ -308,26 +308,26 @@ func TestProxyModeString(t *testing.T) {
 		name    string
 		proxies []netip.Addr
 		header  string
-		want    ProxyMode
+		want    proxyMode
 	}{
-		{name: "zero value is direct", want: ModeDirect},
-		{name: "configured header is trusted proxy", proxies: addrs("203.0.113.10"), header: "X-Forwarded-For", want: ModeTrustedProxy},
+		{name: "zero value is direct", want: proxyDirect},
+		{name: "configured header is trusted proxy", proxies: addrs("203.0.113.10"), header: "X-Forwarded-For", want: proxyTrusted},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTrustedProxyConfig(tt.proxies, tt.header)
-			if got := cfg.Mode(); got != tt.want {
-				t.Errorf("Mode() = %v, want %v", got, tt.want)
+			cfg := newTrustedProxyConfig(tt.proxies, tt.header)
+			if got := cfg.mode(); got != tt.want {
+				t.Errorf("mode() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 
-	if got := ModeDirect.String(); got != "direct" {
-		t.Errorf("ModeDirect.String() = %q, want %q", got, "direct")
+	if got := proxyDirect.String(); got != "direct" {
+		t.Errorf("proxyDirect.String() = %q, want %q", got, "direct")
 	}
-	if got := ModeTrustedProxy.String(); got != "trusted proxy" {
-		t.Errorf("ModeTrustedProxy.String() = %q, want %q", got, "trusted proxy")
+	if got := proxyTrusted.String(); got != "trusted proxy" {
+		t.Errorf("proxyTrusted.String() = %q, want %q", got, "trusted proxy")
 	}
 }
 
@@ -376,7 +376,7 @@ func TestClientIPReadsEveryHeaderLineAsOneChain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTrustedProxyConfig(tt.proxies, "X-Forwarded-For")
+			cfg := newTrustedProxyConfig(tt.proxies, "X-Forwarded-For")
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = peer + ":1111"
@@ -430,15 +430,15 @@ func TestValidateProxyHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateProxyHeader(tt.header)
+			err := validateProxyHeader(tt.header)
 			if tt.wantErr == "" {
 				if err != nil {
-					t.Fatalf("ValidateProxyHeader(%q) = %v, want nil", tt.header, err)
+					t.Fatalf("validateProxyHeader(%q) = %v, want nil", tt.header, err)
 				}
 				return
 			}
 			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
-				t.Fatalf("ValidateProxyHeader(%q) = %v, want an error containing %q", tt.header, err, tt.wantErr)
+				t.Fatalf("validateProxyHeader(%q) = %v, want an error containing %q", tt.header, err, tt.wantErr)
 			}
 		})
 	}

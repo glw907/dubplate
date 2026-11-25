@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -920,7 +920,24 @@ func TestRequestLink_ClientIPIsTheShells(t *testing.T) {
 	const perClient = 3
 	limits := generousLimits
 	limits.LinkRequestsPerClient = perClient
-	proxy := serve.NewTrustedProxyConfig([]netip.Addr{netip.MustParseAddr("203.0.113.1")}, "X-Forwarded-For")
+	reg := config.NewRegistry()
+	serve.RegisterTrustedProxy(reg)
+	cfg, err := config.Load([]string{
+		"DUBPLATE_LIBRARY_ROOT=/srv/music/library",
+		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
+		"DUBPLATE_SITE_NAME=Test Family",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
+		"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+		"DUBPLATE_TRUSTED_PROXY_ADDRS=203.0.113.1",
+		"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
+	}, reg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxy, err := serve.ParseTrustedProxy(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		name        string

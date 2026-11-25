@@ -104,7 +104,7 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	shell := serve.NewShell(shellPrefix, serve.NewStrip(serve.TrustedProxyConfig{}), logger)
+	shell := serve.NewShell(shellPrefix, serve.TrustedProxyConfig{}, logger)
 	shell.Register("tus", mount)
 
 	srv := httptest.NewUnstartedServer(shell.Handler())

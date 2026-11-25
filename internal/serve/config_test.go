@@ -175,7 +175,7 @@ func TestParseTrustedProxy(t *testing.T) {
 		{
 			name: "a valid set, a mapped entry unmapped, a duplicate collapsed",
 			set:  map[string]string{flag: "true", addrs: "192.0.2.10, ::ffff:198.51.100.7,192.0.2.10", header: "Cf-Connecting-Ip"},
-			wantConfig: NewTrustedProxyConfig(
+			wantConfig: newTrustedProxyConfig(
 				[]netip.Addr{netip.MustParseAddr("192.0.2.10"), netip.MustParseAddr("198.51.100.7")},
 				"Cf-Connecting-Ip",
 			),
@@ -283,12 +283,12 @@ func TestParseConfig(t *testing.T) {
 		{
 			name:    "invalid prefix",
 			environ: []string{"DUBPLATE_SERVE_PREFIX=no-leading-separator"},
-			wantErr: ErrInvalidPrefix,
+			wantErr: errInvalidPrefix,
 		},
 		{
 			name:    "unparseable bind list",
 			environ: []string{"DUBPLATE_SERVE_BIND_ADDRS=not-an-address"},
-			wantErr: ErrInvalidBindAddr,
+			wantErr: errInvalidBindAddr,
 		},
 	}
 
@@ -400,8 +400,8 @@ func TestParseBindAddrs(t *testing.T) {
 				if err == nil {
 					t.Fatalf("parseBindAddrs(%q) error = nil, want error", tt.raw)
 				}
-				if !errors.Is(err, ErrInvalidBindAddr) {
-					t.Errorf("parseBindAddrs(%q) error = %v, want it to wrap ErrInvalidBindAddr", tt.raw, err)
+				if !errors.Is(err, errInvalidBindAddr) {
+					t.Errorf("parseBindAddrs(%q) error = %v, want it to wrap errInvalidBindAddr", tt.raw, err)
 				}
 				return
 			}

@@ -17,19 +17,19 @@ const ProbeRouteName = "boundary-probe"
 // no-strip test proves over a real socket.
 const probeSentinel = "Dubplate-Probe-Sentinel"
 
-// ProbeCounts is the probe route's answer: how many of the headers the
+// probeCounts is the probe route's answer: how many of the headers the
 // strip exists to remove reached the route. Identity counts the keys
 // group 1 matches, Forwarded counts group 2's, and Sentinel is 1 when
 // the Connection-listed sentinel arrived. It carries counts only, never
 // a header value or an address. A trusted peer receives the identity
 // count alone, as [NewProbeRoute] describes.
-type ProbeCounts struct {
+type probeCounts struct {
 	Identity  int `json:"identity"`
 	Forwarded int `json:"forwarded"`
 	Sentinel  int `json:"sentinel"`
 }
 
-// NewProbeRequest builds the one probe request every caller sends: a
+// newProbeRequest builds the one probe request every caller sends: a
 // GET for the probe route under prefix on host, carrying every group 1
 // spelling in both forms, every group 2 name the strip built for proxy
 // removes, the configured client-address header included, and the
@@ -37,7 +37,7 @@ type ProbeCounts struct {
 // [http.Header.Add], which canonicalizes the name exactly as the
 // receiving server's parser does, so the request carries one canonical
 // key per distinct name. host is a host:port the URL can carry.
-func NewProbeRequest(ctx context.Context, prefix Prefix, host string, proxy TrustedProxyConfig) (*http.Request, error) {
+func newProbeRequest(ctx context.Context, prefix Prefix, host string, proxy TrustedProxyConfig) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+host+prefix.String()+"/"+ProbeRouteName, nil)
 	if err != nil {
 		return nil, err
@@ -54,12 +54,12 @@ func NewProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 }
 
 // NewProbeRoute returns the boundary probe route's handler. It answers
-// a GET from a permitted peer with the [ProbeCounts] of the request it
+// a GET from a permitted peer with the [probeCounts] of the request it
 // received, and every other request, from any peer, with
 // [http.NotFoundHandler]'s 404, so a stranger cannot tell the route from an
 // unknown path. The peer is checked before the method.
 //
-// A permitted peer is one whose [PeerAddress], parsed and unmapped, is
+// A permitted peer is one whose [peerIP], parsed and unmapped, is
 // a loopback address or one of bindAddrs, the addresses the server
 // listens on, each unmapped the same way, since net/http reports an
 // IPv4 peer of a dual-stack listener in mapped form. [ClientIP] is never consulted, so no forwarded header can make a
@@ -85,7 +85,7 @@ func NewProbeRoute(bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handle
 	refuse := http.NotFoundHandler()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		peer := PeerAddress(r)
+		peer := peerIP(r)
 		addr, err := netip.ParseAddr(peer)
 		if err != nil {
 			refuse.ServeHTTP(w, r)
@@ -110,7 +110,7 @@ func NewProbeRoute(bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handle
 			}{countPresent(r.Header, identity)})
 			return
 		}
-		_ = json.NewEncoder(w).Encode(ProbeCounts{
+		_ = json.NewEncoder(w).Encode(probeCounts{
 			Identity:  countPresent(r.Header, identity),
 			Forwarded: countPresent(r.Header, forwarded),
 			Sentinel:  countPresent(r.Header, []string{probeSentinel}),

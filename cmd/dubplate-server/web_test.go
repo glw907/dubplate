@@ -426,8 +426,7 @@ func newCapturedWebHandler(t *testing.T, environ []string, prefix serve.Prefix) 
 	t.Helper()
 	var buf bytes.Buffer
 	logger := slog.New(slog.NewTextHandler(&buf, nil))
-	strip := serve.NewStrip(serve.TrustedProxyConfig{})
-	shell := serve.NewShell(prefix, strip, logger)
+	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, logger)
 	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, shell.Logger())
 	if err != nil {
 		t.Fatalf("newWebRoutes(%v): %v", environ, err)
@@ -609,8 +608,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
 
-	strip := serve.NewStrip(serve.TrustedProxyConfig{})
-	shell := serve.NewShell(prefix, strip, discardTestLogger())
+	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, discardTestLogger())
 	registerWebRoutes(shell, routes)
 	handler := shell.Handler()
 
@@ -729,8 +727,7 @@ func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Hand
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS(%v): %v", environ, err)
 	}
-	strip := serve.NewStrip(serve.TrustedProxyConfig{})
-	shell := serve.NewShell(prefix, strip, discardTestLogger())
+	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, discardTestLogger())
 	registerWebRoutes(shell, routes)
 	return shell.Handler()
 }

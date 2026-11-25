@@ -123,7 +123,7 @@ func TestWriteDeadlineExtension(t *testing.T) {
 
 // --- the IP_FREEBIND listener set (R20, R-M) --------------------------
 
-// TestListenBindsExactAddresses asserts Listen binds exactly the
+// TestListenBindsExactAddresses asserts listen binds exactly the
 // addresses named, none substituted for the all-interfaces wildcard
 // address (C8), and that every bound listener's address is readable
 // afterward (R-G). One row binds two IPv4 loopback addresses in a
@@ -142,9 +142,9 @@ func TestListenBindsExactAddresses(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			listeners, err := Listen(context.Background(), addrs(tt.addrs...), 0)
+			listeners, err := listen(context.Background(), addrs(tt.addrs...), 0)
 			if err != nil {
-				t.Fatalf("Listen(%v, 0): %v", tt.addrs, err)
+				t.Fatalf("listen(%v, 0): %v", tt.addrs, err)
 			}
 			defer func() {
 				for _, l := range listeners {
@@ -184,7 +184,7 @@ func TestListenBindsExactAddresses(t *testing.T) {
 // TestListenPartialFailureClosesOpened proves a failure partway through
 // the address list closes every listener already opened, so a partial
 // bind leaks nothing. It pre-occupies a fixed port on 127.0.0.2, then
-// asks Listen for that same port on 127.0.0.1 (which succeeds first)
+// asks listen for that same port on 127.0.0.1 (which succeeds first)
 // and 127.0.0.2 (which collides and fails). 127.0.0.2 is not the
 // documentation-reserved address the Control-hook test below uses.
 func TestListenPartialFailureClosesOpened(t *testing.T) {
@@ -202,16 +202,16 @@ func TestListenPartialFailureClosesOpened(t *testing.T) {
 		t.Fatalf("parse pre-occupied port %q: %v", portStr, err)
 	}
 
-	_, err = Listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), port)
+	_, err = listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), port)
 	if err == nil {
-		t.Fatalf("Listen succeeded, want an error binding the already-occupied 127.0.0.2:%d", port)
+		t.Fatalf("listen succeeded, want an error binding the already-occupied 127.0.0.2:%d", port)
 	}
 
 	// If the first listener (127.0.0.1:port) were left open, rebinding
 	// it here would fail with EADDRINUSE.
 	leak, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	if err != nil {
-		t.Fatalf("127.0.0.1:%d still bound after Listen's failure, want it closed: %v", port, err)
+		t.Fatalf("127.0.0.1:%d still bound after listen's failure, want it closed: %v", port, err)
 	}
 	_ = leak.Close()
 }
@@ -227,9 +227,9 @@ const freebindTestAddr = "192.0.2.77" // RFC 5737 TEST-NET-3, on no interface
 // assertion.
 func TestControlHookOpensAnUnconfiguredAddress(t *testing.T) {
 	t.Run("with the hook, the address binds", func(t *testing.T) {
-		listeners, err := Listen(context.Background(), addrs(freebindTestAddr), 0)
+		listeners, err := listen(context.Background(), addrs(freebindTestAddr), 0)
 		if err != nil {
-			t.Fatalf("Listen(%q, 0) with the hook: %v, want success (the boot property)", freebindTestAddr, err)
+			t.Fatalf("listen(%q, 0) with the hook: %v, want success (the boot property)", freebindTestAddr, err)
 		}
 		defer func() { _ = listeners[0].Close() }()
 
@@ -307,9 +307,9 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
-	listeners, err := Listen(ctx, addrs("127.0.0.1"), 0)
+	listeners, err := listen(ctx, addrs("127.0.0.1"), 0)
 	if err != nil {
-		t.Fatalf("Listen: %v", err)
+		t.Fatalf("listen: %v", err)
 	}
 	addr := listeners[0].Addr().String()
 
@@ -360,9 +360,9 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	listeners, err := Listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), 0)
+	listeners, err := listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), 0)
 	if err != nil {
-		t.Fatalf("Listen: %v", err)
+		t.Fatalf("listen: %v", err)
 	}
 	survivor := listeners[1].Addr().String()
 	if err := listeners[0].Close(); err != nil {

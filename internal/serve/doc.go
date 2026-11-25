@@ -17,10 +17,10 @@
 //     not among them: it is per document, set by the handler that
 //     serves it
 //     ([github.com/glw907/dubplate/internal/webapp.DocumentCSP]).
-//  1. The ingress strip ([Strip.Wrap]). It wraps everything, so no
+//  1. The ingress strip ([strip.wrap]). It wraps everything, so no
 //     route is reachable with an identity header, a forwarded-address
 //     header, or a Connection-listed header still attached.
-//  2. Path normalization ([Normalize]). It refuses six shapes, each
+//  2. Path normalization ([normalize]). It refuses six shapes, each
 //     with a status and no partial routing, before any later step runs
 //     at all.
 //  3. The echo method refusal (refuseEchoMethods). TRACE and TRACK are
