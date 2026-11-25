@@ -180,7 +180,7 @@ type Handlers struct {
 
 // NewHandlers returns the auth endpoints built on cfg.
 func NewHandlers(cfg HandlersConfig) Handlers {
-	h := &handlers{cfg: cfg}
+	h := &endpoints{cfg: cfg}
 	return Handlers{
 		RequestLink: http.HandlerFunc(h.requestLink),
 		ConsumeLink: http.HandlerFunc(h.consumeLink),
@@ -188,7 +188,7 @@ func NewHandlers(cfg HandlersConfig) Handlers {
 	}
 }
 
-type handlers struct {
+type endpoints struct {
 	cfg HandlersConfig
 }
 
@@ -212,7 +212,7 @@ type linkRequestSettings struct {
 }
 
 // readLinkRequestSettings reads the settings a link request uses.
-func (h *handlers) readLinkRequestSettings(ctx context.Context) (linkRequestSettings, error) {
+func (h *endpoints) readLinkRequestSettings(ctx context.Context) (linkRequestSettings, error) {
 	var s linkRequestSettings
 	var err error
 	if s.generic, err = readSetting(ctx, h.cfg.GenericAnswer); err != nil {
@@ -251,7 +251,7 @@ func (h *handlers) readLinkRequestSettings(ctx context.Context) (linkRequestSett
 // over: a known address's failed send would answer differently from an
 // unknown address, and a known address would take an SMTP round trip
 // longer to answer.
-func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
+func (h *endpoints) requestLink(w http.ResponseWriter, r *http.Request) {
 	now := h.cfg.Now()
 	clientIP := h.cfg.ClientIP(r)
 	log := h.cfg.Logger.With("client_ip", clientIP)
@@ -346,7 +346,7 @@ func (h *handlers) requestLink(w http.ResponseWriter, r *http.Request) {
 
 // sendLink charges the global mail ceiling, mints a link for address
 // expiring after expiry, and mails it.
-func (h *handlers) sendLink(ctx context.Context, now time.Time, expiry time.Duration, address string) error {
+func (h *endpoints) sendLink(ctx context.Context, now time.Time, expiry time.Duration, address string) error {
 	if err := h.cfg.Limiter.allowLinkMail(now); err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func failSetting(w http.ResponseWriter, log *slog.Logger, err error) {
 	writeAnswer(w, http.StatusInternalServerError, answer{Outcome: outcomeFailed})
 }
 
-func (h *handlers) logSendFailure(log *slog.Logger, err error) {
+func (h *endpoints) logSendFailure(log *slog.Logger, err error) {
 	if errors.Is(err, errRateLimited) {
 		log.Warn("auth rate limit tripped", "reason", err.Error())
 		return
@@ -379,7 +379,7 @@ func (h *handlers) logSendFailure(log *slog.Logger, err error) {
 
 // adminContact returns the first admin on the roster, or nil when the
 // roster names none. A roster that fails to load returns its error.
-func (h *handlers) adminContact(ctx context.Context) (*adminContact, error) {
+func (h *endpoints) adminContact(ctx context.Context) (*adminContact, error) {
 	members, err := h.cfg.Roster.List(ctx)
 	if err != nil {
 		return nil, err
@@ -410,7 +410,7 @@ func (h *handlers) adminContact(ctx context.Context) (*adminContact, error) {
 // reaches the server log alone. A failed setting read says nothing
 // about the token, and answers as a server error. The log names the
 // path and never the query, which a mailed link carries its token in.
-func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
+func (h *endpoints) consumeLink(w http.ResponseWriter, r *http.Request) {
 	now := h.cfg.Now()
 	clientIP := h.cfg.ClientIP(r)
 	log := h.cfg.Logger.With("client_ip", clientIP, "path", r.URL.Path)
@@ -447,7 +447,7 @@ func (h *handlers) consumeLink(w http.ResponseWriter, r *http.Request) {
 // consume verifies token and consumes its nonce, returning the signed
 // session it mints. Any non-nil error but one wrapping
 // errSettingUnreadable is a refusal.
-func (h *handlers) consume(ctx context.Context, now time.Time, token string) (string, Session, error) {
+func (h *endpoints) consume(ctx context.Context, now time.Time, token string) (string, Session, error) {
 	tok, err := VerifyLink(h.cfg.LinkSecret, h.cfg.PreviousLinkSecret, token, now)
 	if err != nil {
 		return "", Session{}, err
@@ -476,7 +476,7 @@ func (h *handlers) consume(ctx context.Context, now time.Time, token string) (st
 // the body cap's registered ceiling rather than its value in force,
 // then clears the session cookie. See [Handlers.SignOut] for what it
 // does not do.
-func (h *handlers) signOut(w http.ResponseWriter, r *http.Request) {
+func (h *endpoints) signOut(w http.ResponseWriter, r *http.Request) {
 	log := h.cfg.Logger.With("client_ip", h.cfg.ClientIP(r))
 	if !readForm(w, r, h.cfg.BodyCapCeiling, log) {
 		return
@@ -506,24 +506,14 @@ func readForm(w http.ResponseWriter, r *http.Request, bodyCap int64, log *slog.L
 	return false
 }
 
-// writeAnswer writes a as the response with status.
+// writeAnswer writes a as the JSON response with status. Every auth
+// response is no-store: one carries a session cookie, and none is a
+// document a cache should replay.
 func writeAnswer(w http.ResponseWriter, status int, a answer) {
-	writeJSON(w, status, a)
-}
-
-// writeJSON writes v as a JSON response with status.
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	writeJSONHeader(w, status)
-	// A failed write means the client has gone, and there is no one
-	// left to answer.
-	_ = json.NewEncoder(w).Encode(v)
-}
-
-// writeJSONHeader writes a JSON response's header with status and no
-// body. Every auth response is no-store: one carries a session cookie,
-// another the roster, and none is a document a cache should replay.
-func writeJSONHeader(w http.ResponseWriter, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
+	// A failed write means the client has gone, and there is no one
+	// left to answer.
+	_ = json.NewEncoder(w).Encode(a)
 }
