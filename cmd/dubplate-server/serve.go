@@ -218,7 +218,10 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	mailer := notify.New(mailConfig)
+	mailer, err := notify.New(mailConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	verifier := auth.NewMagicLinkVerifier(roster, epoch, authConfig.SessionSecret, authConfig.PreviousSessionSecret,
 		authConfig.SessionLifetime, authConfig.SessionAbsoluteCap)

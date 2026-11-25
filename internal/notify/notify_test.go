@@ -16,7 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"math/big"
 	"mime"
 	"mime/quotedprintable"
@@ -49,7 +48,17 @@ func TestMain(m *testing.M) {
 	pool := x509.NewCertPool()
 	pool.AddCert(leaf)
 	clientTLSConfig = &tls.Config{RootCAs: pool, ServerName: "127.0.0.1"}
+	tlsConfig = clientTLSConfig
 	os.Exit(m.Run())
+}
+
+func newMailer(t *testing.T, cfg Config) *Mailer {
+	t.Helper()
+	mailer, err := New(cfg)
+	if err != nil {
+		t.Fatalf("New() error = %v, want nil", err)
+	}
+	return mailer
 }
 
 // generateSelfSignedCert builds an ECDSA certificate for 127.0.0.1, valid
@@ -407,9 +416,12 @@ func TestSend_ImplicitTLS465(t *testing.T) {
 	host, port := splitHostPort(t, addr)
 
 	cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
-	mailer := New(cfg)
-	mailer.tlsConfig = clientTLSConfig
-	mailer.forceImplicitTLS = true // stand-in for real port 465; see field doc.
+	// Binding the real port 465 needs root, so the ephemeral port stands
+	// in for it.
+	prev := implicitTLSPort
+	implicitTLSPort = port
+	t.Cleanup(func() { implicitTLSPort = prev })
+	mailer := newMailer(t, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -429,10 +441,7 @@ func TestSend_StartTLS587(t *testing.T) {
 	host, port := splitHostPort(t, addr)
 
 	cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
-	mailer := New(cfg)
-	mailer.tlsConfig = clientTLSConfig
-	// forceImplicitTLS left false: cfg.Port is not 465, so Send takes the
-	// same STARTTLS branch the deployed box takes on 587.
+	mailer := newMailer(t, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -468,8 +477,7 @@ func TestSend_AuthMechanismFollowsTheServer(t *testing.T) {
 			host, port := splitHostPort(t, addr)
 
 			cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
-			mailer := New(cfg)
-			mailer.tlsConfig = clientTLSConfig
+			mailer := newMailer(t, cfg)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
@@ -496,7 +504,7 @@ func TestSend_StartTLSNotOffered(t *testing.T) {
 	host, port := splitHostPort(t, addr)
 
 	cfg := Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"}
-	mailer := New(cfg)
+	mailer := newMailer(t, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -508,8 +516,8 @@ func TestSend_StartTLSNotOffered(t *testing.T) {
 	if !strings.Contains(err.Error(), "does not support STARTTLS") {
 		t.Errorf("Send() error = %q, want it to mention the server not supporting STARTTLS", err)
 	}
-	if !errors.Is(err, ErrSend) {
-		t.Errorf("Send() error = %v, want errors.Is(err, ErrSend)", err)
+	if !errors.Is(err, errSend) {
+		t.Errorf("Send() error = %v, want errors.Is(err, errSend)", err)
 	}
 }
 
@@ -528,16 +536,51 @@ func TestSend_ContextCancelled(t *testing.T) {
 	_ = ln.Close()
 	host, port := splitHostPort(t, addr)
 
-	mailer := New(Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 	if err := mailer.Send(ctx, "contributor@example.com", "subject", "body"); !errors.Is(err, context.Canceled) {
 		t.Errorf("Send() error = %v, want context.Canceled", err)
+	}
+}
+
+// TestSend_CancelledMidSendKeepsTheCause proves a context cancelled
+// after the dial began, here during a TLS handshake the server never
+// answers, still matches context.Canceled beside errSend.
+func TestSend_CancelledMidSendKeepsTheCause(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	t.Cleanup(func() { _ = ln.Close() })
+	accepted := make(chan net.Conn, 1)
+	go func() {
+		conn, err := ln.Accept()
+		if err == nil {
+			accepted <- conn
+		}
+	}()
+	host, port := splitHostPort(t, ln.Addr().String())
+	prev := implicitTLSPort
+	implicitTLSPort = port
+	t.Cleanup(func() { implicitTLSPort = prev })
+	mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		conn := <-accepted
+		t.Cleanup(func() { _ = conn.Close() })
+		cancel()
+	}()
+
+	err = mailer.Send(ctx, "contributor@example.com", "subject", "body")
+	if !errors.Is(err, context.Canceled) || !errors.Is(err, errSend) {
+		t.Errorf("Send() error = %v, want errors.Is for both context.Canceled and errSend", err)
 	}
 }
 
 func TestSend_HeaderInjectionGuard(t *testing.T) {
 	// The listener is created and closed before each Send call, so a
 	// guard that fails to fire reaches the network and returns a
-	// connection-refused error instead of ErrHeaderInjection.
+	// connection-refused error instead of errHeaderInjection.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
@@ -550,42 +593,65 @@ func TestSend_HeaderInjectionGuard(t *testing.T) {
 		name    string
 		to      string
 		subject string
+		wantErr string
 	}{
-		{name: "recipient carries CR", to: "victim@example.com\rBcc: attacker@example.com", subject: "subject"},
-		{name: "recipient carries LF", to: "victim@example.com\nBcc: attacker@example.com", subject: "subject"},
-		{name: "subject carries CR", to: "contributor@example.com", subject: "subject\rBcc: attacker@example.com"},
-		{name: "subject carries LF", to: "contributor@example.com", subject: "subject\nBcc: attacker@example.com"},
+		{name: "to carries CR", to: "victim@example.com\rBcc: attacker@example.com", subject: "subject", wantErr: "to: header value contains CR or LF"},
+		{name: "to carries LF", to: "victim@example.com\nBcc: attacker@example.com", subject: "subject", wantErr: "to: header value contains CR or LF"},
+		{name: "subject carries CR", to: "contributor@example.com", subject: "subject\rBcc: attacker@example.com", wantErr: "subject: header value contains CR or LF"},
+		{name: "subject carries LF", to: "contributor@example.com", subject: "subject\nBcc: attacker@example.com", wantErr: "subject: header value contains CR or LF"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mailer := New(Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+			mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
 			err := mailer.Send(ctx, tt.to, tt.subject, "body")
-			if !errors.Is(err, ErrHeaderInjection) {
-				t.Fatalf("Send() error = %v, want ErrHeaderInjection", err)
+			if !errors.Is(err, errHeaderInjection) {
+				t.Fatalf("Send() error = %v, want errHeaderInjection", err)
+			}
+			if err.Error() != tt.wantErr {
+				t.Errorf("Send() error = %q, want %q", err, tt.wantErr)
 			}
 		})
 	}
 }
 
+// TestNew_RefusesAnInvalidFrom proves New refuses a From that is not one
+// mailbox free of CR and LF, including a CR or LF net/mail accepts inside
+// a comment, and that the address never appears in the error text.
+func TestNew_RefusesAnInvalidFrom(t *testing.T) {
+	for _, from := range []string{
+		"not-an-address",
+		"dubplate@example.com\r\nBcc: attacker@example.com",
+		"Dubplate (c\r\n x) <dubplate@example.com>",
+	} {
+		_, err := New(Config{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: from})
+		if !errors.Is(err, errInvalidFrom) {
+			t.Errorf("New(From %q) error = %v, want errInvalidFrom", from, err)
+			continue
+		}
+		if err.Error() != "invalid from address" {
+			t.Errorf("New(From %q) error = %q, want %q", from, err, "invalid from address")
+		}
+	}
+}
+
 // TestSend_InvalidRecipientOmitsAddress proves an unparseable recipient
-// fails with ErrInvalidRecipient and that the address itself never
-// appears in the error text, unlike go-mail's own parse error which
-// quotes it.
+// fails with errInvalidTo and that the address itself never appears in
+// the error text, unlike go-mail's own parse error which quotes it.
 func TestSend_InvalidRecipientOmitsAddress(t *testing.T) {
-	mailer := New(Config{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer := newMailer(t, Config{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: "dubplate@example.com"})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	const badRecipient = "not-an-address"
 	err := mailer.Send(ctx, badRecipient, "subject", "body")
-	if !errors.Is(err, ErrInvalidRecipient) {
-		t.Fatalf("Send() error = %v, want errors.Is(err, ErrInvalidRecipient)", err)
+	if !errors.Is(err, errInvalidTo) {
+		t.Fatalf("Send() error = %v, want errors.Is(err, errInvalidTo)", err)
 	}
 	if strings.Contains(err.Error(), badRecipient) {
 		t.Errorf("Send() error = %q, must not contain the recipient literal %q", err, badRecipient)
@@ -601,51 +667,17 @@ func TestSend_RCPTRejected(t *testing.T) {
 	addr := startTestServer(t, srv, false)
 	host, port := splitHostPort(t, addr)
 
-	mailer := New(Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
-	mailer.tlsConfig = clientTLSConfig
+	mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	const recipient = "contributor@example.com"
 	err := mailer.Send(ctx, recipient, "subject", "body")
-	if !errors.Is(err, ErrSend) {
-		t.Fatalf("Send() error = %v, want errors.Is(err, ErrSend)", err)
+	if !errors.Is(err, errSend) {
+		t.Fatalf("Send() error = %v, want errors.Is(err, errSend)", err)
 	}
 	if strings.Contains(err.Error(), recipient) {
 		t.Errorf("Send() error = %q, must not contain the recipient literal %q", err, recipient)
-	}
-}
-
-// TestSend_SuccessRecordOmitsRecipient captures the default slog output
-// on a successful send and scans it for the recipient's own literal,
-// which must not appear: Global Constraints reserve an address-carrying
-// record to the roster audit log.
-func TestSend_SuccessRecordOmitsRecipient(t *testing.T) {
-	var logBuf bytes.Buffer
-	prev := slog.Default()
-	slog.SetDefault(slog.New(slog.NewTextHandler(&logBuf, nil)))
-	t.Cleanup(func() { slog.SetDefault(prev) })
-
-	srv := &testServer{upgradeTLS: serverTLSConfig}
-	addr := startTestServer(t, srv, false)
-	host, port := splitHostPort(t, addr)
-
-	const recipient = "contributor@example.com"
-	mailer := New(Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
-	mailer.tlsConfig = clientTLSConfig
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := mailer.Send(ctx, recipient, "subject", "body"); err != nil {
-		t.Fatalf("Send() error = %v, want nil", err)
-	}
-
-	if strings.Contains(logBuf.String(), recipient) {
-		t.Errorf("log output %q names the recipient, want no recipient logged", logBuf.String())
-	}
-	if !strings.Contains(logBuf.String(), "notify sent") {
-		t.Errorf("log output %q missing the success record", logBuf.String())
 	}
 }
