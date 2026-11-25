@@ -55,8 +55,7 @@ func ValidateProxyHeader(name string) error {
 	if strings.ContainsFunc(name, func(r rune) bool { return !isTokenChar(r) }) {
 		return errors.New("not an HTTP header name: it holds a character outside RFC 9110's token set")
 	}
-	canon := textproto.CanonicalMIMEHeaderKey(strings.ReplaceAll(name, "_", "-"))
-	if reason, ok := refusedProxyHeaders()[canon]; ok {
+	if reason, ok := refusedProxyHeaders[foldedKey(name)]; ok {
 		return errors.New(reason)
 	}
 	return nil
@@ -64,7 +63,9 @@ func ValidateProxyHeader(name string) error {
 
 // refusedProxyHeaders maps each canonical name [ValidateProxyHeader]
 // refuses to the reason it gives.
-func refusedProxyHeaders() map[string]string {
+var refusedProxyHeaders = newRefusedProxyHeaders()
+
+func newRefusedProxyHeaders() map[string]string {
 	refused := map[string]string{
 		"Forwarded":          "its for= parameters are not an address list, so every hop would be malformed",
 		"X-Forwarded-Host":   "a forwarded header that carries the original host and no client address, so every hop would be malformed",
@@ -213,8 +214,8 @@ func (c TrustedProxyConfig) trusts(peer string) bool {
 // planted malformed value would choose the answer outright.
 func (c TrustedProxyConfig) rightmostUntrusted(values []string) (netip.Addr, bool) {
 	for _, value := range slices.Backward(values) {
-		for _, raw := range slices.Backward(splitHops(value)) {
-			hop := trimHop(raw)
+		for _, raw := range slices.Backward(strings.Split(value, ",")) {
+			hop := strings.Trim(raw, " \t")
 			if hop == "" {
 				continue
 			}
@@ -251,39 +252,4 @@ func parseHop(hop string) (netip.Addr, bool) {
 		return netip.Addr{}, false
 	}
 	return addr.Unmap(), true
-}
-
-// splitHops splits a comma-separated forwarding header value into its
-// hops, left to right, without trimming surrounding space.
-func splitHops(header string) []string {
-	if header == "" {
-		return nil
-	}
-	var hops []string
-	start := 0
-	for i := 0; i < len(header); i++ {
-		if header[i] == ',' {
-			hops = append(hops, header[start:i])
-			start = i + 1
-		}
-	}
-	return append(hops, header[start:])
-}
-
-// trimHop trims the spaces and tabs a forwarding header commonly
-// carries around each comma-separated hop.
-func trimHop(hop string) string {
-	start := 0
-	for start < len(hop) && isHopSpace(hop[start]) {
-		start++
-	}
-	end := len(hop)
-	for end > start && isHopSpace(hop[end-1]) {
-		end--
-	}
-	return hop[start:end]
-}
-
-func isHopSpace(b byte) bool {
-	return b == ' ' || b == '\t'
 }

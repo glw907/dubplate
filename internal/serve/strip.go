@@ -470,8 +470,8 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 func connectionTokens(values []string) []string {
 	var tokens []string
 	for _, v := range values {
-		for _, hop := range splitHops(v) {
-			if token := trimHop(hop); token != "" {
+		for hop := range strings.SplitSeq(v, ",") {
+			if token := strings.Trim(hop, " \t"); token != "" {
 				tokens = append(tokens, token)
 			}
 		}
