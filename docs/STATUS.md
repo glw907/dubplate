@@ -31,14 +31,15 @@ The box is unchanged: the dubplate-server binary `d1e93e9`, the serve unit insta
 
 ## Next action
 The architecture cleanup chain (`docs/specs/2026-11-23-architecture-cleanup.md`, approved by Geoff on 2026-11-23) paused
-at the weekly usage ceiling on 2026-11-24. Task 1, `vocabulary`, merged as PR #28. PR #29 (`wire-contract`) and PR #30
-(`server-boundaries`) are ready, each with CI green and an accept verdict, and wait for Geoff's Merge in that order;
-#30 is built on #29's branch, so retarget it to `master` before deleting #29's branch. Task 4, `server-access`, was
-stopped with five committed, unpushed commits in `.claude/worktrees/server-access` (branch `worktree-server-access`,
-built on #30); relaunch it from the spec's goal text after #30 merges, or let its session finish from that worktree.
-The chain runs in the session Geoff talks to, from this checkout, by building-from-specs "Chains": after the weekly
-reset (2026-11-27, 23:00 America/Anchorage) the ceiling drops to 85 percent, and that session re-arms the spec's
-`/loop 15m` line. A second session in this checkout makes `claude-worktree-busy` refuse every launch.
+at the weekly usage ceiling on 2026-11-24. Tasks 1 to 3 are merged: `vocabulary` (#28), `wire-contract` (#29), and
+`server-boundaries` (#30, merged with Geoff's waiver of the Current check for one STATUS-only commit). Task 4,
+`server-access`, was stopped with five committed, unpushed commits in `.claude/worktrees/server-access` (branch
+`worktree-server-access`, built on #30's old head); relaunch it from the spec's goal text with `master` as its base,
+or let a session finish from that worktree. The chain runs in the session Geoff talks to, from this checkout, by
+building-from-specs "Chains": after the weekly reset (2026-11-27, 23:00 America/Anchorage) the ceiling drops to 85
+percent, and that session re-arms the spec's `/loop 15m` line. A second session in this checkout makes
+`claude-worktree-busy` refuse every launch. Clear the leftover files in `/tmp` first: the gate's `go test` leg failed
+on a full tmpfs.
 
 `intake-2` takes #159 after the chain's last task, `web`, merges.
 PR #25 lists findings its readers left unbuilt under `## For Geoff`, not yet filed in BACKLOG.
