@@ -119,7 +119,8 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 	shell.Register("tus", mount)
 
 	srv := httptest.NewUnstartedServer(nil)
-	srv.Config = newHTTPServer(shell.Handler(), logger, lowered)
+	srv.Config = newHTTPServer(shell.Handler(), logger)
+	srv.Config.WriteTimeout = lowered
 	srv.Config.ReadTimeout = lowered
 	srv.Start()
 	t.Cleanup(srv.Close)

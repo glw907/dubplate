@@ -71,14 +71,6 @@ const (
 // MaxHeaderBytes. It sets no Addr and opens no listener: Run pairs it
 // with the listener set Listen opens.
 //
-// writeTimeout is a parameter rather than a read of
-// defaultWriteTimeout, and [Run] is the one production caller that
-// supplies it, from that constant. The deadline-extension test needs a
-// write timeout it can exhaust in milliseconds, and passing one in is
-// what lets every timeout stay a constant: a package-level var a test
-// assigns to is shared mutable state between tests that may run in any
-// order.
-//
 // ErrorLog is wired to logger through [slog.NewLogLogger] at warn
 // level. net/http writes its own protocol errors (a bad request line, a
 // TLS handshake failure, a handler panic) to that logger, and the
@@ -86,13 +78,13 @@ const (
 // shell's own structured sink never sees them. Warn is the level: these
 // are conditions an operator wants surfaced, and net/http emits one per
 // malformed connection rather than per request.
-func newHTTPServer(handler http.Handler, logger *slog.Logger, writeTimeout time.Duration) *http.Server {
+func newHTTPServer(handler http.Handler, logger *slog.Logger) *http.Server {
 	return &http.Server{
 		Handler:           handler,
 		ErrorLog:          slog.NewLogLogger(logger.Handler(), slog.LevelWarn),
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
-		WriteTimeout:      writeTimeout,
+		WriteTimeout:      defaultWriteTimeout,
 		IdleTimeout:       idleTimeout,
 		MaxHeaderBytes:    maxHeaderBytes,
 	}
@@ -139,7 +131,7 @@ func Run(ctx context.Context, logger *slog.Logger, handler http.Handler, addrs [
 	if err != nil {
 		return err
 	}
-	return serveUntilDone(ctx, newHTTPServer(handler, logger, defaultWriteTimeout), listeners)
+	return serveUntilDone(ctx, newHTTPServer(handler, logger), listeners)
 }
 
 // serveUntilDone runs srv across every listener until ctx is done, then

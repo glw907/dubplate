@@ -21,7 +21,7 @@ import (
 // The read timeout is also checked against a literal 30 seconds, R-V's
 // own value, independent of the constant it is wired from.
 func TestNewHTTPServerTimeouts(t *testing.T) {
-	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), slog.Default(), defaultWriteTimeout)
+	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), slog.Default())
 
 	if srv.ReadHeaderTimeout != readHeaderTimeout {
 		t.Errorf("ReadHeaderTimeout = %v, want the readHeaderTimeout constant %v", srv.ReadHeaderTimeout, readHeaderTimeout)
@@ -33,14 +33,7 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 		t.Errorf("ReadTimeout = %v, want the readTimeout constant %v", srv.ReadTimeout, readTimeout)
 	}
 	if srv.WriteTimeout != 30*time.Second {
-		t.Errorf("WriteTimeout = %v, want the 30s defaultWriteTimeout Run passes", srv.WriteTimeout)
-	}
-	// A second construction with a different write timeout proves the
-	// field is wired from the parameter rather than from a constant
-	// read inside newHTTPServer, which the row above alone could not
-	// tell apart.
-	if short := newHTTPServer(http.NotFoundHandler(), slog.Default(), 5*time.Millisecond); short.WriteTimeout != 5*time.Millisecond {
-		t.Errorf("WriteTimeout = %v for a 5ms argument, want the argument to reach the field", short.WriteTimeout)
+		t.Errorf("WriteTimeout = %v, want 30s", srv.WriteTimeout)
 	}
 	if srv.IdleTimeout != idleTimeout {
 		t.Errorf("IdleTimeout = %v, want the idleTimeout constant %v", srv.IdleTimeout, idleTimeout)
@@ -55,11 +48,9 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 // TestWriteDeadlineExtension proves the write timeout newHTTPServer
 // wires is real, and that http.ResponseController.SetWriteDeadline,
 // exposed to every handler by newHTTPServer's ordinary
-// construction, lets a handler survive past it. It passes a short
-// write timeout through the constructor, so both rows exercise
-// newHTTPServer's actual wiring path (proving a dropped WriteTimeout
-// field would let the no-extension row succeed instead of fail) at a
-// duration the gate can run in a second rather than thirty.
+// construction, lets a handler survive past it. It lowers the built
+// server's write timeout, so both rows run at a duration the gate can
+// run in a second rather than thirty.
 //
 // This is a timing test. The margins are wide by a large multiple
 // rather than tight, so a loaded machine's scheduling delay cannot
@@ -101,7 +92,8 @@ func TestWriteDeadlineExtension(t *testing.T) {
 			})
 
 			srv := httptest.NewUnstartedServer(handler)
-			srv.Config = newHTTPServer(handler, slog.Default(), testWriteTimeout)
+			srv.Config = newHTTPServer(handler, slog.Default())
+			srv.Config.WriteTimeout = testWriteTimeout
 			srv.Start()
 			defer srv.Close()
 
@@ -323,7 +315,7 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 
 	runErr := make(chan error, 1)
 	go func() {
-		runErr <- serveUntilDone(ctx, newHTTPServer(handler, slog.Default(), defaultWriteTimeout), listeners)
+		runErr <- serveUntilDone(ctx, newHTTPServer(handler, slog.Default()), listeners)
 	}()
 
 	respErr := make(chan error, 1)
@@ -382,7 +374,7 @@ func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	err = serveUntilDone(ctx, newHTTPServer(handler, slog.Default(), defaultWriteTimeout), listeners)
+	err = serveUntilDone(ctx, newHTTPServer(handler, slog.Default()), listeners)
 	if err == nil {
 		t.Fatal("serveUntilDone returned nil, want the failing listener's error")
 	}
@@ -424,7 +416,7 @@ func (h *levelCapturingHandler) WithGroup(string) slog.Handler      { return h }
 // where the operator's structured sink never sees them.
 func TestNewHTTPServerErrorLogReachesTheSlogSink(t *testing.T) {
 	capture := &levelCapturingHandler{}
-	srv := newHTTPServer(http.NotFoundHandler(), slog.New(capture), defaultWriteTimeout)
+	srv := newHTTPServer(http.NotFoundHandler(), slog.New(capture))
 
 	if srv.ErrorLog == nil {
 		t.Fatal("srv.ErrorLog = nil, want a logger writing to the shell's own sink")
