@@ -6,8 +6,10 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/doctor"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
@@ -76,26 +78,38 @@ func newWebRoutes(environ []string, prefix serve.Prefix, siteName string, privat
 	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, buildFS)
 }
 
-// webRowResolve is the resolution doctor's web row runs: [newWebRoutes]
-// with the inputs serve startup passes, over the embedded bundle and
-// the operator file, writing nothing. The logger discards: the record
-// newWebRoutes writes for a branding neutral that drops the
-// theme-color meta belongs to serve, and doctor's stdout is the table
-// alone.
-func webRowResolve(environ []string) func(*config.Config) error {
-	return func(cfg *config.Config) error {
-		prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
-		if err != nil {
-			return err
+// webDoctorRows renders the web row: "ok" when [newWebRoutes] builds
+// the routes from the inputs serve startup passes, and "invalid: " plus
+// the refusal otherwise, which fails the row. cfg is nil when
+// [config.Load] refused the environment, and the row then reads "not
+// checked" and adds no failure, since Load's report already fails
+// doctor. The logger discards: the record newWebRoutes writes for a
+// branding neutral that drops the theme-color meta belongs to serve,
+// and doctor's stdout is the table alone.
+func webDoctorRows(environ []string, cfg *config.Config) []doctor.Row {
+	row := doctor.Row{Name: "web", Status: "not checked"}
+	if cfg != nil {
+		if err := checkWebRoutes(environ, cfg); err != nil {
+			row.Status, row.Failed = "invalid: "+strings.ReplaceAll(err.Error(), "\n", "; "), true
+		} else {
+			row.Status = "ok"
 		}
-		prefix, err := serve.NewPrefix(prefixValue)
-		if err != nil {
-			return err
-		}
-		discard := slog.New(slog.NewTextHandler(io.Discard, nil))
-		_, err = newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, discard)
+	}
+	return []doctor.Row{row}
+}
+
+func checkWebRoutes(environ []string, cfg *config.Config) error {
+	prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
+	if err != nil {
 		return err
 	}
+	prefix, err := serve.NewPrefix(prefixValue)
+	if err != nil {
+		return err
+	}
+	discard := slog.New(slog.NewTextHandler(io.Discard, nil))
+	_, err = newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, discard)
+	return err
 }
 
 // embeddedBuild is [web.Assets] rooted at its build directory.
