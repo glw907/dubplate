@@ -143,7 +143,7 @@ func TestError_WithRejects(t *testing.T) {
 	}
 }
 
-// TestDetailConstants pins the thirteen wire details as literals read from
+// TestDetailConstants pins the wire details as literals read from
 // the source file the parity and deck gates parse: exactly these
 // names, each with exactly this value.
 func TestDetailConstants(t *testing.T) {

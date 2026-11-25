@@ -372,7 +372,7 @@ func userState(t *testing.T, h *store.Handle, m fixtureMember) (admin, tombstone
 
 // wantCode fails t unless err carries code and, when detail is set,
 // that detail.
-func wantCode(t *testing.T, err error, code ops.Code, detail string) {
+func wantCode(t *testing.T, err error, code ops.Code, detail ops.Detail) {
 	t.Helper()
 	if err == nil {
 		t.Fatalf("err = nil, want code %s", code)

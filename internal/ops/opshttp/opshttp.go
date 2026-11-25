@@ -229,9 +229,9 @@ type errorBody struct {
 }
 
 type errorDetail struct {
-	Code   ops.Code `json:"code"`
-	Reason string   `json:"reason,omitempty"`
-	Detail string   `json:"detail,omitempty"`
+	Code   ops.Code   `json:"code"`
+	Reason string     `json:"reason,omitempty"`
+	Detail ops.Detail `json:"detail,omitempty"`
 	// Rejects is set on a refused submission.
 	Rejects *ops.Rejects `json:"rejects,omitempty"`
 }

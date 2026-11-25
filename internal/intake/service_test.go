@@ -254,7 +254,7 @@ func TestServiceCreateClientFaults(t *testing.T) {
 	tests := []struct {
 		name       string
 		edit       func(*ops.CreateSubmissionRequest)
-		wantDetail string
+		wantDetail ops.Detail
 	}{
 		{"a separate-tracks manifest naming a scan", func(r *ops.CreateSubmissionRequest) {
 			r.VerdictUnit = "track"

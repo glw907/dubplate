@@ -50,14 +50,12 @@ type Rejects struct {
 }
 
 // An Error is an operation's failure: its stable [Code] and the reason
-// a caller may report as an answer. Detail, when set, is an enumerated
-// name finer than Code, which a client may branch on where Reason is
-// free text. Rejects, when set, lists the reject reasons behind a
-// refused submission.
+// a caller may report as an answer, with an optional [Detail]. Rejects,
+// when set, lists the reject reasons behind a refused submission.
 type Error struct {
 	Code    Code
 	Reason  string
-	Detail  string
+	Detail  Detail
 	Rejects *Rejects
 }
 
@@ -71,9 +69,8 @@ func NewError(code Code, reason string) *Error {
 	return &Error{Code: code, Reason: reason}
 }
 
-// WithDetail returns a copy of e carrying detail, one of the Detail
-// constants. e itself is unchanged.
-func (e *Error) WithDetail(detail string) *Error {
+// WithDetail returns a copy of e carrying detail. e itself is unchanged.
+func (e *Error) WithDetail(detail Detail) *Error {
 	withDetail := *e
 	withDetail.Detail = detail
 	return &withDetail
