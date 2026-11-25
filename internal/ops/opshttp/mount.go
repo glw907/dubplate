@@ -13,7 +13,7 @@ import (
 // A Verifier admits one request to the mount. It reads whatever
 // credential the request carries, may set a refreshed credential on w,
 // and answers the actor the call proceeds as and the privilege that
-// actor holds. A refused credential wraps [ops.ErrUnauthenticated],
+// actor holds. A refused credential wraps [ops.CodeUnauthenticated],
 // which the mount answers 401 unauthenticated; any other verifier error
 // is the server failing and answers 500. A verifier logs its own
 // failures: the mount never writes an error's text, which may name a
@@ -63,7 +63,7 @@ func (m *mount) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	actor, privilege, err := m.verify(w, r)
 	switch {
-	case errors.Is(err, ops.ErrUnauthenticated):
+	case errors.Is(err, ops.CodeUnauthenticated):
 		writeError(w, statuses[ops.CodeUnauthenticated], ops.CodeUnauthenticated, "no valid session")
 		return
 	case err != nil:

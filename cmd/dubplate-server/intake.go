@@ -69,13 +69,13 @@ func liveAdminAddresses(roster *member.Roster) func(context.Context) ([]string, 
 
 // tusVerifier admits a tus request whose session verifies as any
 // member, through the same check the API's verifier makes. A request
-// signed out wraps [ops.ErrUnauthenticated], which the mount answers
+// signed out wraps [ops.CodeUnauthenticated], which the mount answers
 // 401; any other failure is logged here and answers 500.
 func tusVerifier(cfg auth.VerifyConfig) intake.Verifier {
 	return func(w http.ResponseWriter, r *http.Request) (identity.UserID, error) {
 		v, err := auth.VerifyRequest(cfg, w, r)
 		switch {
-		case errors.Is(err, ops.ErrUnauthenticated):
+		case errors.Is(err, ops.CodeUnauthenticated):
 			return identity.UserID{}, err
 		case err != nil:
 			cfg.Logger.Error("tus request could not verify its session", "error", err)

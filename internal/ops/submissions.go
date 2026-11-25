@@ -138,8 +138,8 @@ type CancelSubmissionResponse GetSubmissionResponse
 // A Submissions is what a caller reaches the five submission
 // operations through, beside [Admin]. Each is a member's
 // own: the caller is the actor's UserID, never a request field, and an
-// id that is another member's answers as an unknown one, [ErrNotFound].
-// An action the submission's state does not allow answers [ErrConflict].
+// id that is another member's answers as an unknown one, [CodeNotFound].
+// An action the submission's state does not allow answers [CodeConflict].
 type Submissions interface {
 	// CreateSubmission checks the manifest and the member's limits and
 	// reserves the space. A refusal carries [Error.Rejects].

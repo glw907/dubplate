@@ -387,18 +387,18 @@ func sameSet(a, b []string) bool {
 }
 
 // TestDocument_EnumerationsMatchTheCode proves the wire code enum equals
-// ops.Codes() and the detail enum equals the Detail constants, both
+// the Code constants and the detail enum equals the Detail constants, both
 // ways, that remove_member declares its 409, and that the version policy
 // names the enumerations it extends (AC1, AC3, AC7).
 func TestDocument_EnumerationsMatchTheCode(t *testing.T) {
 	d := loadDocument(t, false)
 
-	var codes []string
-	for _, c := range ops.Codes() {
-		codes = append(codes, string(c))
+	codes := goConstants(t, "../errors.go", "Code")
+	if !slices.Contains(codes, "unauthenticated") {
+		t.Fatalf("read %v from errors.go, want the Code constants including unauthenticated", codes)
 	}
 	if got := enumOf(t, d, "ErrorBody", "error", "code"); !sameSet(got, codes) {
-		t.Errorf("code enum = %v, want ops.Codes() = %v", got, codes)
+		t.Errorf("code enum = %v, want the Code constants %v", got, codes)
 	}
 
 	details := goConstants(t, "../details.go", "Detail")
@@ -569,16 +569,16 @@ type statusCase struct {
 
 // errorsByStatus produces each non-success status a seam can answer.
 var errorsByStatus = []statusCase{
-	{http.StatusBadRequest, ops.NewInvalidRequestError("the value is refused").WithDetail(ops.DetailInvalidAddress)},
-	{http.StatusForbidden, ops.NewReauthenticationRequiredError("sign in again")},
-	{http.StatusNotFound, ops.NewNotFoundError("no such member or submission")},
-	{http.StatusConflict, ops.NewConflictError("the last admin cannot be removed").WithDetail(ops.DetailLastAdmin)},
-	{http.StatusInternalServerError, ops.NewInternalError("the store failed")},
-	{http.StatusServiceUnavailable, ops.NewUnavailableError("the write lock is held").WithDetail(ops.DetailBusy)},
-	{http.StatusBadRequest, ops.NewInvalidRequestError("the manifest was refused").WithRejects(sampleRejects)},
-	{http.StatusConflict, ops.NewConflictError("uploads are paused").WithRejects(ops.Rejects{
+	{http.StatusBadRequest, ops.NewError(ops.CodeInvalidRequest, "the value is refused").WithDetail(ops.DetailInvalidAddress)},
+	{http.StatusForbidden, ops.NewError(ops.CodeReauthenticationRequired, "sign in again")},
+	{http.StatusNotFound, ops.NewError(ops.CodeNotFound, "no such member or submission")},
+	{http.StatusConflict, ops.NewError(ops.CodeConflict, "the last admin cannot be removed").WithDetail(ops.DetailLastAdmin)},
+	{http.StatusInternalServerError, ops.NewError(ops.CodeInternal, "the store failed")},
+	{http.StatusServiceUnavailable, ops.NewError(ops.CodeUnavailable, "the write lock is held").WithDetail(ops.DetailBusy)},
+	{http.StatusBadRequest, ops.NewError(ops.CodeInvalidRequest, "the manifest was refused").WithRejects(sampleRejects)},
+	{http.StatusConflict, ops.NewError(ops.CodeConflict, "uploads are paused").WithRejects(ops.Rejects{
 		Submission: []reject.Reason{reject.Of(reject.UploadsOff)}, Files: []ops.FileReason{}})},
-	{http.StatusServiceUnavailable, ops.NewUnavailableError("the check could not run").WithRejects(ops.Rejects{
+	{http.StatusServiceUnavailable, ops.NewError(ops.CodeUnavailable, "the check could not run").WithRejects(ops.Rejects{
 		Submission: []reject.Reason{reject.Of(reject.CouldNotCheck)}, Files: []ops.FileReason{}})},
 }
 
@@ -644,7 +644,7 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 			}
 
 			unauth := newMountFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-				return identity.Actor{}, 0, ops.ErrUnauthenticated
+				return identity.Actor{}, 0, ops.CodeUnauthenticated
 			}).do(http.MethodPost, mountPrefix+"/api/v1/"+op, requestSamples[op])
 			if err := d.checkResponse(ctx, op, unauth); err != nil {
 				t.Errorf("the 401 answer fails the document: %v", err)
@@ -730,7 +730,7 @@ func TestDocument_TheChecksCanFail(t *testing.T) {
 		d := loadDocument(t, true)
 		errBody := d.doc.Components.Schemas["ErrorBody"].Value.Properties["error"].Value
 		delete(errBody.Properties, "reason")
-		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewConflictError("the address is already a member"))
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewError(ops.CodeConflict, "the address is already a member"))
 		if rec.Code != http.StatusConflict {
 			t.Fatalf("answer = %d, want 409", rec.Code)
 		}
@@ -741,7 +741,7 @@ func TestDocument_TheChecksCanFail(t *testing.T) {
 	t.Run("an undocumented status", func(t *testing.T) {
 		d := loadDocument(t, true)
 		d.operation(t, ops.OpAddMember).Responses.Delete("409")
-		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewConflictError("the address is already a member"))
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewError(ops.CodeConflict, "the address is already a member"))
 		if err := d.checkResponse(t.Context(), ops.OpAddMember, rec); err == nil {
 			t.Error("a 409 validated against an operation that declares no 409")
 		}
@@ -752,7 +752,7 @@ func TestDocument_TheChecksCanFail(t *testing.T) {
 		d := loadDocument(t, false)
 		errBody := d.doc.Components.Schemas["ErrorBody"].Value.Properties["error"].Value
 		delete(errBody.Properties, "reason")
-		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewConflictError("the address is already a member"))
+		rec := exchange(t, ops.OpAddMember, requestSamples[ops.OpAddMember], ops.NewError(ops.CodeConflict, "the address is already a member"))
 		if err := d.checkResponse(t.Context(), ops.OpAddMember, rec); err != nil {
 			t.Errorf("the open document refused an unknown field: %v", err)
 		}

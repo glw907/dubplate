@@ -123,11 +123,10 @@ const (
 	OpResetSetting = "reset_setting"
 )
 
-// An Admin is what a caller reaches the seven member and settings
-// operations through. Every method takes the acting [identity.Actor]
-// as a parameter and returns an error wrapping one of this package's
-// sentinels when it cannot answer. Each call is admin only; the authorizing layer
-// enforces it before any method runs.
+// An Admin is what a caller reaches the member and settings operations
+// through. A method that cannot answer returns an error wrapping an
+// [*Error]. Each call is admin only; the authorizing layer enforces it
+// before any method runs.
 type Admin interface {
 	// ListMembers lists the live members.
 	ListMembers(ctx context.Context, actor identity.Actor, req ListMembersRequest) (ListMembersResponse, error)

@@ -92,9 +92,9 @@ func reaches(granted, required ops.Privilege) bool {
 func (s *admission) admit(ctx context.Context, op string) (identity.Actor, error) {
 	p, ok := ops.PrivilegeOf(op)
 	if !ok {
-		return identity.Actor{}, ops.NewNotFoundError(fmt.Sprintf("no operation %q", op))
+		return identity.Actor{}, ops.NewError(ops.CodeNotFound, fmt.Sprintf("no operation %q", op))
 	}
-	denied := ops.NewForbiddenError(fmt.Sprintf("%s requires the %s privilege", op, p))
+	denied := ops.NewError(ops.CodeForbidden, fmt.Sprintf("%s requires the %s privilege", op, p))
 	actor, granted, err := s.auth.authorize(ctx, op)
 	if err != nil {
 		return identity.Actor{}, fmt.Errorf("%w: %w: %w", denied, errAuthorizerDenied, err)

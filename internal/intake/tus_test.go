@@ -97,13 +97,13 @@ func testVerifier(_ http.ResponseWriter, r *http.Request) (identity.UserID, erro
 	v := r.Header.Get(memberHeader)
 	switch v {
 	case "":
-		return identity.UserID{}, ops.ErrUnauthenticated
+		return identity.UserID{}, ops.CodeUnauthenticated
 	case failVerify:
 		return identity.UserID{}, errVerifierBroken
 	}
 	b, err := hex.DecodeString(v)
 	if err != nil || len(b) != 16 {
-		return identity.UserID{}, ops.ErrUnauthenticated
+		return identity.UserID{}, ops.CodeUnauthenticated
 	}
 	return identity.UserID(b), nil
 }

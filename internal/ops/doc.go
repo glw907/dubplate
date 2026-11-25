@@ -15,8 +15,7 @@
 //
 // Every request and response type is JSON-serializable with explicit
 // snake-case tags, the source of the API's wire shape once a driver
-// exposes it over HTTP. A caller matches a failure with [errors.Is]
-// against one of this package's sentinels, never by inspecting an
-// [*Error]'s fields directly, except that a client branches on
-// [Error.Detail] for a refusal finer than its code.
+// exposes it over HTTP. A failure is an [*Error] or wraps one: a caller
+// branches on its [Code] with [errors.Is] or [CodeOf], and a driver
+// answers with its Reason, Detail, and Rejects.
 package ops

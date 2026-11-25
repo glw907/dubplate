@@ -41,7 +41,7 @@ var errNestedRoot = errors.New("collection root nests with an existing root")
 // it in tx when none does. A new collection is group-visible, written by
 // the server, and owned by the admin earliestAdmin names; its root is the
 // lowercase hex of its id, so no two collections' roots nest. With no live
-// admin it logs and returns an [ops.ErrInternal] error, which cannot
+// admin it logs and returns an [ops.CodeInternal] error, which cannot
 // happen after bootstrap.
 func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route Route,
 	earliestAdmin func(context.Context, *store.Tx) (identity.UserID, bool, error)) ([]byte, error) {
@@ -60,7 +60,7 @@ func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route 
 	}
 	if !found {
 		log.ErrorContext(ctx, "intake: no live admin to own the collection", "route", route)
-		return nil, ops.NewInternalError("no live admin to own the " + routeNames[route] + " collection")
+		return nil, ops.NewError(ops.CodeInternal, "no live admin to own the "+routeNames[route]+" collection")
 	}
 
 	minted := id.New()

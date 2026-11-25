@@ -97,11 +97,11 @@ func TestMount_OtherAPIPathsAnswerJSONNotFound(t *testing.T) {
 }
 
 // TestMount_NoSessionAnswers401 proves a verifier refusal wrapping
-// ops.ErrUnauthenticated answers 401 unauthenticated and reaches no operation,
+// ops.CodeUnauthenticated answers 401 unauthenticated and reaches no operation,
 // on every operation and on an unknown name under v1.
 func TestMount_NoSessionAnswers401(t *testing.T) {
 	refuse := func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-		return identity.Actor{}, 0, fmt.Errorf("verify: %w", ops.ErrUnauthenticated)
+		return identity.Actor{}, 0, fmt.Errorf("verify: %w", ops.CodeUnauthenticated)
 	}
 	paths := []string{"list_submissions", "list_members", "add_member", "set_setting", "no_such_operation"}
 	for _, name := range paths {
@@ -202,10 +202,10 @@ func TestMount_BearerHeaderAdmitsNobody(t *testing.T) {
 	sawBearer := false
 	f := newMountFixture(t, func(_ http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
 		if r.Header.Get("Authorization") == "" {
-			return identity.Actor{}, 0, fmt.Errorf("no cookie: %w", ops.ErrUnauthenticated)
+			return identity.Actor{}, 0, fmt.Errorf("no cookie: %w", ops.CodeUnauthenticated)
 		}
 		sawBearer = true
-		return identity.Actor{}, 0, fmt.Errorf("bearer is no session: %w", ops.ErrUnauthenticated)
+		return identity.Actor{}, 0, fmt.Errorf("bearer is no session: %w", ops.CodeUnauthenticated)
 	})
 	req := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(`{}`))
 	req.URL.Path = mountPrefix + "/api/v1/list_submissions"
@@ -257,7 +257,7 @@ func TestMount_VerifierCanSetCookies(t *testing.T) {
 // TestNewMount_Refusals proves a mount is not built without its parts.
 func TestNewMount_Refusals(t *testing.T) {
 	verify := func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-		return identity.Actor{}, 0, ops.ErrUnauthenticated
+		return identity.Actor{}, 0, ops.CodeUnauthenticated
 	}
 	log := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
 	admin, subs := &fakeAdmin{}, &fakeSubmissions{}

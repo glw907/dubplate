@@ -300,17 +300,17 @@ func TestServeHTTPErrorDetail(t *testing.T) {
 		wantStatus int
 		wantBody   string
 	}{
-		{"conflict with detail", ops.NewConflictError("no admin would remain").WithDetail(ops.DetailLastAdmin), 409,
+		{"conflict with detail", ops.NewError(ops.CodeConflict, "no admin would remain").WithDetail(ops.DetailLastAdmin), 409,
 			`{"error":{"code":"conflict","reason":"no admin would remain","detail":"last_admin"}}`},
-		{"detail through a wrapper", fmt.Errorf("remove: %w", ops.NewConflictError("taken").WithDetail(ops.DetailDuplicateAddress)), 409,
+		{"detail through a wrapper", fmt.Errorf("remove: %w", ops.NewError(ops.CodeConflict, "taken").WithDetail(ops.DetailDuplicateAddress)), 409,
 			`{"error":{"code":"conflict","reason":"taken","detail":"duplicate_address"}}`},
-		{"invalid request with detail", ops.NewInvalidRequestError("bad name").WithDetail(ops.DetailInvalidUsername), 400,
+		{"invalid request with detail", ops.NewError(ops.CodeInvalidRequest, "bad name").WithDetail(ops.DetailInvalidUsername), 400,
 			`{"error":{"code":"invalid_request","reason":"bad name","detail":"invalid_username"}}`},
-		{"unavailable with detail", ops.NewUnavailableError("store busy").WithDetail(ops.DetailBusy), 503,
+		{"unavailable with detail", ops.NewError(ops.CodeUnavailable, "store busy").WithDetail(ops.DetailBusy), 503,
 			`{"error":{"code":"unavailable","reason":"store busy","detail":"busy"}}`},
-		{"no detail", ops.NewConflictError("elsewhere"), 409,
+		{"no detail", ops.NewError(ops.CodeConflict, "elsewhere"), 409,
 			`{"error":{"code":"conflict","reason":"elsewhere"}}`},
-		{"internal never carries one", ops.NewInternalError("secret path").WithDetail(ops.DetailBusy), 500,
+		{"internal never carries one", ops.NewError(ops.CodeInternal, "secret path").WithDetail(ops.DetailBusy), 500,
 			`{"error":{"code":"internal"}}`},
 	}
 	for _, tt := range tests {
@@ -421,7 +421,7 @@ func TestServeHTTPDenials(t *testing.T) {
 		{
 			name: "authorizer answers forbidden",
 			decide: func(string) (identity.Actor, ops.Privilege, error) {
-				return identity.Actor{}, 0, ops.NewForbiddenError(address + " (" + principal + ") is not an admin")
+				return identity.Actor{}, 0, ops.NewError(ops.CodeForbidden, address+" ("+principal+") is not an admin")
 			},
 			wantReason: "authorizer denied the caller",
 		},
@@ -560,17 +560,17 @@ func TestServeHTTPOperationErrors(t *testing.T) {
 		wantReason string // "" means the body carries no reason key
 		wantLog    string // "" means the log carries the error's own text
 	}{
-		{"unavailable", ops.NewUnavailableError("backup integration is off"), 503, ops.CodeUnavailable, "backup integration is off", ""},
-		{"not found", ops.NewNotFoundError("no job " + testHandle), 404, ops.CodeNotFound, "no job " + testHandle, ""},
-		{"conflict", ops.NewConflictError("backup job already running"), 409, ops.CodeConflict, "backup job already running", ""},
-		{"invalid request", ops.NewInvalidRequestError("bad field"), 400, ops.CodeInvalidRequest, "bad field", ""},
-		{"canceled", ops.NewCanceledError("caller went away"), 503, ops.CodeCanceled, "caller went away", ""},
-		{"forbidden", ops.NewForbiddenError("not yours"), 403, ops.CodeForbidden, "not yours", `reason=denied`},
-		{"unauthenticated", ops.NewUnauthenticatedError("sign in again"), 401, ops.CodeUnauthenticated, "sign in again", ""},
-		{"reauthentication required", ops.NewReauthenticationRequiredError("sign in from this browser"), 403, ops.CodeReauthenticationRequired, "sign in from this browser", ""},
-		{"coded internal", ops.NewInternalError("store closed at " + path), 500, ops.CodeInternal, "", ""},
+		{"unavailable", ops.NewError(ops.CodeUnavailable, "backup integration is off"), 503, ops.CodeUnavailable, "backup integration is off", ""},
+		{"not found", ops.NewError(ops.CodeNotFound, "no job "+testHandle), 404, ops.CodeNotFound, "no job " + testHandle, ""},
+		{"conflict", ops.NewError(ops.CodeConflict, "backup job already running"), 409, ops.CodeConflict, "backup job already running", ""},
+		{"invalid request", ops.NewError(ops.CodeInvalidRequest, "bad field"), 400, ops.CodeInvalidRequest, "bad field", ""},
+		{"canceled", ops.NewError(ops.CodeCanceled, "caller went away"), 503, ops.CodeCanceled, "caller went away", ""},
+		{"forbidden", ops.NewError(ops.CodeForbidden, "not yours"), 403, ops.CodeForbidden, "not yours", `reason=denied`},
+		{"unauthenticated", ops.NewError(ops.CodeUnauthenticated, "sign in again"), 401, ops.CodeUnauthenticated, "sign in again", ""},
+		{"reauthentication required", ops.NewError(ops.CodeReauthenticationRequired, "sign in from this browser"), 403, ops.CodeReauthenticationRequired, "sign in from this browser", ""},
+		{"coded internal", ops.NewError(ops.CodeInternal, "store closed at "+path), 500, ops.CodeInternal, "", ""},
 		{"bare context canceled", fmt.Errorf("wait for the write connection: %w", context.Canceled), 503, ops.CodeCanceled, "", ""},
-		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewConflictError("backup job already running")), 409, ops.CodeConflict, "backup job already running", ""},
+		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewError(ops.CodeConflict, "backup job already running")), 409, ops.CodeConflict, "backup job already running", ""},
 		{"uncoded error", fmt.Errorf("open %s: permission denied", path), 500, ops.CodeInternal, "", ""},
 		{"zero ops error", &ops.Error{}, 500, ops.CodeInternal, "", `msg="ops error code has no HTTP status" op=list_members code=""`},
 		{"unregistered code", &ops.Error{Code: "teapot", Reason: "brewing at " + path}, 500, ops.CodeInternal, "", "code=teapot"},
@@ -624,15 +624,17 @@ func TestStatuses(t *testing.T) {
 	}
 }
 
-func TestCheckStatusesNamesAMissingCode(t *testing.T) {
-	if err := checkStatuses(statuses); err != nil {
-		t.Fatalf("checkStatuses(statuses) = %v, want nil", err)
+// TestStatusesCoverEveryCode reads the Code constants from package ops's
+// source, so a code added there with no status here fails.
+func TestStatusesCoverEveryCode(t *testing.T) {
+	codes := goConstants(t, "../errors.go", "Code")
+	if !slices.Contains(codes, "canceled") {
+		t.Fatalf("read %v from errors.go, want the Code constants including canceled", codes)
 	}
-	partial := maps.Clone(statuses)
-	delete(partial, ops.CodeCanceled)
-	err := checkStatuses(partial)
-	if err == nil || !strings.Contains(err.Error(), `"canceled"`) {
-		t.Errorf("checkStatuses without canceled = %v, want an error naming \"canceled\"", err)
+	for _, c := range codes {
+		if _, ok := statuses[ops.Code(c)]; !ok {
+			t.Errorf("wire code %q has no HTTP status", c)
+		}
 	}
 }
 

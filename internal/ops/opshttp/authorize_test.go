@@ -113,7 +113,7 @@ func TestAdmissionMemberReachesTheSubmissions(t *testing.T) {
 }
 
 // TestAdmissionDenialIsForbidden checks the in-process shape of a
-// denial: the error matches ops.ErrForbidden and still carries the
+// denial: the error matches ops.CodeForbidden and still carries the
 // authorizer's own error, on a submission operation and on an admin one.
 func TestAdmissionDenialIsForbidden(t *testing.T) {
 	errSession := errors.New("session expired")
@@ -124,8 +124,8 @@ func TestAdmissionDenialIsForbidden(t *testing.T) {
 			}}
 			f := newFixture(t, deny)
 			_, err := f.h.admission.admit(context.Background(), tt.op)
-			if !errors.Is(err, ops.ErrForbidden) || !errors.Is(err, errSession) {
-				t.Errorf("%s = %v, want ops.ErrForbidden wrapping the authorizer's error", tt.op, err)
+			if !errors.Is(err, ops.CodeForbidden) || !errors.Is(err, errSession) {
+				t.Errorf("%s = %v, want ops.CodeForbidden wrapping the authorizer's error", tt.op, err)
 			}
 			if code := ops.CodeOf(err); code != ops.CodeForbidden {
 				t.Errorf("CodeOf = %q, want forbidden", code)
@@ -187,8 +187,8 @@ func TestAdmissionRefusesAnOperationOffTheTable(t *testing.T) {
 		t.Run(op, func(t *testing.T) {
 			f := newFixture(t, admitAnn())
 			_, err := f.h.admission.admit(context.Background(), op)
-			if !errors.Is(err, ops.ErrNotFound) {
-				t.Errorf("admit(%q) = %v, want ops.ErrNotFound", op, err)
+			if !errors.Is(err, ops.CodeNotFound) {
+				t.Errorf("admit(%q) = %v, want ops.CodeNotFound", op, err)
 			}
 			if len(f.auth.calls) != 0 {
 				t.Errorf("the authorizer was asked %d times, want 0", len(f.auth.calls))

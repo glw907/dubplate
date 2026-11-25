@@ -143,7 +143,7 @@ func TestServeHTTPSubmissionBodyCaps(t *testing.T) {
 // error.rejects beside the code and detail, each reason as its four wire
 // strings, and that an error with no rejects writes no rejects key.
 func TestServeHTTPRejectsEnvelope(t *testing.T) {
-	refusal := ops.NewInvalidRequestError("the manifest was refused").WithRejects(ops.Rejects{
+	refusal := ops.NewError(ops.CodeInvalidRequest, "the manifest was refused").WithRejects(ops.Rejects{
 		Submission: []reject.Reason{reject.Of(reject.NoAudio)},
 		Files:      []ops.FileReason{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 	})
@@ -177,7 +177,7 @@ func TestServeHTTPRejectsEnvelope(t *testing.T) {
 		t.Errorf("rejects.files = %+v, want one unsafe_path for a/../b.flac", got.Error.Rejects.Files)
 	}
 
-	f.subs.answers[ops.OpGetSubmission] = fakeAnswer{err: ops.NewNotFoundError("no such submission")}
+	f.subs.answers[ops.OpGetSubmission] = fakeAnswer{err: ops.NewError(ops.CodeNotFound, "no such submission")}
 	plain := f.post(ops.OpGetSubmission, `{"submission_id":"`+testHandle+`"}`)
 	if strings.Contains(plain.Body.String(), "rejects") {
 		t.Errorf("an error with no rejects wrote %s", plain.Body)

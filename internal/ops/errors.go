@@ -8,9 +8,10 @@ import (
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// A Code is one of the operations' stable wire error codes, shared by every
-// operation rather than numbered per endpoint (OpenSubsonic declined,
-// prior art).
+// A Code is one of the operations' stable wire error codes, shared by
+// every operation rather than numbered per endpoint. A Code is an
+// error, so a caller matches a failure with errors.Is(err, CodeConflict)
+// whether the chain holds an [*Error] or the bare code.
 type Code string
 
 const (
@@ -30,39 +31,8 @@ const (
 	CodeReauthenticationRequired Code = "reauthentication_required"
 )
 
-// The sentinels this package raises. A caller matches one with
-// [errors.Is].
-var (
-	ErrUnavailable    = errors.New("unavailable")
-	ErrNotFound       = errors.New("not found")
-	ErrConflict       = errors.New("conflict")
-	ErrInvalidRequest = errors.New("invalid request")
-	ErrCanceled       = errors.New("canceled")
-	ErrForbidden      = errors.New("forbidden")
-	ErrInternal       = errors.New("internal")
-
-	// ErrUnauthenticated is the one sentinel for a request with no
-	// valid session. auth's session check wraps it, and both mounts
-	// answer it 401.
-	ErrUnauthenticated          = errors.New("no valid session")
-	ErrReauthenticationRequired = errors.New("reauthentication required")
-)
-
-// codes maps each declared sentinel to its stable wire [Code]. A
-// sentinel with no entry here is a defect in this file, never a
-// caller's.
-var codes = map[error]Code{
-	ErrUnavailable:    CodeUnavailable,
-	ErrNotFound:       CodeNotFound,
-	ErrConflict:       CodeConflict,
-	ErrInvalidRequest: CodeInvalidRequest,
-	ErrCanceled:       CodeCanceled,
-	ErrForbidden:      CodeForbidden,
-	ErrInternal:       CodeInternal,
-
-	ErrUnauthenticated:          CodeUnauthenticated,
-	ErrReauthenticationRequired: CodeReauthenticationRequired,
-}
+// Error returns c's wire text.
+func (c Code) Error() string { return string(c) }
 
 // A FileReason is one declared file's reject reason. Path is valid
 // UTF-8, with the replacement character for any byte that was not.
@@ -79,66 +49,26 @@ type Rejects struct {
 	Files      []FileReason    `json:"files"`
 }
 
-// An Error wraps one of this package's sentinels with its stable
-// [Code] and the reason a caller may report as an answer. Reason is
-// required for [ErrUnavailable] (every unavailable answer names why);
-// the other sentinels may carry an empty one when the sentinel alone
-// says enough. Detail, when set, is one of the Detail constants: an
-// enumerated name finer than Code, which a client may branch on where
-// Reason is free text. Rejects, when set, lists the reject reasons
-// behind a refused submission.
+// An Error is an operation's failure: its stable [Code] and the reason
+// a caller may report as an answer. Detail, when set, is an enumerated
+// name finer than Code, which a client may branch on where Reason is
+// free text. Rejects, when set, lists the reject reasons behind a
+// refused submission.
 type Error struct {
 	Code    Code
 	Reason  string
 	Detail  string
 	Rejects *Rejects
-	err     error
 }
 
-func newError(sentinel error, reason string) *Error {
-	code, ok := codes[sentinel]
-	if !ok {
-		panic(fmt.Sprintf("ops: newError: %v has no registered code", sentinel))
+// NewError returns an [*Error] carrying code and reason. Reason may be
+// empty when the code alone says enough, except for [CodeUnavailable]:
+// every unavailable answer names why, so NewError panics without one.
+func NewError(code Code, reason string) *Error {
+	if code == CodeUnavailable && reason == "" {
+		panic("ops: NewError called for unavailable with an empty reason")
 	}
-	return &Error{Code: code, Reason: reason, err: sentinel}
-}
-
-// NewUnavailableError builds an [*Error] wrapping [ErrUnavailable]
-// that names why the operation cannot run right now. A caller with no
-// reason to give has called this in error.
-func NewUnavailableError(reason string) *Error {
-	if reason == "" {
-		panic("ops: NewUnavailableError called with an empty reason")
-	}
-	return newError(ErrUnavailable, reason)
-}
-
-// NewNotFoundError builds an [*Error] wrapping [ErrNotFound].
-func NewNotFoundError(reason string) *Error { return newError(ErrNotFound, reason) }
-
-// NewConflictError builds an [*Error] wrapping [ErrConflict].
-func NewConflictError(reason string) *Error { return newError(ErrConflict, reason) }
-
-// NewInvalidRequestError builds an [*Error] wrapping [ErrInvalidRequest].
-func NewInvalidRequestError(reason string) *Error { return newError(ErrInvalidRequest, reason) }
-
-// NewCanceledError builds an [*Error] wrapping [ErrCanceled].
-func NewCanceledError(reason string) *Error { return newError(ErrCanceled, reason) }
-
-// NewForbiddenError builds an [*Error] wrapping [ErrForbidden].
-func NewForbiddenError(reason string) *Error { return newError(ErrForbidden, reason) }
-
-// NewInternalError builds an [*Error] wrapping [ErrInternal].
-func NewInternalError(reason string) *Error { return newError(ErrInternal, reason) }
-
-// NewUnauthenticatedError builds an [*Error] wrapping
-// [ErrUnauthenticated].
-func NewUnauthenticatedError(reason string) *Error { return newError(ErrUnauthenticated, reason) }
-
-// NewReauthenticationRequiredError builds an [*Error] wrapping
-// [ErrReauthenticationRequired].
-func NewReauthenticationRequiredError(reason string) *Error {
-	return newError(ErrReauthenticationRequired, reason)
+	return &Error{Code: code, Reason: reason}
 }
 
 // WithDetail returns a copy of e carrying detail, one of the Detail
@@ -164,15 +94,12 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Reason)
 }
 
-// Unwrap returns the sentinel e wraps, so a caller matches it with
-// [errors.Is].
-func (e *Error) Unwrap() error { return e.err }
+// Unwrap returns e's code, so errors.Is matches e against a [Code].
+func (e *Error) Unwrap() error { return e.Code }
 
 // CodeOf returns err's stable wire [Code]: the code of the first
-// [*Error] in err's chain ([errors.AsType]); else [CodeCanceled] when
-// the chain holds [context.Canceled]; else [CodeInternal]. A
-// projection calls CodeOf only for a non-nil operation error, so a
-// success answers with no call to CodeOf at all.
+// [*Error] in err's chain; else [CodeCanceled] when the chain holds
+// [context.Canceled]; else [CodeInternal], which is also CodeOf(nil).
 func CodeOf(err error) Code {
 	if opsErr, ok := errors.AsType[*Error](err); ok {
 		return opsErr.Code
@@ -181,17 +108,4 @@ func CodeOf(err error) Code {
 		return CodeCanceled
 	}
 	return CodeInternal
-}
-
-// Codes returns every wire [Code] this package's sentinel table
-// holds, in no fixed order. A coverage guard that iterates Codes
-// catches a sentinel added to codes with no matching case; a guard
-// over a list a test hard-codes would only prove the list matches
-// itself.
-func Codes() []Code {
-	out := make([]Code, 0, len(codes))
-	for _, c := range codes {
-		out = append(out, c)
-	}
-	return out
 }

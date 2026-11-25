@@ -65,7 +65,7 @@ func TestCancelJob_States(t *testing.T) {
 		{
 			name:    "unknown id",
 			jobID:   func(*testing.T, *store.Handle, *Runner) id.ID { return id.New() },
-			wantErr: ops.ErrNotFound,
+			wantErr: ops.CodeNotFound,
 		},
 		{
 			name: "queued",
@@ -128,7 +128,7 @@ func TestJobStatus(t *testing.T) {
 	at := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
 	jobID := id.ID(plant(t, h, record{state: "succeeded", owner: newInstance(), at: at.UnixMicro(), started: at.UnixMicro(), finished: at.Add(time.Minute).UnixMicro()}))
 
-	if _, err := r.JobStatus(deadline(t), testActor, id.New()); !errors.Is(err, ops.ErrNotFound) {
+	if _, err := r.JobStatus(deadline(t), testActor, id.New()); !errors.Is(err, ops.CodeNotFound) {
 		t.Errorf("unknown id: JobStatus() = %v, want not found", err)
 	}
 	got, err := r.JobStatus(deadline(t), testActor, jobID)

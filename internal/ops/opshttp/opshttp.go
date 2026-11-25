@@ -51,18 +51,6 @@ var statuses = map[ops.Code]int{
 	ops.CodeReauthenticationRequired: http.StatusForbidden,
 }
 
-// checkStatuses fails, naming the first code [ops.Codes] declares that
-// table gives no status, so a sentinel added to package ops cannot
-// reach the wire without one.
-func checkStatuses(table map[ops.Code]int) error {
-	for _, c := range ops.Codes() {
-		if _, ok := table[c]; !ok {
-			return fmt.Errorf("opshttp: wire code %q has no HTTP status", c)
-		}
-	}
-	return nil
-}
-
 // A handler serves the twelve operations, each as POST /<name>. It
 // dispatches by exact path itself rather than through [http.ServeMux],
 // whose method-mismatch and not-found answers are plain text, so that
@@ -75,8 +63,8 @@ type handler struct {
 
 // newHandler builds the projection of the admin and submission
 // operations, admitting each call through auth on a mount whose verified
-// identities arrive on channel. It fails on a nil admin, subs, auth, or log, on a channel
-// no network mount carries, and on a wire code with no HTTP status.
+// identities arrive on channel. It fails on a nil admin, subs, auth, or log, and on a channel
+// no network mount carries.
 func newHandler(admin ops.Admin, subs ops.Submissions, auth authorizer, channel identity.Channel, log *slog.Logger) (*handler, error) {
 	if log == nil {
 		return nil, errors.New("logger is nil")
@@ -89,9 +77,6 @@ func newHandler(admin ops.Admin, subs ops.Submissions, auth authorizer, channel 
 	}
 	adm, err := newAdmission(auth, channel)
 	if err != nil {
-		return nil, err
-	}
-	if err := checkStatuses(statuses); err != nil {
 		return nil, err
 	}
 	h := &handler{admission: adm, log: log}

@@ -85,7 +85,7 @@ func New(cfg Config) *Service {
 // operator and skips its admin check.
 func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error {
 	if actor.Channel() != identity.ChannelCookie {
-		return ops.NewForbiddenError("this change needs a member's session")
+		return ops.NewError(ops.CodeForbidden, "this change needs a member's session")
 	}
 	window, err := s.cfg.Window(ctx)
 	if err != nil {
@@ -94,7 +94,7 @@ func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error 
 	// An anchor ahead of the clock was minted under a clock since stepped
 	// back, so its age is unknown and it is no fresher than a stale one.
 	if elapsed := s.cfg.Now().Sub(actor.Anchor()); elapsed < 0 || elapsed >= window {
-		return ops.NewReauthenticationRequiredError("this change needs a sign-in from the last " + window.String())
+		return ops.NewError(ops.CodeReauthenticationRequired, "this change needs a sign-in from the last "+window.String())
 	}
 	return nil
 }
@@ -105,7 +105,7 @@ func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error 
 // the zero id.
 func memberID(v id.ID) (identity.UserID, error) {
 	if v.IsZero() {
-		return identity.UserID{}, ops.NewInvalidRequestError("user_id is missing or names no member")
+		return identity.UserID{}, ops.NewError(ops.CodeInvalidRequest, "user_id is missing or names no member")
 	}
 	return identity.UserID(v), nil
 }
@@ -118,34 +118,34 @@ func refusal(err error) error {
 	var answer *ops.Error
 	switch {
 	case errors.Is(err, store.ErrBusy), errors.Is(err, context.DeadlineExceeded):
-		answer = ops.NewUnavailableError("the server is busy; try again").WithDetail(ops.DetailBusy)
+		answer = ops.NewError(ops.CodeUnavailable, "the server is busy; try again").WithDetail(ops.DetailBusy)
 	case errors.Is(err, member.ErrActorNotAdmin):
-		answer = ops.NewForbiddenError("")
+		answer = ops.NewError(ops.CodeForbidden, "")
 	case errors.Is(err, member.ErrMemberNotFound):
-		answer = ops.NewNotFoundError("no member has that user_id")
+		answer = ops.NewError(ops.CodeNotFound, "no member has that user_id")
 	case errors.Is(err, member.ErrNoAdmin):
-		answer = ops.NewConflictError("the group must keep at least one admin").WithDetail(ops.DetailLastAdmin)
+		answer = ops.NewError(ops.CodeConflict, "the group must keep at least one admin").WithDetail(ops.DetailLastAdmin)
 	case errors.Is(err, member.ErrDuplicateAddress):
-		answer = ops.NewConflictError("a member already signs in with that address").WithDetail(ops.DetailDuplicateAddress)
+		answer = ops.NewError(ops.CodeConflict, "a member already signs in with that address").WithDetail(ops.DetailDuplicateAddress)
 	case errors.Is(err, member.ErrDuplicateUsername):
-		answer = ops.NewConflictError("that username is taken").WithDetail(ops.DetailDuplicateUsername)
+		answer = ops.NewError(ops.CodeConflict, "that username is taken").WithDetail(ops.DetailDuplicateUsername)
 	case errors.Is(err, member.ErrInvalidMemberAddress):
-		answer = ops.NewInvalidRequestError("the address is not one a member can sign in with").WithDetail(ops.DetailInvalidAddress)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the address is not one a member can sign in with").WithDetail(ops.DetailInvalidAddress)
 	case errors.Is(err, member.ErrInvalidDisplayName):
-		answer = ops.NewInvalidRequestError("the display name is too long or carries a hidden character").WithDetail(ops.DetailInvalidDisplayName)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the display name is too long or carries a hidden character").WithDetail(ops.DetailInvalidDisplayName)
 	case errors.Is(err, member.ErrBlankDisplayName):
-		answer = ops.NewInvalidRequestError("the display name is blank").WithDetail(ops.DetailBlankDisplayName)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the display name is blank").WithDetail(ops.DetailBlankDisplayName)
 	case errors.Is(err, member.ErrInvalidUsername):
-		answer = ops.NewInvalidRequestError("the username is too long or has the wrong shape").WithDetail(ops.DetailInvalidUsername)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the username is too long or has the wrong shape").WithDetail(ops.DetailInvalidUsername)
 	case errors.Is(err, member.ErrMissingUsername):
-		answer = ops.NewInvalidRequestError("a username is required").WithDetail(ops.DetailMissingUsername)
+		answer = ops.NewError(ops.CodeInvalidRequest, "a username is required").WithDetail(ops.DetailMissingUsername)
 	case errors.Is(err, settings.ErrEnvironmentSets):
-		answer = ops.NewConflictError("the server's environment file sets this key").WithDetail(ops.DetailEnvironmentSets)
+		answer = ops.NewError(ops.CodeConflict, "the server's environment file sets this key").WithDetail(ops.DetailEnvironmentSets)
 	case errors.Is(err, settings.ErrNotSetting), errors.Is(err, settings.ErrInvalidValue):
 		// The seed rule that phrases these reads store-homed keys
 		// alone, so the reason never carries a wall or integration
 		// value.
-		answer = ops.NewInvalidRequestError(err.Error())
+		answer = ops.NewError(ops.CodeInvalidRequest, err.Error())
 	default:
 		return err
 	}
