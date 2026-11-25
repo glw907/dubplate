@@ -6,7 +6,10 @@ import (
 	"github.com/glw907/dubplate/internal/id"
 )
 
-// A JobState is one of a job's six lifecycle states, unchanged once it
+// KindBackup is the job kind a backup job's record and lease carry.
+const KindBackup = "backup"
+
+// A JobState is one of a job's lifecycle states, unchanged once it
 // reaches a terminal one.
 type JobState string
 

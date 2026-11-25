@@ -9,13 +9,13 @@ import (
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// The five submission operation names, each the wire name a client posts to.
+// The submission operations.
 const (
-	OpCreateSubmission = "create_submission"
-	OpListSubmissions  = "list_submissions"
-	OpGetSubmission    = "get_submission"
-	OpRetrySubmission  = "retry_submission"
-	OpCancelSubmission = "cancel_submission"
+	OpCreateSubmission Op = "create_submission"
+	OpListSubmissions  Op = "list_submissions"
+	OpGetSubmission    Op = "get_submission"
+	OpRetrySubmission  Op = "retry_submission"
+	OpCancelSubmission Op = "cancel_submission"
 )
 
 // A ManifestFile is one file a member declares when creating a
@@ -35,8 +35,8 @@ type CreateSubmissionRequest struct {
 	// Container is "files" or "zip".
 	Container string         `json:"container"`
 	Files     []ManifestFile `json:"files"`
-	// Source is where the music came from, one of the seven answers the
-	// gate accepts.
+	// Source is where the music came from, one of the answers the gate
+	// accepts.
 	Source     string `json:"source"`
 	SourceNote string `json:"source_note,omitempty"`
 	StoreURL   string `json:"store_url,omitempty"`
@@ -135,10 +135,10 @@ type CancelSubmissionRequest GetSubmissionRequest
 // A CancelSubmissionResponse carries the submission after the cancel.
 type CancelSubmissionResponse GetSubmissionResponse
 
-// A Submissions is what a caller reaches the five submission
-// operations through, beside [Admin]. Each is a member's
-// own: the caller is the actor's UserID, never a request field, and an
-// id that is another member's answers as an unknown one, [CodeNotFound].
+// A Submissions is what a caller reaches the submission operations
+// through, beside [Admin]. Each is a member's own: the caller is the
+// actor's UserID, and an id that is another member's answers as an
+// unknown one, [CodeNotFound].
 // An action the submission's state does not allow answers [CodeConflict].
 type Submissions interface {
 	// CreateSubmission checks the manifest and the member's limits and

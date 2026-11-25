@@ -4,14 +4,10 @@
 // types, the error vocabulary, and the privilege each operation
 // requires.
 //
-// [Admin] holds the seven member and settings operations and
-// [Submissions] the five submission operations. Both take the acting
-// identity as a parameter of every method, never as a field of a request
-// type, so a caller can never widen its own privilege by shaping a
-// request body. An [identity.Actor] is local, built from an
-// operating-system username, or network, built from a verified
-// [identity.Identity] and its session's anchor; the network kind
-// renders its durable UserID, never its principal.
+// [Admin] holds the member and settings operations and [Submissions]
+// the submission operations. Both take the acting [identity.Actor] as a
+// parameter of every method, never as a field of a request type, so a
+// caller can never widen its own privilege by shaping a request body.
 //
 // Every request and response type is JSON-serializable with explicit
 // snake-case tags, the source of the API's wire shape once a driver

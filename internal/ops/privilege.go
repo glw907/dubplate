@@ -26,13 +26,13 @@ func (p Privilege) String() string {
 	}
 }
 
-// KindBackup is the job kind a backup job's record and lease carry.
-const KindBackup = "backup"
+// An Op is an operation's name, the wire name a client posts to.
+type Op string
 
-// privileges maps each of the twelve operation names to the privilege
-// it requires. [PrivilegeOf] is the only reader, so the authorizing
-// layer has one answer about what an operation needs.
-var privileges = map[string]Privilege{
+// privileges maps each operation to the privilege it requires.
+// [PrivilegeOf] is the only reader, so the authorizing layer has one
+// answer about what an operation needs.
+var privileges = map[Op]Privilege{
 	OpListMembers:  PrivilegeAdmin,
 	OpAddMember:    PrivilegeAdmin,
 	OpRemoveMember: PrivilegeAdmin,
@@ -50,9 +50,9 @@ var privileges = map[string]Privilege{
 
 // PrivilegeOf returns the privilege op requires and reports whether op
 // is a recognized operation name. An unrecognized name answers ok
-// false and a zero [Privilege], never a guessed one: its caller
-// answers not_found before any authorizer runs.
-func PrivilegeOf(op string) (Privilege, bool) {
+// false and a zero [Privilege], never a guessed one, so a caller
+// treats it as no operation at all.
+func PrivilegeOf(op Op) (Privilege, bool) {
 	p, ok := privileges[op]
 	return p, ok
 }

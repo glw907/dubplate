@@ -112,15 +112,15 @@ type ResetSettingResponse struct {
 	Source string `json:"source"`
 }
 
-// The seven admin operation names, each the wire name a client posts to.
+// The admin operations.
 const (
-	OpListMembers  = "list_members"
-	OpAddMember    = "add_member"
-	OpRemoveMember = "remove_member"
-	OpDemoteMember = "demote_member"
-	OpListSettings = "list_settings"
-	OpSetSetting   = "set_setting"
-	OpResetSetting = "reset_setting"
+	OpListMembers  Op = "list_members"
+	OpAddMember    Op = "add_member"
+	OpRemoveMember Op = "remove_member"
+	OpDemoteMember Op = "demote_member"
+	OpListSettings Op = "list_settings"
+	OpSetSetting   Op = "set_setting"
+	OpResetSetting Op = "reset_setting"
 )
 
 // An Admin is what a caller reaches the member and settings operations

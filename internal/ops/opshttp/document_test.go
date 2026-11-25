@@ -105,9 +105,9 @@ func closeObjects(ref *openapi3.SchemaRef, seen map[*openapi3.Schema]bool) {
 }
 
 // operation returns the document's POST operation for name.
-func (d *document) operation(t *testing.T, name string) *openapi3.Operation {
+func (d *document) operation(t *testing.T, name ops.Op) *openapi3.Operation {
 	t.Helper()
-	item := d.doc.Paths.Value("/" + name)
+	item := d.doc.Paths.Value("/" + string(name))
 	if item == nil || item.Post == nil {
 		t.Fatalf("the document has no POST /%s", name)
 	}
@@ -122,8 +122,8 @@ var redirectStatuses = []int{
 
 // checkResponse validates one answer to the request a client sent for
 // name against the document. Every silent pass is an error here.
-func (d *document) checkResponse(ctx context.Context, name string, rec *httptest.ResponseRecorder) error {
-	docReq := httptest.NewRequest(http.MethodPost, "/"+name, nil)
+func (d *document) checkResponse(ctx context.Context, name ops.Op, rec *httptest.ResponseRecorder) error {
+	docReq := httptest.NewRequest(http.MethodPost, "/"+string(name), nil)
 	route, params, err := d.router.FindRoute(docReq)
 	if err != nil {
 		return fmt.Errorf("no route for %s: %w", name, err)
@@ -157,8 +157,8 @@ func (d *document) checkResponse(ctx context.Context, name string, rec *httptest
 
 // checkRequest validates a request body sent to name against the
 // document.
-func (d *document) checkRequest(ctx context.Context, name, body string) error {
-	req := httptest.NewRequest(http.MethodPost, "/"+name, strings.NewReader(body))
+func (d *document) checkRequest(ctx context.Context, name ops.Op, body string) error {
+	req := httptest.NewRequest(http.MethodPost, "/"+string(name), strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	route, params, err := d.router.FindRoute(req)
 	if err != nil {
@@ -169,19 +169,43 @@ func (d *document) checkRequest(ctx context.Context, name, body string) error {
 	})
 }
 
-// operationNames is every operation the mount routes: the keys of the
-// handler's route table, so an operation added there without a path in
-// the document fails the paths test.
-func operationNames(t *testing.T) []string {
+// operationNames is every operation the mount routes: the keys of its
+// route table, so an operation added there without a path in the
+// document fails the paths test.
+func operationNames(t *testing.T) []ops.Op {
 	t.Helper()
 	f := newFixture(t, admitAnn())
-	names := slices.Collect(maps.Keys(f.h.routes))
+	names := slices.Collect(maps.Keys(f.m.routes))
 	slices.Sort(names)
 	return names
 }
 
+// TestRoutesCoverThePrivilegeTable proves the mount routes exactly the
+// operations package ops declares, each of which carries a privilege,
+// so a name the table admits always has a route behind it.
+func TestRoutesCoverThePrivilegeTable(t *testing.T) {
+	var declared []ops.Op
+	for _, file := range []string{"../admin.go", "../submissions.go"} {
+		for _, name := range goConstants(t, file, "Op") {
+			declared = append(declared, ops.Op(name))
+		}
+	}
+	slices.Sort(declared)
+	if !slices.Contains(declared, ops.OpListMembers) || !slices.Contains(declared, ops.OpCancelSubmission) {
+		t.Fatalf("read %v from package ops, want the Op constants of both files", declared)
+	}
+	if got := operationNames(t); !slices.Equal(got, declared) {
+		t.Errorf("routes = %v, want %v", got, declared)
+	}
+	for _, op := range declared {
+		if _, ok := ops.PrivilegeOf(op); !ok {
+			t.Errorf("PrivilegeOf(%q) answers no privilege", op)
+		}
+	}
+}
+
 // requestSamples is a well-formed request body for each operation.
-var requestSamples = map[string]string{
+var requestSamples = map[ops.Op]string{
 	ops.OpListMembers:  `{}`,
 	ops.OpAddMember:    `{"address":"bo@example.com","display_name":"Bo","username":"bo"}`,
 	ops.OpRemoveMember: `{"user_id":"` + testHandle + `"}`,
@@ -204,12 +228,12 @@ func TestDocument_PathsMatchTheCatalogBothWays(t *testing.T) {
 	d := loadDocument(t, false)
 	want := operationNames(t)
 	for _, name := range want {
-		if item := d.doc.Paths.Value("/" + name); item == nil || item.Post == nil {
+		if item := d.doc.Paths.Value("/" + string(name)); item == nil || item.Post == nil {
 			t.Errorf("operation %q has no POST path in the document", name)
 		}
 	}
 	for path, item := range d.doc.Paths.Map() {
-		if name := strings.TrimPrefix(path, "/"); !slices.Contains(want, name) {
+		if name := ops.Op(strings.TrimPrefix(path, "/")); !slices.Contains(want, name) {
 			t.Errorf("document path %q names no operation", path)
 		}
 		if got := len(item.Operations()); got != 1 || item.Post == nil {
@@ -550,7 +574,7 @@ func TestDocument_SchemasMatchTheGoTypes(t *testing.T) {
 		}
 	}
 
-	errAll, errRequired := jsonFields(reflect.TypeFor[errorDetail]())
+	errAll, errRequired := jsonFields(reflect.TypeFor[wireError]())
 	errSchema := d.doc.Components.Schemas["ErrorBody"].Value.Properties["error"].Value
 	var errProps []string
 	for name := range errSchema.Properties {
@@ -591,9 +615,9 @@ var sampleRejects = ops.Rejects{
 // exchange drives one request through a mount over fake seams that
 // answer err for op (nil for the success every fake already holds), for
 // an admin session, and returns the recorded answer.
-func exchange(t *testing.T, op, body string, err error) *httptest.ResponseRecorder {
+func exchange(t *testing.T, op ops.Op, body string, err error) *httptest.ResponseRecorder {
 	t.Helper()
-	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
+	f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
 	if err != nil {
 		switch {
 		case f.subs.answers[op] != fakeAnswer{}:
@@ -602,7 +626,7 @@ func exchange(t *testing.T, op, body string, err error) *httptest.ResponseRecord
 			f.admin.answers[op] = fakeAnswer{err: err}
 		}
 	}
-	return f.do(http.MethodPost, mountPrefix+"/api/v1/"+op, body)
+	return f.post(op, body)
 }
 
 // TestDocument_EveryDeclaredExchangeValidates proves, for every
@@ -614,7 +638,7 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 	d := loadDocument(t, true)
 	ctx := t.Context()
 	for _, op := range operationNames(t) {
-		t.Run(op, func(t *testing.T) {
+		t.Run(string(op), func(t *testing.T) {
 			if err := d.checkRequest(ctx, op, requestSamples[op]); err != nil {
 				t.Errorf("a well-formed request fails the document: %v", err)
 			}
@@ -643,9 +667,9 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 				}
 			}
 
-			unauth := newMountFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+			unauth := newFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
 				return identity.Actor{}, 0, ops.CodeUnauthenticated
-			}).do(http.MethodPost, mountPrefix+"/api/v1/"+op, requestSamples[op])
+			}).post(op, requestSamples[op])
 			if err := d.checkResponse(ctx, op, unauth); err != nil {
 				t.Errorf("the 401 answer fails the document: %v", err)
 			}
@@ -658,6 +682,7 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 				}
 			}
 		})
+
 	}
 }
 
@@ -669,14 +694,14 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 func TestDocument_RefusalsTheMountMakesItselfValidate(t *testing.T) {
 	d := loadDocument(t, true)
 	errSchema := d.doc.Components.Schemas["ErrorBody"].Value
-	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
+	f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
 	for name, rec := range map[string]*httptest.ResponseRecorder{
-		"a GET":                  f.do(http.MethodGet, mountPrefix+"/api/v1/list_members", ``),
-		"a query string":         f.do(http.MethodPost, mountPrefix+"/api/v1/list_members?x=1", `{}`),
-		"a body that is no JSON": f.do(http.MethodPost, mountPrefix+"/api/v1/list_members", `not json`),
-		"an unknown operation":   f.do(http.MethodPost, mountPrefix+"/api/v1/no_such_operation", `{}`),
-		"a path under api/v2":    f.do(http.MethodPost, mountPrefix+"/api/v2/list_members", `{}`),
-		"api alone":              f.do(http.MethodPost, mountPrefix+"/api", `{}`),
+		"a GET":                  f.send(http.MethodGet, mountPrefix+"/api/v1/list_members", ``),
+		"a query string":         f.send(http.MethodPost, mountPrefix+"/api/v1/list_members?x=1", `{}`),
+		"a body that is no JSON": f.send(http.MethodPost, mountPrefix+"/api/v1/list_members", `not json`),
+		"an unknown operation":   f.send(http.MethodPost, mountPrefix+"/api/v1/no_such_operation", `{}`),
+		"a path under api/v2":    f.send(http.MethodPost, mountPrefix+"/api/v2/list_members", `{}`),
+		"api alone":              f.send(http.MethodPost, mountPrefix+"/api", `{}`),
 	} {
 		if rec.Code < 400 {
 			t.Errorf("%s answered %d, want a refusal", name, rec.Code)
@@ -697,7 +722,10 @@ func TestDocument_RefusalsTheMountMakesItselfValidate(t *testing.T) {
 // can fail: a request the schema forbids is refused.
 func TestDocument_MalformedRequestsFailTheDocument(t *testing.T) {
 	d := loadDocument(t, false)
-	for _, tt := range []struct{ op, body string }{
+	for _, tt := range []struct {
+		op   ops.Op
+		body string
+	}{
 		{ops.OpGetSubmission, `{"submission_id":"XYZ"}`},
 		{ops.OpGetSubmission, `{}`},
 		{ops.OpAddMember, `{"address":"bo@example.com","display_name":"Bo"}`},

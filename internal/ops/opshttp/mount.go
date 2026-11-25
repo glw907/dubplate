@@ -1,8 +1,10 @@
 package opshttp
 
 import (
+	"context"
 	"errors"
 	"log/slog"
+	"mime"
 	"net/http"
 	"strings"
 
@@ -20,13 +22,19 @@ import (
 // member.
 type Verifier func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)
 
-// A mount serves the operations under <prefix>/api/v1/ for sessions a
-// Verifier admits.
+// A route serves one operation to a caller the mount's verifier
+// admitted.
+type route func(w http.ResponseWriter, r *http.Request, actor identity.Actor, granted ops.Privilege)
+
+// A mount serves each operation as POST <prefix>/api/v1/<name>. It
+// dispatches by exact path itself rather than through [http.ServeMux],
+// whose method-mismatch and not-found answers are plain text, so that
+// every answer carries the JSON error shape.
 type mount struct {
 	base   string
 	verify Verifier
-	ops    *handler
 	log    *slog.Logger
+	routes map[ops.Op]route
 }
 
 // NewMount returns the handler for the cookie mount's subtree api,
@@ -40,38 +48,96 @@ type mount struct {
 // Every operation runs as the actor verify admits and never as a field
 // of the request. prefix is the shell's owned prefix, with a leading
 // separator and no trailing one. NewMount fails on a nil admin or
-// submissions implementation, verifier, or logger, and on a prefix of the wrong shape.
+// submissions implementation, verifier, or logger, and on a prefix of
+// the wrong shape.
 func NewMount(admin ops.Admin, subs ops.Submissions, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
-	if verify == nil {
+	switch {
+	case verify == nil:
 		return nil, errors.New("verifier is nil")
-	}
-	if !strings.HasPrefix(prefix, "/") || strings.HasSuffix(prefix, "/") {
+	case !strings.HasPrefix(prefix, "/") || strings.HasSuffix(prefix, "/"):
 		return nil, errors.New("prefix must begin with a separator and carry no trailing one")
+	case log == nil:
+		return nil, errors.New("logger is nil")
+	case admin == nil:
+		return nil, errors.New("admin operations are nil")
+	case subs == nil:
+		return nil, errors.New("submission operations are nil")
 	}
-	h, err := newHandler(admin, subs, contextAuthorizer{}, identity.ChannelCookie, log)
-	if err != nil {
-		return nil, err
+	m := &mount{base: prefix + "/api/v1/", verify: verify, log: log, routes: map[ops.Op]route{}}
+	handle(m, ops.OpListMembers, admin.ListMembers)
+	handle(m, ops.OpAddMember, admin.AddMember)
+	handle(m, ops.OpRemoveMember, admin.RemoveMember)
+	handle(m, ops.OpDemoteMember, admin.DemoteMember)
+	handle(m, ops.OpListSettings, admin.ListSettings)
+	handle(m, ops.OpSetSetting, admin.SetSetting)
+	handle(m, ops.OpResetSetting, admin.ResetSetting)
+
+	handle(m, ops.OpCreateSubmission, subs.CreateSubmission)
+	handle(m, ops.OpListSubmissions, subs.ListSubmissions)
+	handle(m, ops.OpGetSubmission, subs.GetSubmission)
+	handle(m, ops.OpRetrySubmission, subs.RetrySubmission)
+	handle(m, ops.OpCancelSubmission, subs.CancelSubmission)
+	return m, nil
+}
+
+// handle registers op's route on m. The route admits the caller before
+// it reads the body, so a caller without op's privilege learns nothing
+// from the body's shape, then decodes a Req, calls the operation as the
+// verified actor, and answers the result. It panics on an op
+// [ops.PrivilegeOf] does not know, which no request can cause.
+func handle[Req, Resp any](m *mount, op ops.Op, call func(context.Context, identity.Actor, Req) (Resp, error)) {
+	required, ok := ops.PrivilegeOf(op)
+	if !ok {
+		panic("opshttp: operation " + string(op) + " has no privilege")
 	}
-	return &mount{base: prefix + "/api/v1/", verify: verify, ops: h, log: log}, nil
+	m.routes[op] = func(w http.ResponseWriter, r *http.Request, actor identity.Actor, granted ops.Privilege) {
+		if err := admit(op, required, actor, granted); err != nil {
+			m.respond(w, op, nil, err)
+			return
+		}
+		var req Req
+		if !decode(w, r, &req, bodyCap(op)) {
+			return
+		}
+		resp, err := call(r.Context(), actor, req)
+		m.respond(w, op, resp, err)
+	}
 }
 
 func (m *mount) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	name, ok := strings.CutPrefix(r.URL.Path, m.base)
 	if !ok {
-		writeError(w, http.StatusNotFound, ops.CodeNotFound, "no such operation")
+		writeError(w, ops.CodeNotFound, "no such operation")
 		return
 	}
-	actor, privilege, err := m.verify(w, r)
+	actor, granted, err := m.verify(w, r)
 	switch {
 	case errors.Is(err, ops.CodeUnauthenticated):
-		writeError(w, statuses[ops.CodeUnauthenticated], ops.CodeUnauthenticated, "no valid session")
+		writeError(w, ops.CodeUnauthenticated, "no valid session")
 		return
 	case err != nil:
 		m.log.Error("api session verification failed")
-		writeError(w, statuses[ops.CodeInternal], ops.CodeInternal, "")
+		writeError(w, ops.CodeInternal, "")
 		return
 	}
-	routed := r.Clone(withAdmitted(r.Context(), actor, privilege))
-	routed.URL.Path, routed.URL.RawPath = "/"+name, ""
-	m.ops.ServeHTTP(w, routed)
+	fn, known := m.routes[ops.Op(name)]
+	if !known {
+		writeError(w, ops.CodeNotFound, "no such operation")
+		return
+	}
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		writeErrorBody(w, http.StatusMethodNotAllowed, wireError{Code: ops.CodeInvalidRequest, Reason: "method must be POST"})
+		return
+	}
+	if r.URL.RawQuery != "" || r.URL.ForceQuery {
+		writeError(w, ops.CodeInvalidRequest, "a query string is not accepted")
+		return
+	}
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		writeError(w, ops.CodeInvalidRequest, "content type must be application/json")
+		return
+	}
+	fn(w, r, actor, granted)
 }
