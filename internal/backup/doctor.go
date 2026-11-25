@@ -80,7 +80,7 @@ func factsRows(now time.Time, report store.Report, checked bool, last map[string
 // lastSuccessStatus renders the backup kind's newest succeeded record
 // out of last: "never" when it has none, otherwise its age rounded to
 // minutes, with its final progress text appended when that text names
-// a skipped or failed prune (anything but [FinishedMessage], the clean
+// a skipped or failed prune (anything but finishedMessage, the clean
 // case).
 func lastSuccessStatus(now time.Time, last map[string]ops.JobSuccess) string {
 	success, ok := last[ops.KindBackup]
@@ -88,7 +88,7 @@ func lastSuccessStatus(now time.Time, last map[string]ops.JobSuccess) string {
 		return "never"
 	}
 	status := formatAge(now.Sub(success.Finished)) + " ago"
-	if success.Progress != "" && success.Progress != FinishedMessage {
+	if success.Progress != "" && success.Progress != finishedMessage {
 		status += ": " + success.Progress
 	}
 	return status

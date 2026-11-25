@@ -67,7 +67,7 @@ func TestFactsRows(t *testing.T) {
 				CopiesSize: 3*1024*1024 + 512*1024,
 			}),
 			checked: true,
-			last:    map[string]ops.JobSuccess{ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: FinishedMessage}},
+			last:    map[string]ops.JobSuccess{ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: finishedMessage}},
 			want: []doctor.Row{
 				{Name: "backup last success", Status: "1h35m ago"},
 				{Name: "backup wal size", Status: "4.0 KiB"},
