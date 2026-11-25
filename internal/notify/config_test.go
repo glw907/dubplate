@@ -57,6 +57,7 @@ func TestValidateKeys(t *testing.T) {
 		// only the line-break check refuses these two.
 		{"from with a CR LF that parses", map[string]string{fromKey: "music@example.org (a\r\n b)"}, "DUBPLATE_SMTP_FROM: invalid email address"},
 		{"from with a CR that parses", map[string]string{fromKey: "music@example.org (a\r b)"}, "DUBPLATE_SMTP_FROM: invalid email address"},
+		{"from with a LF that parses", map[string]string{fromKey: "music@example.org (a\n b)"}, "DUBPLATE_SMTP_FROM: invalid email address"},
 		{"both bad", map[string]string{fromKey: "not an address", portKey: "abc"},
 			"DUBPLATE_SMTP_FROM: invalid email address\nDUBPLATE_SMTP_PORT: not an integer"},
 	}
