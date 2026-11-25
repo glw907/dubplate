@@ -52,11 +52,16 @@ func (f *Facts) Reader() store.Reader {
 // staging, the library root, and the collection roots under it.
 const volumeRowName = "music volume"
 
-// DoctorRows renders the music volume row for cfg, with the collection
-// roots f holds, which are none when the store was not read.
-func DoctorRows(cfg *config.Config, f Facts) []doctor.Row {
+// DoctorRows renders the music volume row for cfg. It lists the
+// collection roots f holds only when report shows f's reader ran, since
+// a refused inspection may leave f partly filled.
+func DoctorRows(cfg *config.Config, report store.Report, f Facts) []doctor.Row {
+	var roots [][]byte
+	if report.Facts != nil {
+		roots = f.roots
+	}
 	row := doctor.Row{Name: volumeRowName}
-	row.Status, row.Failed = volumeStatus(cfg, f.roots)
+	row.Status, row.Failed = volumeStatus(cfg, roots)
 	return []doctor.Row{row}
 }
 

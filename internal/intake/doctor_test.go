@@ -7,8 +7,46 @@ import (
 	"testing"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/store"
 	"golang.org/x/sys/unix"
 )
+
+// TestDoctorRows_RootsNeedAReadStore proves the volume row lists the
+// collection roots only from a store inspection whose readers ran. A
+// refused inspection can leave roots in Facts that its report does not
+// vouch for. Fixture state: sibling staging and library directories,
+// and Facts holding the root "abab", which is not created.
+func TestDoctorRows_RootsNeedAReadStore(t *testing.T) {
+	f := newVolumeFixture(t)
+	facts := Facts{roots: [][]byte{[]byte("abab")}}
+	tests := []struct {
+		name   string
+		report store.Report
+		want   string
+	}{
+		{
+			name:   "a refused inspection",
+			report: store.Report{State: store.StateRefused},
+			want:   "ok: staging and the library root share one mount",
+		},
+		{
+			name:   "an inspection whose readers ran",
+			report: store.Report{State: store.StateCurrent, Facts: &store.Facts{}},
+			want:   "ok: staging and the library root share one mount; collection root " + f.library + "/abab not created",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rows := DoctorRows(f.cfg, tt.report, facts)
+			if len(rows) != 1 {
+				t.Fatalf("DoctorRows() returned %d rows, want 1", len(rows))
+			}
+			if rows[0].Status != tt.want || rows[0].Failed {
+				t.Errorf("DoctorRows() = %q (failed %v), want %q (not failed)", rows[0].Status, rows[0].Failed, tt.want)
+			}
+		})
+	}
+}
 
 // volumeFixture is a staging directory and a library root, siblings
 // under one temporary directory, with a config naming them.
