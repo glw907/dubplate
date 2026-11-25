@@ -1,19 +1,11 @@
 package serve
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net"
-	"net/http"
 	"net/netip"
-	"strconv"
 	"strings"
-	"syscall"
-	"time"
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/doctor"
@@ -143,19 +135,6 @@ func interfaceIP(a net.Addr) (netip.Addr, bool) {
 	return addr.Unmap(), true
 }
 
-// The boundary probe's bounds: the dial and the response each get a
-// bound, so a host that drops the handshake and a listener that
-// accepts and never answers both end the row in bounded time.
-const (
-	probeDialBound     = 2 * time.Second
-	probeResponseBound = 2 * time.Second
-)
-
-// probeAnswerCap bounds how much of the route's answer doctor reads.
-// The counts object is a few dozen bytes; anything past this is not
-// the route's answer.
-const probeAnswerCap = 4 << 10
-
 // probeTrailer ends every row in which the route answered. The probe
 // dials the server directly, so it proves what this server strips and
 // says nothing about a proxy in front of it.
@@ -204,7 +183,7 @@ func boundaryProbeStatus(ctx context.Context, environ []string, cfg *config.Conf
 	if cfg == nil {
 		return "not probed", false
 	}
-	listen, err := ParseConfig(environ)
+	serveCfg, err := ParseConfig(environ)
 	if err != nil {
 		return "not probed", false
 	}
@@ -213,13 +192,13 @@ func boundaryProbeStatus(ctx context.Context, environ []string, cfg *config.Conf
 		return "not probed", false
 	}
 
-	addrs := listen.BindAddrs
+	addrs := serveCfg.BindAddrs
 	parts := make([]string, 0, len(addrs))
 	trustedCount, answered := 0, false
 	for _, addr := range addrs {
 		ip := addr.Unmap()
 		_, isTrusted := proxy.proxies[ip]
-		result := probeAddress(ctx, listen.Prefix, ip, listen.Port, proxy, isTrusted)
+		result := probeAddress(ctx, serveCfg.Prefix, ip, serveCfg.Port, proxy, isTrusted)
 		part := addr.String() + " " + result.status
 		if isTrusted {
 			trustedCount++
@@ -237,146 +216,4 @@ func boundaryProbeStatus(ctx context.Context, environ []string, cfg *config.Conf
 		status += "; " + probeTrailer
 	}
 	return status, failed
-}
-
-// probeResult is one address's part of the probe row.
-type probeResult struct {
-	status string
-	failed bool
-	// answered is true when the route returned its counts, so the
-	// row's trailer applies.
-	answered bool
-}
-
-// probeAddress probes the server listening on ip and port with the
-// probe request built for proxy. The dial binds ip as its local
-// address, so the peer the server sees is the address it was
-// configured to listen on, which the route permits. trusted reports
-// whether ip is one of proxy's addresses, whose answer carries the
-// identity count alone.
-func probeAddress(ctx context.Context, prefix Prefix, ip netip.Addr, port int, proxy TrustedProxyConfig, trusted bool) probeResult {
-	dialer := net.Dialer{
-		Timeout:   probeDialBound,
-		LocalAddr: &net.TCPAddr{IP: ip.AsSlice()},
-	}
-	host := net.JoinHostPort(ip.String(), strconv.Itoa(port))
-	conn, err := dialer.DialContext(ctx, "tcp", host)
-	switch {
-	case err == nil:
-	case errors.Is(err, syscall.ECONNREFUSED), isTimeout(err):
-		return probeResult{status: "no listener"}
-	case errors.Is(err, syscall.EADDRNOTAVAIL):
-		return probeResult{status: "not probed (not on any interface)"}
-	default:
-		return probeResult{status: "unexpected dial error: " + err.Error(), failed: true}
-	}
-	defer func() { _ = conn.Close() }()
-
-	exchange, cancel := context.WithTimeout(ctx, probeResponseBound)
-	defer cancel()
-	counts, err := probeExchange(exchange, conn, prefix, host, proxy, trusted)
-	if err != nil {
-		return probeResult{status: "unexpected answer: " + err.Error(), failed: true}
-	}
-	return countsResult(counts)
-}
-
-// probeExchange writes the probe request built for proxy on conn and
-// reads the route's counts, all before ctx's deadline: the caller
-// bounds the exchange by bounding ctx. For a trusted peer only the
-// identity count is required, and the other two read as zero whatever
-// the body holds. The error it returns is the text the row prints after
-// "unexpected answer: ".
-func probeExchange(ctx context.Context, conn net.Conn, prefix Prefix, host string, proxy TrustedProxyConfig, trusted bool) (probeCounts, error) {
-	if deadline, ok := ctx.Deadline(); ok {
-		if err := conn.SetDeadline(deadline); err != nil {
-			return probeCounts{}, err
-		}
-	}
-	req, err := newProbeRequest(ctx, prefix, host, proxy)
-	if err != nil {
-		return probeCounts{}, err
-	}
-	if err := req.Write(conn); err != nil {
-		return probeCounts{}, answerError(err)
-	}
-	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
-	if err != nil {
-		return probeCounts{}, answerError(err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode != http.StatusOK {
-		return probeCounts{}, errors.New(resp.Status)
-	}
-	unparseable := fmt.Errorf("%s with an unparseable body", resp.Status)
-	var answer probeAnswer
-	if err := json.NewDecoder(io.LimitReader(resp.Body, probeAnswerCap)).Decode(&answer); err != nil {
-		if isTimeout(err) {
-			return probeCounts{}, errProbeTimeout
-		}
-		return probeCounts{}, unparseable
-	}
-	if answer.Identity == nil {
-		return probeCounts{}, unparseable
-	}
-	if trusted {
-		return probeCounts{Identity: *answer.Identity}, nil
-	}
-	if answer.Forwarded == nil || answer.Sentinel == nil {
-		return probeCounts{}, unparseable
-	}
-	return probeCounts{
-		Identity:  *answer.Identity,
-		Forwarded: *answer.Forwarded,
-		Sentinel:  *answer.Sentinel,
-	}, nil
-}
-
-// probeAnswer is [probeCounts] as the probe reads it, with each count a
-// pointer so a key the body leaves out stays nil. A 200 whose body
-// lacks any count, or is JSON null, did not come from the route, and
-// reading it as all zeros would report a strip that never ran.
-type probeAnswer struct {
-	Identity  *int `json:"identity"`
-	Forwarded *int `json:"forwarded"`
-	Sentinel  *int `json:"sentinel"`
-}
-
-// errProbeTimeout is the answer error for a connection that accepted
-// and did not answer within [probeResponseBound].
-var errProbeTimeout = errors.New("timeout")
-
-// answerError maps a deadline expiry to [errProbeTimeout] and passes
-// any other error through.
-func answerError(err error) error {
-	if isTimeout(err) {
-		return errProbeTimeout
-	}
-	return err
-}
-
-// isTimeout reports whether err is a [net.Error] that timed out.
-func isTimeout(err error) bool {
-	var ne net.Error
-	return errors.As(err, &ne) && ne.Timeout()
-}
-
-// countsResult renders the route's counts: "refused" when every
-// count is zero, and otherwise each group that reached the route,
-// which fails the row.
-func countsResult(c probeCounts) probeResult {
-	var passed []string
-	if c.Identity > 0 {
-		passed = append(passed, fmt.Sprintf("%d identity header(s)", c.Identity))
-	}
-	if c.Forwarded > 0 {
-		passed = append(passed, fmt.Sprintf("%d forwarded-address header(s)", c.Forwarded))
-	}
-	if c.Sentinel > 0 {
-		passed = append(passed, "the Connection-listed sentinel")
-	}
-	if len(passed) == 0 {
-		return probeResult{status: "refused", answered: true}
-	}
-	return probeResult{status: "passed " + strings.Join(passed, " and "), failed: true, answered: true}
 }

@@ -69,9 +69,8 @@ func (h *capturingHandler) snapshot() []map[string]any {
 	return append([]map[string]any(nil), h.records...)
 }
 
-// TestOrderStripBeforeOwnedSubtree is the first order assertion
-// (spec:938-944), moved to serve.go's owned-prefix half: a request
-// bearing every spelling in the strip set reaches a handler registered
+// TestOrderStripBeforeOwnedSubtree proves the strip runs before
+// subtree dispatch: a request bearing every spelling in the strip set reaches a handler registered
 // under the owned prefix with none of them.
 func TestOrderStripBeforeOwnedSubtree(t *testing.T) {
 	shell := newTestShell(t)

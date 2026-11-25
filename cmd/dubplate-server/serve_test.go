@@ -809,8 +809,7 @@ const validAddMember = `{"address":"new@example.com","display_name":"New Member"
 // captureDefaultLogger swaps slog.Default() for a logger writing JSON
 // lines to the returned buffer, restoring the prior default when t
 // ends. [newServeShell] builds every shell through [serve.NewShell]
-// with a nil logger, which falls back to slog.Default
-// (internal/serve/serve.go:43-48), so this is the seam this package has
+// with a nil logger, which falls back to slog.Default, so this is the seam this package has
 // to read a shell's own log line without widening newServeShell's own
 // signature.
 func captureDefaultLogger(t *testing.T) *bytes.Buffer {
