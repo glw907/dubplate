@@ -23,13 +23,26 @@ import (
 	"testing/fstest"
 
 	"github.com/glw907/dubplate/internal/serve"
-	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
 )
 
 // themePlaceholder is the token the build writes on each document's
 // data-theme attribute, which the server stamps with a theme name.
 const themePlaceholder = "__DUBPLATE_THEME__"
+
+// themeCookie is the theme preference cookie's name, which the web
+// app's theme toggle writes and the document routes read.
+const themeCookie = "__Host-dubplate_theme"
+
+// stylesheetHrefs returns the href of every stylesheet link in doc, in
+// document order.
+func stylesheetHrefs(doc []byte) []string {
+	var hrefs []string
+	for _, m := range stylesheetLinkRE.FindAllSubmatch(doc, -1) {
+		hrefs = append(hrefs, string(m[1]))
+	}
+	return hrefs
+}
 
 // The two login documents' paths in the build tree.
 const (
@@ -380,7 +393,7 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 		for _, palette := range []string{"label", "label-night", "system"} {
 			t.Run(doc.name+"/"+palette, func(t *testing.T) {
 				r := httptest.NewRequest(http.MethodGet, doc.path, nil)
-				r.Header.Set("Cookie", webapp.ThemeCookieName+"="+palette)
+				r.Header.Set("Cookie", themeCookie+"="+palette)
 				rec := httptest.NewRecorder()
 				routes.Login.ServeHTTP(rec, r)
 				if rec.Code != http.StatusOK {
@@ -522,7 +535,7 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 			// this row from.
 			wantPalette := strings.TrimPrefix(tt.wantComposed, "dubplate-")
 			variantReq := httptest.NewRequest(http.MethodGet, "/dubplate/login", nil)
-			variantReq.Header.Set("Cookie", webapp.ThemeCookieName+"="+wantPalette)
+			variantReq.Header.Set("Cookie", themeCookie+"="+wantPalette)
 			variantRec := httptest.NewRecorder()
 			handler.ServeHTTP(variantRec, variantReq)
 			if rec.Body.String() != variantRec.Body.String() {
@@ -1015,7 +1028,7 @@ func TestNewWebRoutesFromFS_OperatorCSSServed(t *testing.T) {
 				}
 			}
 			doc := serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes()
-			if got := slices.Contains(webapp.StylesheetHrefs(doc), "./operator.css"); got != tt.wantLink {
+			if got := slices.Contains(stylesheetHrefs(doc), "./operator.css"); got != tt.wantLink {
 				t.Errorf("login document links ./operator.css = %v, want %v", got, tt.wantLink)
 			}
 		})
@@ -1255,7 +1268,7 @@ func TestNewWebRoutes_TierLinkOrder(t *testing.T) {
 		for docPath, wantTier := range tt.wantTier {
 			t.Run(tt.name+docPath, func(t *testing.T) {
 				rec := serveRequest(routes.Login, http.MethodGet, docPath)
-				hrefs := webapp.StylesheetHrefs(rec.Body.Bytes())
+				hrefs := stylesheetHrefs(rec.Body.Bytes())
 				if len(hrefs) <= len(wantTier) {
 					t.Fatalf("stylesheet hrefs = %v, want at least one bundle stylesheet before %v", hrefs, wantTier)
 				}
@@ -1290,7 +1303,7 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 	twoLinks["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + themePlaceholder + `"><head>` + fixtureCSPMeta + `<link href="./_app/assets/0.css" rel="stylesheet"><link href="./_app/assets/2.css" rel="stylesheet"></head></html>`)}
 	twoLinks["_app/assets/2.css"] = &fstest.MapFile{Data: []byte("p{}")}
 	handler := newWebShellHandler(t, nil, twoLinks)
-	hrefs := webapp.StylesheetHrefs(serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes())
+	hrefs := stylesheetHrefs(serveRequest(handler, http.MethodGet, "/dubplate/login").Body.Bytes())
 	if want := []string{"./_app/assets/0.css", "./_app/assets/2.css", "./branding.css"}; !slices.Equal(hrefs, want) {
 		t.Errorf("stylesheet hrefs = %v, want %v", hrefs, want)
 	}
@@ -1300,8 +1313,8 @@ func TestNewWebRoutesFromFS_TierLinkAnchor(t *testing.T) {
 // build whose rewrite would change a hashed inline script: the
 // placeholder inside a script body, and the last stylesheet link (the
 // tier links' anchor) inside a script body. Each fixture's CSP meta
-// hashes the script as built, so the build's own document passes
-// [webapp.DocumentCSP] and only the served variant can fail it.
+// hashes the script as built, so the refusal must name the variant: a
+// refusal of the build's own document would name none.
 func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 	prefix := webTestPrefix(t)
 	tests := []struct {
@@ -1322,16 +1335,14 @@ func TestNewWebRoutesFromFS_VariantCSPRefusals(t *testing.T) {
 			buildFS := newFixtureBuildFS(1, 1)
 			buildFS["login.html"] = &fstest.MapFile{Data: []byte(`<html data-theme="` + theme + `"><head>` + meta +
 				`<link href="./_app/assets/0.css" rel="stylesheet"><script>` + tt.script + `</script></head></html>`)}
-			if _, err := webapp.DocumentCSP("login.html", buildFS["login.html"].Data); err != nil {
-				t.Fatalf("fixture: the build's own document fails DocumentCSP: %v", err)
-			}
-
 			_, err := newWebRoutesFromFS(nil, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
 			if err == nil {
 				t.Fatal("newWebRoutesFromFS: got nil error, want the variant's CSP refusal")
 			}
-			if want := "an inline script's hash is not in the CSP meta's script-src"; !strings.Contains(err.Error(), want) {
-				t.Errorf("error = %q, want it to contain %q", err.Error(), want)
+			for _, want := range []string{" variant: ", "an inline script's hash is not in the CSP meta's script-src"} {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("error = %q, want it to contain %q", err.Error(), want)
+				}
 			}
 		})
 	}
@@ -1420,7 +1431,7 @@ func realBuildMapFS(t *testing.T) fstest.MapFS {
 // document links with edit, failing t unless the edit changed it.
 func editBundleCSS(t *testing.T, buildFS fstest.MapFS, edit func(string) string) {
 	t.Helper()
-	hrefs := webapp.StylesheetHrefs(buildFS[loginDocumentName].Data)
+	hrefs := stylesheetHrefs(buildFS[loginDocumentName].Data)
 	if len(hrefs) != 1 {
 		t.Fatalf("the built login document links %d stylesheets, want 1: %v", len(hrefs), hrefs)
 	}
@@ -1444,7 +1455,7 @@ var themeColorMetaRE = regexp.MustCompile(`<meta name="theme-color"[^>]*>`)
 func servedVariant(t *testing.T, handler http.Handler, path, palette string) string {
 	t.Helper()
 	r := httptest.NewRequest(http.MethodGet, path, nil)
-	r.Header.Set("Cookie", webapp.ThemeCookieName+"="+palette)
+	r.Header.Set("Cookie", themeCookie+"="+palette)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, r)
 	if rec.Code != http.StatusOK {

@@ -62,17 +62,19 @@ func newProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 	return req, nil
 }
 
-// NewProbeRoute returns the boundary probe route's handler. It answers
-// a GET from a permitted peer with the [probeCounts] of the request it
+// NewProbeRoute returns the boundary probe route's handler, mounted at
+// [ProbeRouteName] under prefix. It answers a GET for exactly that path
+// from a permitted peer with the [probeCounts] of the request it
 // received, and every other request, from any peer, with
-// [http.NotFoundHandler]'s 404, so a stranger cannot tell the route from an
-// unknown path. The peer is checked before the method.
+// [http.NotFoundHandler]'s 404, so a stranger cannot tell the route
+// from an unknown path. The path is checked first, then the peer, then
+// the method.
 //
 // A permitted peer is one whose [peerIP], parsed and unmapped, is
 // a loopback address or one of bindAddrs, the addresses the server
 // listens on, each unmapped the same way, since net/http reports an
-// IPv4 peer of a dual-stack listener in mapped form. [ClientIP] is never consulted, so no forwarded header can make a
-// peer local.
+// IPv4 peer of a dual-stack listener in mapped form. [ClientIP] is
+// never consulted, so no forwarded header can make a peer local.
 //
 // A permitted peer that is also one of proxy's trusted proxies
 // receives a JSON object holding the identity count alone. The strip
@@ -84,7 +86,8 @@ func newProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 //
 // The forwarded count reads the strip's own group 2 set for proxy, the
 // configured client-address header included.
-func NewProbeRoute(bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handler {
+func NewProbeRoute(prefix Prefix, bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handler {
+	path := prefix.String() + "/" + ProbeRouteName
 	local := make(map[netip.Addr]struct{}, len(bindAddrs))
 	for _, a := range bindAddrs {
 		local[a.Unmap()] = struct{}{}
@@ -94,6 +97,10 @@ func NewProbeRoute(bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handle
 	refuse := http.NotFoundHandler()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != path {
+			refuse.ServeHTTP(w, r)
+			return
+		}
 		peer := peerIP(r)
 		addr, err := netip.ParseAddr(peer)
 		if err != nil {

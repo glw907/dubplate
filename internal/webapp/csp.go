@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// The states [DocumentCSP] refuses. Each is a build defect: a document
+// The states [documentCSP] refuses. Each is a build defect: a document
 // that reaches a browser in any of them either never boots or runs a
 // script the policy was meant to forbid.
 var (
@@ -47,12 +47,12 @@ var (
 	scriptCloseRE = regexp.MustCompile(`(?i)</script`)
 )
 
-// DocumentCSP returns the Content-Security-Policy header value for doc,
+// documentCSP returns the Content-Security-Policy header value for doc,
 // a document the SvelteKit build prerendered with hashes. The header's
 // script-src carries 'self' and every sha256 source the document's own
 // CSP meta lists, and the other directives are fixed.
 //
-// Before building it, DocumentCSP hashes every inline script in doc
+// Before building it, documentCSP hashes every inline script in doc
 // and refuses when one is missing from the meta's list, so a document
 // whose bootstrap the policy would block never reaches a browser. It
 // also refuses a document with no CSP meta, a meta with no script-src,
@@ -60,7 +60,7 @@ var (
 // a bare <script>, which is the only kind the build emits and the only
 // kind this scan reads. name identifies the document in a returned
 // error.
-func DocumentCSP(name string, doc []byte) (string, error) {
+func documentCSP(name string, doc []byte) (string, error) {
 	hashes, err := metaScriptHashes(doc)
 	if err != nil {
 		return "", fmt.Errorf("web: document %q: %w", name, err)

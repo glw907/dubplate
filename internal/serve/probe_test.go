@@ -79,7 +79,7 @@ func TestProbeRoute_ThroughShellCountsNothing(t *testing.T) {
 		t.Fatal(err)
 	}
 	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	shell.Register(ProbeRouteName, NewProbeRoute(addrs("127.0.0.1"), TrustedProxyConfig{}))
+	shell.Register(ProbeRouteName, NewProbeRoute(prefix, addrs("127.0.0.1"), TrustedProxyConfig{}))
 	srv := httptest.NewServer(shell.Handler())
 	defer srv.Close()
 
@@ -100,7 +100,7 @@ func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := httptest.NewServer(NewProbeRoute(addrs("127.0.0.1"), TrustedProxyConfig{}))
+	srv := httptest.NewServer(NewProbeRoute(prefix, addrs("127.0.0.1"), TrustedProxyConfig{}))
 	defer srv.Close()
 
 	got := probeOver(t, srv, prefix, TrustedProxyConfig{})
@@ -121,6 +121,10 @@ func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
 // makes each refusal row meaningful: the same handler does answer a
 // permitted GET.
 func TestProbeRoute_PeerAndMethod(t *testing.T) {
+	prefix, err := NewPrefix("/dubplate")
+	if err != nil {
+		t.Fatal(err)
+	}
 	proxied := newTrustedProxyConfig([]netip.Addr{netip.MustParseAddr("192.0.2.10")}, "X-Forwarded-For")
 	loopbackProxy := newTrustedProxyConfig([]netip.Addr{netip.MustParseAddr("127.0.0.1")}, "X-Forwarded-For")
 
@@ -129,10 +133,13 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 		bind       []string
 		proxy      TrustedProxyConfig
 		method     string
+		path       string
 		remoteAddr string
 		header     map[string]string
 		wantOK     bool
 	}{
+		{name: "GET from loopback for a deeper path", bind: []string{"127.0.0.1"}, method: http.MethodGet, path: "/dubplate/" + ProbeRouteName + "/x", remoteAddr: "127.0.0.1:40000"},
+		{name: "GET from loopback with a trailing slash", bind: []string{"127.0.0.1"}, method: http.MethodGet, path: "/dubplate/" + ProbeRouteName + "/", remoteAddr: "127.0.0.1:40000"},
 		{name: "GET from loopback answers", bind: []string{"127.0.0.1"}, method: http.MethodGet, remoteAddr: "127.0.0.1:40000", wantOK: true},
 		{name: "GET from another loopback address answers", bind: []string{"127.0.0.1"}, method: http.MethodGet, remoteAddr: "127.0.0.2:40000", wantOK: true},
 		{name: "GET from mapped loopback answers", bind: []string{"127.0.0.1"}, method: http.MethodGet, remoteAddr: "[::ffff:127.0.0.1]:40000", wantOK: true},
@@ -163,13 +170,17 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "/dubplate/"+ProbeRouteName, nil)
+			path := "/dubplate/" + ProbeRouteName
+			if tt.path != "" {
+				path = tt.path
+			}
+			req := httptest.NewRequest(tt.method, path, nil)
 			req.RemoteAddr = tt.remoteAddr
 			for k, v := range tt.header {
 				req.Header.Set(k, v)
 			}
 			rec := httptest.NewRecorder()
-			NewProbeRoute(addrs(tt.bind...), tt.proxy).ServeHTTP(rec, req)
+			NewProbeRoute(prefix, addrs(tt.bind...), tt.proxy).ServeHTTP(rec, req)
 
 			if tt.wantOK {
 				if rec.Code != http.StatusOK {
@@ -258,7 +269,7 @@ func TestProbeConfiguredHeader(t *testing.T) {
 	}
 
 	t.Run("without the strip the route counts it", func(t *testing.T) {
-		srv := httptest.NewServer(NewProbeRoute(addrs("127.0.0.1"), proxy))
+		srv := httptest.NewServer(NewProbeRoute(prefix, addrs("127.0.0.1"), proxy))
 		defer srv.Close()
 		got := probeOver(t, srv, prefix, proxy)
 		if want := wantUnstrippedForwarded + 1; got.Forwarded != want {
@@ -268,7 +279,7 @@ func TestProbeConfiguredHeader(t *testing.T) {
 
 	t.Run("through the shell the strip removes it", func(t *testing.T) {
 		shell := NewShell(prefix, proxy, slog.New(slog.NewTextHandler(io.Discard, nil)))
-		shell.Register(ProbeRouteName, NewProbeRoute(addrs("127.0.0.1"), proxy))
+		shell.Register(ProbeRouteName, NewProbeRoute(prefix, addrs("127.0.0.1"), proxy))
 		srv := httptest.NewServer(shell.Handler())
 		defer srv.Close()
 		if got := probeOver(t, srv, prefix, proxy); got != (probeCounts{}) {
@@ -301,7 +312,7 @@ func TestProbeRoute_TrustedPeerReceivesIdentityOnly(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := NewProbeRoute(addrs("127.0.0.1"), proxy)
+			h := NewProbeRoute(prefix, addrs("127.0.0.1"), proxy)
 			if tt.strip {
 				shell := NewShell(prefix, proxy, slog.New(slog.NewTextHandler(io.Discard, nil)))
 				shell.Register(ProbeRouteName, h)

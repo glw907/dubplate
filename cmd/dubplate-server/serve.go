@@ -24,7 +24,6 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
-	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 )
 
@@ -239,10 +238,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Now:      time.Now,
 		Logger:   shell.Logger(),
 	}
-	// The shell mounts a name and everything under it to one handler, so
-	// the probe answers the shell's 404 to any deeper path itself.
-	probePath := prefix.String() + "/" + serve.ProbeRouteName
-	routes.Register(serve.ProbeRouteName, webapp.ExactPaths(map[string]http.Handler{probePath: serve.NewProbeRoute(bindAddrs, proxyConfig)}))
+	routes.Register(serve.ProbeRouteName, serve.NewProbeRoute(prefix, bindAddrs, proxyConfig))
 
 	adminService := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,

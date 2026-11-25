@@ -741,7 +741,7 @@ func newRequestLogFixture(t *testing.T, logger *slog.Logger) requestLogFixture {
 	ok := http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})
 	return requestLogFixture{
 		routes: routes,
-		probe:  ExactPaths(map[string]http.Handler{"/dubplate/healthz": ok}),
+		probe:  exactPaths(map[string]http.Handler{"/dubplate/healthz": ok}, http.NotFoundHandler()),
 	}
 }
 
@@ -1011,9 +1011,9 @@ func TestStylesheetHrefs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := StylesheetHrefs([]byte(tt.doc))
+			got := stylesheetHrefs([]byte(tt.doc))
 			if !slices.Equal(got, tt.want) {
-				t.Errorf("StylesheetHrefs = %v, want %v", got, tt.want)
+				t.Errorf("stylesheetHrefs =%v, want %v", got, tt.want)
 			}
 		})
 	}

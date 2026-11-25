@@ -18,7 +18,7 @@ import (
 // a large file refuses startup rather than loading it into memory.
 const operatorCSSMaxBytes = 256 << 10
 
-// ReadOperatorCSS reads the operator's stylesheet at path. The route
+// readOperatorCSS reads the operator's stylesheet at path. The route
 // that serves it is public, so the file's class is checked before its
 // bytes are kept: a wrong path would otherwise publish whatever the
 // service user can read, an environment file included.
@@ -37,7 +37,7 @@ const operatorCSSMaxBytes = 256 << 10
 // The content must be UTF-8 text holding no NUL byte and no more than
 // 256 KiB. A returned error names the rule or the reason and never
 // carries the path or any byte of the file.
-func ReadOperatorCSS(path, stateDir string) ([]byte, error) {
+func readOperatorCSS(path, stateDir string) ([]byte, error) {
 	if !strings.HasSuffix(path, ".css") {
 		return nil, errors.New(`the path must end in ".css"`)
 	}

@@ -1461,10 +1461,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 			failures = append(failures, fmt.Sprintf("%s: status %d, want 200", name, rec.Code))
 			continue
 		}
-		var hrefs []string
-		for _, m := range stylesheetLinkRE.FindAllSubmatch(rec.Body.Bytes(), -1) {
-			hrefs = append(hrefs, string(m[1]))
-		}
+		hrefs := stylesheetHrefs(rec.Body.Bytes())
 		root := "./"
 		if strings.Contains(name, "/") {
 			root = "../"

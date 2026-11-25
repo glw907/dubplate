@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -59,8 +58,8 @@ func registerWebRoutes(routes registrar, wr webapp.Routes) {
 	routes.Register(faviconPNGRouteName, wr.Icons)
 	routes.Register(markRouteName, wr.Icons)
 	routes.Register(brandingRouteName, wr.Branding)
-	if wr.Operator != nil {
-		routes.Register(operatorCSSRouteName, wr.Operator)
+	if wr.OperatorCSS != nil {
+		routes.Register(operatorCSSRouteName, wr.OperatorCSS)
 	}
 }
 
@@ -135,9 +134,5 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 	cfg.SiteName = siteName
 	cfg.Logger = logger
 
-	routes, err := webapp.New(buildFS, cfg)
-	if errors.Is(err, webapp.ErrNoThemeSelector) {
-		return webapp.Routes{}, fmt.Errorf("%s: %q: %w", webapp.ThemePaletteKey, cfg.Palette, err)
-	}
-	return routes, err
+	return webapp.New(buildFS, cfg)
 }

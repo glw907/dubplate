@@ -23,10 +23,6 @@ import (
 	"strings"
 )
 
-// ErrNoThemeSelector reports that the palette [Config] names has no
-// [data-theme=<match>-<palette>] selector in the built bundle.
-var ErrNoThemeSelector = errors.New("no theme selector")
-
 // RouteNames are the subtree names, under the owned prefix, the routes
 // [New] builds answer at. FaviconSVG, FaviconPNG, and Mark also name
 // the files and the directory the icons are read from in the build.
@@ -43,9 +39,10 @@ type RouteNames struct {
 	OperatorCSS    string
 }
 
-// Config is what [New] builds the routes from. Every value is resolved
-// and checked by the caller; New checks only what it reads against the
-// build.
+// Config is what [New] builds the routes from. [FromEnviron] resolves
+// and checks Match, Palette, Branding, BrandingNeutral, and
+// OperatorCSS; the caller sets Prefix, Names, SiteName, and Logger.
+// New checks only what it reads against the build.
 type Config struct {
 	// Prefix is the owned prefix every route answers under, as the
 	// shell's prefix spells it.
@@ -63,14 +60,14 @@ type Config struct {
 	Match   string
 	Palette string
 
-	// Branding is the branding stylesheet, as [BrandingStylesheet]
-	// renders it, and BrandingNeutral the value it declares for
+	// Branding is the branding stylesheet rendered from
+	// DUBPLATE_BRANDING, and BrandingNeutral the value it declares for
 	// --color-neutral, "" when it declares none.
 	Branding        []byte
 	BrandingNeutral string
 
-	// OperatorCSS is the operator's stylesheet, as [ReadOperatorCSS]
-	// reads it, or nil when none is configured.
+	// OperatorCSS is the stylesheet DUBPLATE_OPERATOR_CSS_FILE names, as
+	// FromEnviron reads it, or nil when none is configured.
 	OperatorCSS []byte
 
 	// Logger takes the documents' request records and the one record
@@ -80,7 +77,7 @@ type Config struct {
 }
 
 // Routes are the http.Handlers [New] builds, each answering under its
-// own subtree name. Operator is nil when no operator stylesheet is
+// own subtree name. OperatorCSS is nil when no operator stylesheet is
 // configured, which leaves its path to the shell's 404. Members and
 // ServerSettings are documents with no gate of their own, so neither
 // is ever mounted except behind the admin gate.
@@ -92,7 +89,7 @@ type Routes struct {
 	Fonts          http.Handler
 	Icons          http.Handler
 	Branding       http.Handler
-	Operator       http.Handler
+	OperatorCSS    http.Handler
 }
 
 // themePlaceholder is the token app.html carries on <html data-theme>,
@@ -165,7 +162,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		if err != nil {
 			return Routes{}, fmt.Errorf("web: document %q: %w", d.name, err)
 		}
-		csp, err := DocumentCSP(d.name, raw)
+		csp, err := documentCSP(d.name, raw)
 		if err != nil {
 			return Routes{}, err
 		}
@@ -179,7 +176,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	}
 	composed := cfg.Match + "-" + cfg.Palette
 	if _, ok := themes.selectors[composed]; !ok {
-		return Routes{}, fmt.Errorf("%w named %q in the built bundle", ErrNoThemeSelector, composed)
+		return Routes{}, fmt.Errorf("%s: %q: no theme selector named %q in the built bundle", themePaletteThreshold.Key, cfg.Palette, composed)
 	}
 	palettes := stampablePalettes(themes.selectors, cfg.Match)
 	colors, err := themeColors(themes.neutrals, cfg.Match, palettes, cfg.BrandingNeutral, cfg.Logger)
@@ -256,7 +253,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		Branding:       stylesheetRoute(cfg.Prefix+"/"+cfg.Names.Branding, cfg.Branding),
 	}
 	if hasOperatorCSS {
-		routes.Operator = stylesheetRoute(cfg.Prefix+"/"+cfg.Names.OperatorCSS, cfg.OperatorCSS)
+		routes.OperatorCSS = stylesheetRoute(cfg.Prefix+"/"+cfg.Names.OperatorCSS, cfg.OperatorCSS)
 	}
 	return routes, nil
 }
@@ -271,7 +268,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 // turns that into a startup refusal.
 func checkVariantCSP(name string, variants map[string][]byte, served string) error {
 	for _, palette := range slices.Sorted(maps.Keys(variants)) {
-		csp, err := DocumentCSP(name, variants[palette])
+		csp, err := documentCSP(name, variants[palette])
 		if err != nil {
 			return fmt.Errorf("web: the %q variant: %w", palette, err)
 		}
@@ -285,7 +282,7 @@ func checkVariantCSP(name string, variants map[string][]byte, served string) err
 // stylesheetRoute serves css at exactly route and answers the shell's
 // 404 everywhere under it.
 func stylesheetRoute(route string, css []byte) http.Handler {
-	return ExactPaths(map[string]http.Handler{route: newStylesheet(css)})
+	return exactPaths(map[string]http.Handler{route: newStylesheet(css)}, http.NotFoundHandler())
 }
 
 // themeColors returns each palette's theme-color metas. Each palette
@@ -409,7 +406,7 @@ type bundleThemes struct {
 func extractThemes(build fs.FS, docs ...namedDocument) (bundleThemes, error) {
 	cssPaths := make(map[string]struct{})
 	for _, doc := range docs {
-		for _, href := range StylesheetHrefs(doc.raw) {
+		for _, href := range stylesheetHrefs(doc.raw) {
 			cssPaths[resolveStylesheetPath(doc.path, href)] = struct{}{}
 		}
 	}
@@ -460,18 +457,11 @@ func stampablePalettes(selectors map[string]struct{}, match string) []string {
 	return palettes
 }
 
-// ExactPaths returns an http.Handler dispatching by exact
-// http.Request.URL.Path to routes, answering [http.NotFoundHandler]'s
-// 404 to any other path, the trailing-slash form of a route included.
-// The shell mounts a subtree's every deeper path to the same handler,
-// so the exact-match check here is what keeps a deeper or
-// trailing-slash path from reaching a route.
-func ExactPaths(routes map[string]http.Handler) http.Handler {
-	return exactPaths(routes, http.NotFoundHandler())
-}
-
-// exactPaths is [ExactPaths] answering notFound to a path routes does
-// not hold.
+// exactPaths returns an http.Handler dispatching by exact
+// http.Request.URL.Path to routes, answering notFound to any other
+// path, the trailing-slash form of a route included. The shell mounts
+// a subtree's every deeper path to the same handler, so this check is
+// what keeps a deeper or trailing-slash path from reaching a route.
 func exactPaths(routes map[string]http.Handler, notFound http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if h, ok := routes[r.URL.Path]; ok {

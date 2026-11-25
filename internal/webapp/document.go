@@ -13,12 +13,12 @@ import (
 	"time"
 )
 
-// ThemeCookieName is the theme preference cookie's name, following
+// themeCookieName is the theme preference cookie's name, following
 // __Host-dubplate_session (internal/auth/session.go): its __Host-
 // prefix is enforced by the browser rather than by this server, so the
 // cookie is stored only when it carries Path=/, no Domain, and Secure.
 // The web app's theme toggle writes it; this package only reads it.
-const ThemeCookieName = "__Host-dubplate_theme"
+const themeCookieName = "__Host-dubplate_theme"
 
 // rewriteDocument returns raw with the exactly-one occurrence of
 // placeholder replaced by composed, the theme stamp's whole edit: no
@@ -214,7 +214,7 @@ type documentConfig struct {
 	CacheControl string
 
 	// CSP is the document's Content-Security-Policy value, as
-	// [DocumentCSP] builds it.
+	// [documentCSP] builds it.
 	CSP string
 
 	// Logger takes the record [logDocumentRequest] writes for each
@@ -223,7 +223,7 @@ type documentConfig struct {
 }
 
 // newDocument returns an http.Handler serving GET and HEAD only,
-// answering the variant named by the [ThemeCookieName] cookie when its
+// answering the variant named by the [themeCookieName] cookie when its
 // value is an exact key of cfg.Variants, and the default variant
 // otherwise. cfg.DefaultPalette must be a key of cfg.Variants: that
 // pairing is the caller's own startup wiring, never a per-request
@@ -249,7 +249,7 @@ func newDocument(cfg documentConfig) http.Handler {
 			return
 		}
 		palette := cfg.DefaultPalette
-		if cookie, err := r.Cookie(ThemeCookieName); err == nil {
+		if cookie, err := r.Cookie(themeCookieName); err == nil {
 			if _, ok := cfg.Variants[cookie.Value]; ok {
 				palette = cookie.Value
 			}
@@ -384,11 +384,11 @@ var (
 	relAttrRE  = regexp.MustCompile(`(?i)\brel\s*=\s*"([^"]*)"`)
 )
 
-// StylesheetHrefs returns the href of every <link rel="stylesheet">
+// stylesheetHrefs returns the href of every <link rel="stylesheet">
 // tag in doc, in document order. It reads the built bundle's own
 // attribute-quoting shape (kit always double-quotes), the fixture
 // state every caller of this function runs against.
-func StylesheetHrefs(doc []byte) []string {
+func stylesheetHrefs(doc []byte) []string {
 	var hrefs []string
 	for _, tag := range linkTagRE.FindAll(doc, -1) {
 		if !isStylesheetLink(tag) {
