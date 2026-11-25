@@ -1876,6 +1876,22 @@ func TestServePortBound(t *testing.T) {
 	}
 }
 
+// TestServePortBound_NoSourceSelected proves the serve port's bound
+// holds when no identity source is selected: the bound belongs to the
+// serve unit, so it never waits on the sign-in method. Fixture state:
+// DUBPLATE_IDENTITY_SOURCE unset, DUBPLATE_SERVE_PORT=80.
+func TestServePortBound_NoSourceSelected(t *testing.T) {
+	environ := append(dropKey(dropKey(baseEnviron(), "DUBPLATE_IDENTITY_SOURCE"), "DUBPLATE_SERVE_PORT"),
+		"DUBPLATE_SERVE_PORT=80")
+	_, err := loadConfig(environ, productionRegistry())
+	if err == nil {
+		t.Fatal("loadConfig() error = nil, want the serve port's refusal")
+	}
+	if want := "DUBPLATE_SERVE_PORT: 80 is below 1024"; !strings.Contains(err.Error(), want) {
+		t.Errorf("loadConfig() error = %q, want it to contain %q", err, want)
+	}
+}
+
 // startServeShell builds a serve shell from environ as the verb does
 // and returns the build with its prefix and config. The caller closes
 // the build; its background work also stops with ctx.
