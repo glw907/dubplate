@@ -190,7 +190,7 @@ func newFixtureWith(t *testing.T, opts fixtureOptions) *fixture {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	epoch := auth.OpenEpochStore(authDir)
+	epoch := auth.NewEpochStore(authDir)
 	logs := &bytes.Buffer{}
 	mail := &mailbox{}
 	seam := New(Config{

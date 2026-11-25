@@ -208,7 +208,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	epoch := auth.OpenEpochStore(authDir)
+	epoch := auth.NewEpochStore(authDir)
 
 	roster := member.NewRoster(h, epoch, time.Now)
 

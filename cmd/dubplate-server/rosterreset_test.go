@@ -154,7 +154,7 @@ func TestRosterResetServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open the auth leaf: %v", err)
 	}
-	roster := member.NewRoster(h, auth.OpenEpochStore(leaf), time.Now)
+	roster := member.NewRoster(h, auth.NewEpochStore(leaf), time.Now)
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	for _, m := range []member.Member{

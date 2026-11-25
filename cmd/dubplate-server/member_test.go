@@ -550,7 +550,7 @@ func hasEpoch(t *testing.T, stateDir, address string) bool {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	_, ok, err := auth.OpenEpochStore(leaf).Read(address)
+	_, ok, err := auth.NewEpochStore(leaf).Read(address)
 	if err != nil {
 		t.Fatalf("read the epoch of %s: %v", address, err)
 	}

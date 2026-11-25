@@ -22,7 +22,7 @@ func newEpochStore(t *testing.T, stateDir string) *EpochStore {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	return OpenEpochStore(store)
+	return NewEpochStore(store)
 }
 
 // TestBumpReadDurable proves the bump is durable rather than an

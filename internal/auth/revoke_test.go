@@ -61,7 +61,7 @@ func newRevokeFixture(t *testing.T) revokeFixture {
 		t.Fatalf("Open: %v", err)
 	}
 	fx.leaf = leaf
-	fx.epoch = OpenEpochStore(leaf)
+	fx.epoch = NewEpochStore(leaf)
 	fx.roster = member.NewRoster(fx.h, fx.epoch, fx.clock.now)
 	return fx
 }
@@ -188,7 +188,7 @@ func TestEpochStoreRevoke(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Open: %v", err)
 			}
-			epoch := OpenEpochStore(leaf)
+			epoch := NewEpochStore(leaf)
 			tt.prepare(t, leaf, epoch)
 
 			var logBuf bytes.Buffer

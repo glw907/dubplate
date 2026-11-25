@@ -48,20 +48,12 @@ const epochRecordFieldCount = 2
 
 // An EpochStore is the set of revocation epochs, one record per
 // normalized login address under the auth leaf's epoch subdirectory.
+// A revocation is stamped on the person, so the record is
+// keyed on the address, the identity a credential carries.
 //
-// The address is the record's deliberate key (R4): every other record
-// this package writes is keyed on a value that outlives the person it
-// names, but a revocation is stamped on the person, and the address is
-// the only identity this rung has for one. Rung 6's re-key onto a
-// surrogate id moves this key alongside the identity that owns it
-// (R34); until then, the address is what Bump, Read, and both refusal
-// checks digest through [RecordID].
-//
-// A bump overwrites its record, which is why it goes through
-// [atomicfile.WriteStream] rather than the first-writer-wins shape
-// [NonceStore] uses: overwriting is what a revocation does, and
-// WriteStream is the one entry point that fsyncs the containing
-// directory after the rename.
+// A bump overwrites its record through [atomicfile.WriteStream], which
+// fsyncs the containing directory after the rename, rather than the
+// first-writer-wins create [NonceStore] uses.
 type EpochStore struct {
 	leaf *Dir
 
@@ -69,8 +61,8 @@ type EpochStore struct {
 	mu sync.Mutex
 }
 
-// OpenEpochStore returns the revocation-epoch store under leaf.
-func OpenEpochStore(leaf *Dir) *EpochStore {
+// NewEpochStore returns the revocation-epoch store under leaf.
+func NewEpochStore(leaf *Dir) *EpochStore {
 	return &EpochStore{leaf: leaf}
 }
 
@@ -180,18 +172,11 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 // moves, so no ordering rule between this check and a refresh is
 // load-bearing.
 func (e *EpochStore) CheckSession(s Session) error {
-	normalized, err := identity.NormalizeAddress(s.Address)
+	revoked, err := e.revokedAt(s.Address, s.AnchoredAt)
 	if err != nil {
 		return fmt.Errorf("check session epoch: %w", err)
 	}
-	epoch, ok, err := e.readNormalized(normalized)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return nil
-	}
-	if !s.AnchoredAt.After(epoch) {
+	if revoked {
 		return ErrSessionRevoked
 	}
 	return nil
@@ -206,21 +191,28 @@ func (e *EpochStore) CheckSession(s Session) error {
 // The attacker chooses when to click, so the refusal must be on the
 // link's own mint time, not on when it happens to be redeemed.
 func (e *EpochStore) CheckLink(tok LinkToken) error {
-	normalized, err := identity.NormalizeAddress(tok.Address)
+	revoked, err := e.revokedAt(tok.Address, tok.MintedAt)
 	if err != nil {
 		return fmt.Errorf("check link epoch: %w", err)
 	}
-	epoch, ok, err := e.readNormalized(normalized)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return nil
-	}
-	if !tok.MintedAt.After(epoch) {
+	if revoked {
 		return ErrLinkRevoked
 	}
 	return nil
+}
+
+// revokedAt reports whether a credential for address stamped at t falls
+// at or before address's revocation epoch.
+func (e *EpochStore) revokedAt(address string, t time.Time) (bool, error) {
+	normalized, err := identity.NormalizeAddress(address)
+	if err != nil {
+		return false, err
+	}
+	epoch, ok, err := e.readNormalized(normalized)
+	if err != nil {
+		return false, err
+	}
+	return ok && !t.After(epoch), nil
 }
 
 // epochRecord renders a record at second granularity, the resolution
