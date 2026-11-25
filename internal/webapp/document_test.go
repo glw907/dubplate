@@ -775,28 +775,28 @@ func TestDocumentRequestLog(t *testing.T) {
 			handler: func(f requestLogFixture) http.Handler { return f.routes.Login },
 			method:  http.MethodGet,
 			path:    "/dubplate/login",
-			want:    map[string]any{"msg": "serve: document request", "method": "GET", "path": "/dubplate/login", "status": float64(200)},
+			want:    map[string]any{"msg": "webapp: document request", "method": "GET", "path": "/dubplate/login", "status": float64(200)},
 		},
 		{
 			name:    "a document POST",
 			handler: func(f requestLogFixture) http.Handler { return f.routes.Login },
 			method:  http.MethodPost,
 			path:    "/dubplate/login",
-			want:    map[string]any{"msg": "serve: document request", "method": "POST", "path": "/dubplate/login", "status": float64(405)},
+			want:    map[string]any{"msg": "webapp: document request", "method": "POST", "path": "/dubplate/login", "status": float64(405)},
 		},
 		{
 			name:    "an unknown path under the document router",
 			handler: func(f requestLogFixture) http.Handler { return f.routes.Login },
 			method:  http.MethodGet,
 			path:    "/dubplate/login/other",
-			want:    map[string]any{"msg": "serve: document request", "method": "GET", "path": "/dubplate/login/other", "status": float64(404)},
+			want:    map[string]any{"msg": "webapp: document request", "method": "GET", "path": "/dubplate/login/other", "status": float64(404)},
 		},
 		{
 			name:    "the members document GET",
 			handler: func(f requestLogFixture) http.Handler { return f.routes.Members },
 			method:  http.MethodGet,
 			path:    "/dubplate/members",
-			want:    map[string]any{"msg": "serve: document request", "method": "GET", "path": "/dubplate/members", "status": float64(200)},
+			want:    map[string]any{"msg": "webapp: document request", "method": "GET", "path": "/dubplate/members", "status": float64(200)},
 		},
 		{
 			name:    "a stylesheet POST",
@@ -852,10 +852,10 @@ func TestDocumentRequestLog(t *testing.T) {
 	}
 }
 
-// TestLogRequests proves the record names the method, the path, and
-// the status the document route wrote, and that a query string never
-// reaches it, whatever it carries.
-func TestLogRequests(t *testing.T) {
+// TestDocumentRequestLog_OmitsQuery proves the record names the
+// method, the path, and the status the document route wrote, and that
+// a query string never reaches it, whatever it carries.
+func TestDocumentRequestLog_OmitsQuery(t *testing.T) {
 	var buf bytes.Buffer
 	const token = "qz81-fixture-token"
 	handler := newRequestLogFixture(t, slog.New(slog.NewJSONHandler(&buf, nil))).routes.Login
@@ -874,10 +874,10 @@ func TestLogRequests(t *testing.T) {
 	}
 }
 
-// TestLogRequests_MethodBounded proves a method outside the ones
+// TestDocumentRequestLog_BoundsMethod proves a method outside the ones
 // net/http names is logged as "other", so a client-chosen method of any
 // length never reaches a record, while a named method is logged as sent.
-func TestLogRequests_MethodBounded(t *testing.T) {
+func TestDocumentRequestLog_BoundsMethod(t *testing.T) {
 	tests := []struct {
 		name   string
 		method string

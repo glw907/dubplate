@@ -148,7 +148,7 @@ func documents(names RouteNames) []document {
 func New(build fs.FS, cfg Config) (Routes, error) {
 	placeholderOnly, err := isPlaceholderOnly(build)
 	if err != nil {
-		return Routes{}, fmt.Errorf("web: %w", err)
+		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
 	if placeholderOnly {
 		return Routes{}, errors.New("the embedded web build tree holds only the placeholder; run `npm run build` in web/")
@@ -160,7 +160,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	for i, d := range webDocuments {
 		raw, err := fs.ReadFile(build, d.name)
 		if err != nil {
-			return Routes{}, fmt.Errorf("web: document %q: %w", d.name, err)
+			return Routes{}, fmt.Errorf("webapp: document %q: %w", d.name, err)
 		}
 		csp, err := documentCSP(d.name, raw)
 		if err != nil {
@@ -229,11 +229,11 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 
 	assetsFS, err := fs.Sub(build, "_app")
 	if err != nil {
-		return Routes{}, fmt.Errorf("web: %w", err)
+		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
 	fontsFS, err := fs.Sub(build, "fonts")
 	if err != nil {
-		return Routes{}, fmt.Errorf("web: %w", err)
+		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
 	fontsRoute, err := newFontsRoute(fontsFS, cfg.Prefix+"/"+cfg.Names.Fonts)
 	if err != nil {
@@ -270,10 +270,10 @@ func checkVariantCSP(name string, variants map[string][]byte, served string) err
 	for _, palette := range slices.Sorted(maps.Keys(variants)) {
 		csp, err := documentCSP(name, variants[palette])
 		if err != nil {
-			return fmt.Errorf("web: the %q variant: %w", palette, err)
+			return fmt.Errorf("webapp: the %q variant: %w", palette, err)
 		}
 		if csp != served {
-			return fmt.Errorf("web: the %q variant of document %q: its CSP differs from the served header", palette, name)
+			return fmt.Errorf("webapp: the %q variant of document %q: its CSP differs from the served header", palette, name)
 		}
 	}
 	return nil
@@ -318,7 +318,7 @@ func themeColors(neutrals map[string][]themeColor, match string, palettes []stri
 		}
 		return colors, nil
 	default:
-		logger.Warn("web: DUBPLATE_BRANDING sets --color-neutral to a value other than a #rgb or #rrggbb color, so no document carries a theme-color meta; declare it as a three- or six-digit hex color to keep one")
+		logger.Warn("webapp: DUBPLATE_BRANDING sets --color-neutral to a value other than a #rgb or #rrggbb color, so no document carries a theme-color meta; declare it as a three- or six-digit hex color to keep one")
 		return nil, nil
 	}
 }
@@ -332,15 +332,15 @@ func themeColors(neutrals map[string][]themeColor, match string, palettes []stri
 // apart.
 func paletteThemeColors(theme string, declared []themeColor) ([]themeColor, error) {
 	if len(declared) == 0 {
-		return nil, fmt.Errorf("web: theme %q: the built bundle declares no --color-neutral for it", theme)
+		return nil, fmt.Errorf("webapp: theme %q: the built bundle declares no --color-neutral for it", theme)
 	}
 	byScheme := make(map[string]string, len(declared))
 	for _, tc := range declared {
 		if !themeColorRE.MatchString(tc.Color) {
-			return nil, fmt.Errorf("web: theme %q: its --color-neutral is not a #rgb or #rrggbb color", theme)
+			return nil, fmt.Errorf("webapp: theme %q: its --color-neutral is not a #rgb or #rrggbb color", theme)
 		}
 		if prior, ok := byScheme[tc.Scheme]; ok && prior != tc.Color {
-			return nil, fmt.Errorf("web: theme %q: it declares two --color-neutral values under one color scheme", theme)
+			return nil, fmt.Errorf("webapp: theme %q: it declares two --color-neutral values under one color scheme", theme)
 		}
 		byScheme[tc.Scheme] = tc.Color
 	}
@@ -351,7 +351,7 @@ func paletteThemeColors(theme string, declared []themeColor) ([]themeColor, erro
 	light, hasLight := byScheme["light"]
 	dark, hasDark := byScheme["dark"]
 	if len(byScheme) != 2 || !hasLight || !hasDark {
-		return nil, fmt.Errorf("web: theme %q: its --color-neutral values differ under color schemes other than light and dark", theme)
+		return nil, fmt.Errorf("webapp: theme %q: its --color-neutral values differ under color schemes other than light and dark", theme)
 	}
 	return []themeColor{{Scheme: "light", Color: light}, {Scheme: "dark", Color: dark}}, nil
 }
@@ -411,7 +411,7 @@ func extractThemes(build fs.FS, docs ...namedDocument) (bundleThemes, error) {
 		}
 	}
 	if len(cssPaths) == 0 {
-		return bundleThemes{}, fmt.Errorf("web: document %q: no stylesheet link found", docs[0].path)
+		return bundleThemes{}, fmt.Errorf("webapp: document %q: no stylesheet link found", docs[0].path)
 	}
 
 	themes := bundleThemes{
@@ -421,7 +421,7 @@ func extractThemes(build fs.FS, docs ...namedDocument) (bundleThemes, error) {
 	for _, cssPath := range slices.Sorted(maps.Keys(cssPaths)) {
 		data, err := fs.ReadFile(build, cssPath)
 		if err != nil {
-			return bundleThemes{}, fmt.Errorf("web: stylesheet %q: %w", cssPath, err)
+			return bundleThemes{}, fmt.Errorf("webapp: stylesheet %q: %w", cssPath, err)
 		}
 		for name := range themeSelectors(data) {
 			themes.selectors[name] = struct{}{}

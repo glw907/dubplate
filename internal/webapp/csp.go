@@ -63,10 +63,10 @@ var (
 func documentCSP(name string, doc []byte) (string, error) {
 	hashes, err := metaScriptHashes(doc)
 	if err != nil {
-		return "", fmt.Errorf("web: document %q: %w", name, err)
+		return "", fmt.Errorf("webapp: document %q: %w", name, err)
 	}
 	if err := checkInlineScripts(doc, hashes); err != nil {
-		return "", fmt.Errorf("web: document %q: %w", name, err)
+		return "", fmt.Errorf("webapp: document %q: %w", name, err)
 	}
 
 	var scriptSrc strings.Builder

@@ -207,7 +207,7 @@ func TestNewWebRoutesFromFS_States(t *testing.T) {
 				delete(m, "favicon.png")
 				return m
 			}(),
-			wantErrHas: `web: favicon: open favicon.png`,
+			wantErrHas: `webapp: favicon: open favicon.png`,
 		},
 		{
 			name: "no mark file",
@@ -552,7 +552,7 @@ func TestNewWebRoutes_RealBundleThemeStamp(t *testing.T) {
 			// that record: any other content, not merely the cookie
 			// header as a substring, is the row logging something it
 			// must not.
-			const wantRecord = `level=INFO msg="serve: document request" method=GET path=/dubplate/login status=200`
+			const wantRecord = `level=INFO msg="webapp: document request" method=GET path=/dubplate/login status=200`
 			lines := strings.Split(strings.TrimSuffix(logBuf.String(), "\n"), "\n")
 			if len(lines) != 2 {
 				t.Errorf("shell log holds %d lines, want 2 (one per request): %s", len(lines), logBuf.String())

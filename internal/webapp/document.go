@@ -32,11 +32,11 @@ func rewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
 	needle := []byte(placeholder)
 	switch n := bytes.Count(raw, needle); n {
 	case 0:
-		return nil, fmt.Errorf("web: document %q: placeholder %q not found", name, placeholder)
+		return nil, fmt.Errorf("webapp: document %q: placeholder %q not found", name, placeholder)
 	case 1:
 		return bytes.Replace(raw, needle, []byte(composed), 1), nil
 	default:
-		return nil, fmt.Errorf("web: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
+		return nil, fmt.Errorf("webapp: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
 	}
 }
 
@@ -151,7 +151,7 @@ func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[stri
 			return nil, err
 		}
 		if bytes.Contains(head.Bytes(), []byte(cfg.Placeholder)) {
-			return nil, fmt.Errorf("web: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
+			return nil, fmt.Errorf("webapp: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
 		}
 		anchor, err := headAnchor(name, stamped)
 		if err != nil {
@@ -176,10 +176,10 @@ func headAnchor(name string, raw []byte) (int, error) {
 		}
 	}
 	if anchor < 0 {
-		return 0, fmt.Errorf("web: document %q: no stylesheet link to place the tier links after", name)
+		return 0, fmt.Errorf("webapp: document %q: no stylesheet link to place the tier links after", name)
 	}
 	if end := bytes.Index(raw, []byte("</head>")); end < anchor {
-		return 0, fmt.Errorf("web: document %q: the last stylesheet link sits outside <head>", name)
+		return 0, fmt.Errorf("webapp: document %q: the last stylesheet link sits outside <head>", name)
 	}
 	return anchor, nil
 }
@@ -241,7 +241,7 @@ type documentConfig struct {
 // no request byte reaches a served document.
 func newDocument(cfg documentConfig) http.Handler {
 	if _, ok := cfg.Variants[cfg.DefaultPalette]; !ok {
-		panic(fmt.Sprintf("web: newDocument: default palette %q has no variant", cfg.DefaultPalette))
+		panic(fmt.Sprintf("webapp: newDocument: default palette %q has no variant", cfg.DefaultPalette))
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !allowGetHead(w, r) {
@@ -281,7 +281,7 @@ func documentNotFound(logger *slog.Logger) http.Handler {
 // it is one net/http names and as "other" otherwise, since a client may
 // send any token as a method, up to the header size limit.
 func logDocumentRequest(logger *slog.Logger, r *http.Request, status int) {
-	logger.Info("serve: document request",
+	logger.Info("webapp: document request",
 		"method", loggedMethod(r.Method),
 		"path", boundedPath(r.URL.Path),
 		"status", status,
