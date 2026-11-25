@@ -118,7 +118,7 @@ type Member struct {
 	// member is first added. It is zero on a candidate not yet written.
 	ID identity.UserID
 	// Address is the member's login address, normalized by
-	// normalizeMemberAddress.
+	// [identity.NormalizeAddress].
 	Address string
 	// DisplayName is the member's human-readable name.
 	DisplayName string
@@ -207,20 +207,13 @@ func CheckAdmin(ctx context.Context, tx *store.Tx, id identity.UserID) error {
 	return nil
 }
 
-// normalizeMemberAddress is the roster's single resolution point: the
-// only place a login address becomes the value the roster keys,
-// compares, and looks members up by.
-func normalizeMemberAddress(address string) (string, error) {
-	return identity.NormalizeAddress(address)
-}
-
 // validateWriteCandidate validates candidate's fields: the address
 // parses and normalizes, the display name carries no refused rune, fits
 // its bound, and is not blank, and the username is present, fits its
 // bound, and matches usernamePattern. It returns the candidate with its
 // address normalized.
 func validateWriteCandidate(candidate Member) (Member, error) {
-	normalized, err := normalizeMemberAddress(candidate.Address)
+	normalized, err := identity.NormalizeAddress(candidate.Address)
 	if err != nil {
 		return Member{}, fmt.Errorf("%w: %w", ErrInvalidMemberAddress, err)
 	}
@@ -289,7 +282,7 @@ func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 	// The parse error is dropped rather than wrapped: net/mail quotes
 	// the unparsed remainder of its input, which would carry an address
 	// into an error this package promises never names one.
-	normalized, err := normalizeMemberAddress(address)
+	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
 		return Member{}, fmt.Errorf("%w: address does not parse", ErrMemberNotFound)
 	}

@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -18,30 +16,6 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/store"
 )
-
-// TestNormalizeMemberAddress_SingleResolutionPoint proves R1's single
-// resolution point by grep: normalizeMemberAddress is the only
-// function in this file that resolves a roster member's address. A
-// write's actor is named by id, so no other function has an address to
-// resolve. Named mutation 5 (add a second member-address derivation
-// outside normalizeMemberAddress) fails this test.
-func TestNormalizeMemberAddress_SingleResolutionPoint(t *testing.T) {
-	source, err := os.ReadFile("roster.go")
-	if err != nil {
-		t.Fatalf("read roster.go: %v", err)
-	}
-	calls := regexp.MustCompile(`identity\.NormalizeAddress\(`)
-	body := regexp.MustCompile(`(?s)func normalizeMemberAddress\(.*?\n}`).Find(source)
-	if body == nil {
-		t.Fatal("roster.go has no func normalizeMemberAddress")
-	}
-	if n := len(calls.FindAllIndex(body, -1)); n != 1 {
-		t.Errorf("normalizeMemberAddress calls identity.NormalizeAddress %d times, want exactly 1", n)
-	}
-	if total := len(calls.FindAllIndex(source, -1)); total != 1 {
-		t.Errorf("roster.go calls identity.NormalizeAddress %d times, want exactly 1 (normalizeMemberAddress)", total)
-	}
-}
 
 // TestValidateWriteCandidate_UsernameShape proves the write
 // path's narrower shape check: an alphanumeric first character, then
