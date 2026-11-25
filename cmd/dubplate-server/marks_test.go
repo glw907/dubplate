@@ -14,7 +14,7 @@ const testDescription = "a test key"
 
 // testKey declares name as a described, not sensitive key.
 func testKey(name string) config.KeyDecl {
-	return config.KeyDecl{Name: name, Description: testDescription, Mark: config.NotSensitive}
+	return config.KeyDecl{Key: name, Description: testDescription, Sensitivity: config.NotSensitive}
 }
 
 // storeHomedSensitive is the exact set of store-homed keys marked
@@ -43,12 +43,12 @@ func TestProductionRegistry_StoreHomedSensitiveSet(t *testing.T) {
 	}
 	var got []string
 	for _, s := range settings {
-		switch s.Mark {
+		switch s.Sensitivity {
 		case config.Sensitive:
 			got = append(got, s.Key)
 		case config.NotSensitive:
 		default:
-			t.Errorf("%s: mark = %v, want a named mark", s.Key, s.Mark)
+			t.Errorf("%s: sensitivity = %v, want a named sensitivity", s.Key, s.Sensitivity)
 		}
 		if strings.TrimSpace(s.Description) == "" {
 			t.Errorf("%s: no description", s.Key)
@@ -60,10 +60,10 @@ func TestProductionRegistry_StoreHomedSensitiveSet(t *testing.T) {
 	}
 }
 
-// envOnlyMarks pins the mark of every key only the environment sets,
-// which changes only at a restart: Sensitive marks a path, an address,
+// envOnlySensitivity pins the sensitivity of every key only the
+// environment sets, which changes only at a restart: Sensitive marks a path, an address,
 // a credential, or a trust boundary, a change that needs care.
-var envOnlyMarks = map[string]config.Sensitivity{
+var envOnlySensitivity = map[string]config.Sensitivity{
 	"DUBPLATE_LIBRARY_ROOT":               config.Sensitive,
 	"DUBPLATE_STAGING_DIR":                config.Sensitive,
 	"DUBPLATE_STATE_DIR":                  config.Sensitive,
@@ -101,33 +101,33 @@ func TestProductionRegistry_EnvironmentOnlyKeysCarryTheirMarks(t *testing.T) {
 	reg := newProductionRegistry()
 	got := make(map[string]config.Sensitivity)
 	described := make(map[string]string)
-	add := func(name, description string, mark config.Sensitivity) {
-		got[name] = mark
+	add := func(name, description string, sensitivity config.Sensitivity) {
+		got[name] = sensitivity
 		described[name] = description
 	}
 	for _, row := range reg.OwnedWall() {
-		add(row.Name, row.Description, row.Mark)
+		add(row.Key, row.Description, row.Sensitivity)
 	}
 	for _, th := range reg.Thresholds() {
-		add(th.Key, th.Description, th.Mark)
+		add(th.Key, th.Description, th.Sensitivity)
 	}
 	for _, src := range reg.IdentitySources() {
 		for _, k := range slices.Concat(src.Required, src.Optional) {
-			add(k.Name, k.Description, k.Mark)
+			add(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, class := range reg.IntegrationClasses() {
 		for _, k := range slices.Concat([]config.KeyDecl{class.Flag}, class.Required) {
-			add(k.Name, k.Description, k.Mark)
+			add(k.Key, k.Description, k.Sensitivity)
 		}
 	}
-	if !maps.Equal(got, envOnlyMarks) {
-		for name, mark := range got {
-			if want, ok := envOnlyMarks[name]; !ok || want != mark {
-				t.Errorf("%s: mark = %v, pinned %v (pinned: %v)", name, mark, want, ok)
+	if !maps.Equal(got, envOnlySensitivity) {
+		for name, sensitivity := range got {
+			if want, ok := envOnlySensitivity[name]; !ok || want != sensitivity {
+				t.Errorf("%s: sensitivity = %v, pinned %v (pinned: %v)", name, sensitivity, want, ok)
 			}
 		}
-		for name := range envOnlyMarks {
+		for name := range envOnlySensitivity {
 			if _, ok := got[name]; !ok {
 				t.Errorf("%s: pinned but not registered", name)
 			}
@@ -142,7 +142,7 @@ func TestProductionRegistry_EnvironmentOnlyKeysCarryTheirMarks(t *testing.T) {
 
 func TestProductionRegistry_AdminEmailDescriptionNamesItsSeedRole(t *testing.T) {
 	for _, row := range newProductionRegistry().OwnedWall() {
-		if row.Name != "DUBPLATE_ADMIN_EMAIL" {
+		if row.Key != "DUBPLATE_ADMIN_EMAIL" {
 			continue
 		}
 		if !strings.Contains(row.Description, "seed") {

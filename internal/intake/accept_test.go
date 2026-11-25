@@ -98,8 +98,8 @@ func TestAcceptRefusesADuplicateAlbum(t *testing.T) {
 	if err := s.commitVerdict(deadline(t), second.id, v); err != nil {
 		t.Fatal(err)
 	}
-	if got, reason := stateOf(t, h, second.id), lastReason(t, h, second.id); got != "rejected" || reason != "already-in-library" {
-		t.Errorf("second album = %q (%q), want rejected already-in-library", got, reason)
+	if got, reason := stateOf(t, h, second.id), lastReason(t, h, second.id); got != "rejected" || reason != "already_in_library" {
+		t.Errorf("second album = %q (%q), want rejected already_in_library", got, reason)
 	}
 
 	// The same album on the unlisted route, its collection set by direct
@@ -135,7 +135,7 @@ func tracksVerdict(t *testing.T, s *submissions, m identity.UserID, keys [][]byt
 	v := passing(c, stateAccepted)
 	for i := range v.files {
 		v.files[i].result.AudioKey = keys[i]
-		v.files[i].result.Verdict = codes[i]
+		v.files[i].result.Code = codes[i]
 	}
 	return c, v
 }
@@ -143,7 +143,7 @@ func tracksVerdict(t *testing.T, s *submissions, m identity.UserID, keys [][]byt
 // TestAcceptRefusesDuplicateTracks is AC 22's accept half and AC 23's
 // track clause: a track whose audio key equals a passing track of an
 // accepted submission in the unlisted collection gets
-// already-in-library, the others go on, the reservation trues down to
+// already_in_library, the others go on, the reservation trues down to
 // what stays, and a submission whose every passing track is refused ends
 // rejected.
 func TestAcceptRefusesDuplicateTracks(t *testing.T) {
@@ -169,7 +169,7 @@ func TestAcceptRefusesDuplicateTracks(t *testing.T) {
 	if got := stateOf(t, h, mixed.id); got != "accepted" {
 		t.Errorf("mixed = %q, want accepted with its one new track", got)
 	}
-	want := map[string]string{"01.flac": "already-in-library", "02.flac": "", "03.flac": "corrupt"}
+	want := map[string]string{"01.flac": "already_in_library", "02.flac": "", "03.flac": "corrupt"}
 	if got := fileVerdicts(t, h, mixed.id); !maps.Equal(got, want) {
 		t.Errorf("mixed verdicts = %v, want %v (a failing twin's key refuses nothing)", got, want)
 	}
@@ -181,10 +181,10 @@ func TestAcceptRefusesDuplicateTracks(t *testing.T) {
 	if err := s.commitVerdict(deadline(t), allTwins.id, v); err != nil {
 		t.Fatal(err)
 	}
-	if got, reason := stateOf(t, h, allTwins.id), lastReason(t, h, allTwins.id); got != "rejected" || reason != "already-in-library" {
-		t.Errorf("all twins = %q (%q), want rejected already-in-library", got, reason)
+	if got, reason := stateOf(t, h, allTwins.id), lastReason(t, h, allTwins.id); got != "rejected" || reason != "already_in_library" {
+		t.Errorf("all twins = %q (%q), want rejected already_in_library", got, reason)
 	}
-	want = map[string]string{"01.flac": "already-in-library", "02.flac": "already-in-library"}
+	want = map[string]string{"01.flac": "already_in_library", "02.flac": "already_in_library"}
 	if got := fileVerdicts(t, h, allTwins.id); !maps.Equal(got, want) {
 		t.Errorf("all-twins verdicts = %v, want %v", got, want)
 	}
@@ -264,7 +264,7 @@ func TestVerdictWritesMembersAndOnlyLowersTheReservation(t *testing.T) {
 		}
 		warnings = append(warnings, code+":"+string(subject))
 	}
-	if want := []string{"extras-dropped:notes.txt", "no-cover-art:"}; !slices.Equal(warnings, want) {
+	if want := []string{"extras_dropped:notes.txt", "no_cover_art:"}; !slices.Equal(warnings, want) {
 		t.Errorf("warnings = %q, want %q", warnings, want)
 	}
 	assertStatesMatchEvents(t, h)

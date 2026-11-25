@@ -17,7 +17,7 @@ func TestReauthWindowSetting_Declaration(t *testing.T) {
 			continue
 		}
 		if s.Kind != config.KindDuration || s.Default != "2h" || s.Floor != "5m" || s.Ceiling != "24h" ||
-			s.Apply != config.ApplyNextOperation || s.Mark != config.Sensitive {
+			s.Apply != config.ApplyNextOperation || s.Sensitivity != config.Sensitive {
 			t.Errorf("DUBPLATE_REAUTH_WINDOW = %+v, want a sensitive next-operation duration, default 2h, 5m to 24h", s)
 		}
 		return

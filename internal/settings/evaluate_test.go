@@ -15,7 +15,7 @@ import (
 func TestEvaluateFacts_ConvertsStoreRows(t *testing.T) {
 	reg := newRegistry()
 	facts := store.Facts{Settings: []store.SettingsRow{
-		{Key: keyKeep, Value: "20", Source: "env-seed", SeedValue: "20"},
+		{Key: keyKeep, Value: "20", Source: "env_seed", SeedValue: "20"},
 	}}
 
 	ev := EvaluateFacts(reg, []string{keyKeep + "=20"}, facts)
@@ -33,8 +33,8 @@ func TestEvaluateFacts_ConvertsStoreRows(t *testing.T) {
 	if !found {
 		t.Fatalf("outcomes = %+v, want one for %s", ev.Outcomes, keyKeep)
 	}
-	if got.Value != "20" || got.Stored == nil || got.Stored.Source != "env-seed" {
-		t.Errorf("outcome = %+v, want value 20 from an env-seed row", got)
+	if got.Value != "20" || got.Stored == nil || got.Stored.Source != "env_seed" {
+		t.Errorf("outcome = %+v, want value 20 from an env_seed row", got)
 	}
 }
 
@@ -112,8 +112,8 @@ func TestEvaluateFacts_TableAbsent(t *testing.T) {
 func TestEvaluate_CorrelatedRuleRefusesBothRows(t *testing.T) {
 	reg := correlatedRegistry()
 	rows := []Row{
-		{Key: keyExpiry, Value: "72h", Source: "env-seed", SeedValue: "72h"},
-		{Key: keyNonce, Value: "48h", Source: "env-seed", SeedValue: "48h"},
+		{Key: keyExpiry, Value: "72h", Source: "env_seed", SeedValue: "72h"},
+		{Key: keyNonce, Value: "48h", Source: "env_seed", SeedValue: "48h"},
 	}
 
 	ev := evaluate(reg, []string{keyExpiry + "=72h", keyNonce + "=48h"}, rows)
@@ -159,7 +159,7 @@ func TestEvaluate_UnparseableRowWrapsParseError(t *testing.T) {
 
 // TestEvaluate_AdminRefusalsNameTheResetVerb: each refusal the seed
 // rule raises over an admin row names the verb that clears it, and the
-// parse refusal over an env-seed row, which a reset leaves in place,
+// parse refusal over an env_seed row, which a reset leaves in place,
 // does not. Fixture: one populated row per case, on a registry whose
 // keep setting the row's value refuses.
 func TestEvaluate_AdminRefusalsNameTheResetVerb(t *testing.T) {
@@ -191,8 +191,8 @@ func TestEvaluate_AdminRefusalsNameTheResetVerb(t *testing.T) {
 			wantText: "below the floor 3",
 		},
 		{
-			name:     "an env-seed value that does not parse",
-			row:      Row{Key: keyKeep, Value: "many", Source: "env-seed", SeedValue: "many"},
+			name:     "an env_seed value that does not parse",
+			row:      Row{Key: keyKeep, Value: "many", Source: "env_seed", SeedValue: "many"},
 			wantText: `invalid value "many"`,
 		},
 	}

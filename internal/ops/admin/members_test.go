@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
@@ -21,9 +22,9 @@ func TestListMembers_LiveRosterByHexID(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []ops.Member{
-		{UserID: alice.hex, Address: "alice@example.com", DisplayName: "Alice", Username: "alice", Admin: true},
-		{UserID: bob.hex, Address: "bob@example.com", DisplayName: "Bob", Username: "bob", Admin: true},
-		{UserID: carol.hex, Address: "carol@example.com", DisplayName: "Carol", Username: "carol"},
+		{UserID: alice.wire(), Address: "alice@example.com", DisplayName: "Alice", Username: "alice", Admin: true},
+		{UserID: bob.wire(), Address: "bob@example.com", DisplayName: "Bob", Username: "bob", Admin: true},
+		{UserID: carol.wire(), Address: "carol@example.com", DisplayName: "Carol", Username: "carol"},
 	}
 	if !reflect.DeepEqual(resp.Members, want) {
 		t.Errorf("members = %+v, want %+v", resp.Members, want)
@@ -80,16 +81,16 @@ func TestAddMember_NeverGrantsAdmin(t *testing.T) {
 	if resp.Member.Admin || resp.Member.Address != "erin@example.com" || resp.Member.Username != "erin" || resp.Member.DisplayName != "Erin" {
 		t.Errorf("added = %+v, want erin@example.com as a member", resp.Member)
 	}
-	if len(resp.Member.UserID) != 32 || strings.ToLower(resp.Member.UserID) != resp.Member.UserID || resp.Member.UserID == strings.Repeat("0", 32) {
-		t.Errorf("added user_id = %q, want 32 lowercase hex characters", resp.Member.UserID)
+	if resp.Member.UserID.IsZero() {
+		t.Errorf("added user_id = %s, want a minted id, never the zero id", resp.Member.UserID)
 	}
 
 	readd, err := f.seam.AddMember(writeCtx(t), actor(alice, fresh), ops.AddMemberRequest{Address: dave.address, DisplayName: "Dave", Username: "dave"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if readd.Member.UserID != dave.hex || readd.Member.Admin {
-		t.Errorf("re-added dave = %+v, want user_id %s without the flag", readd.Member, dave.hex)
+	if readd.Member.UserID != dave.wire() || readd.Member.Admin {
+		t.Errorf("re-added dave = %+v, want user_id %s without the flag", readd.Member, dave.wire())
 	}
 	if admin, tombstoned := userState(t, f.h, dave); admin || tombstoned {
 		t.Errorf("dave admin=%v tombstoned=%v, want a live member", admin, tombstoned)
@@ -131,7 +132,7 @@ func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
 		{
 			name: "a removed member's address",
 			req:  ops.AddMemberRequest{Address: dave.address, DisplayName: "Dave", Username: "dave"},
-			want: ops.Member{UserID: dave.hex, Address: "dave@example.com", DisplayName: "Dave", Username: "dave"},
+			want: ops.Member{UserID: dave.wire(), Address: "dave@example.com", DisplayName: "Dave", Username: "dave"},
 		},
 	}
 	for _, tt := range tests {
@@ -159,20 +160,20 @@ func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
 					stored = m
 				}
 			}
-			if stored.UserID == "" {
+			if stored.UserID.IsZero() {
 				t.Fatalf("the roster holds no member at %s after the add", tt.want.Address)
 			}
 			if resp.Member != stored {
 				t.Errorf("answered member = %+v, want the stored row %+v", resp.Member, stored)
 			}
-			if tt.want.UserID != "" && resp.Member.UserID != tt.want.UserID {
+			if !tt.want.UserID.IsZero() && resp.Member.UserID != tt.want.UserID {
 				t.Errorf("answered user_id = %s, want the existing id %s", resp.Member.UserID, tt.want.UserID)
 			}
 			if got := resp.Member; got.Address != tt.want.Address || got.DisplayName != tt.want.DisplayName || got.Username != tt.want.Username || got.Admin {
 				t.Errorf("answered member = %+v, want %s as a member named %s", got, tt.want.Address, tt.want.DisplayName)
 			}
-			if len(resp.Member.UserID) != 32 || resp.Member.UserID == strings.Repeat("0", 32) {
-				t.Errorf("answered user_id = %q, want a stored 32-hex id, never the candidate's zero id", resp.Member.UserID)
+			if resp.Member.UserID.IsZero() {
+				t.Errorf("answered user_id = %s, want a stored id, never the candidate's zero id", resp.Member.UserID)
 			}
 		})
 	}
@@ -181,33 +182,33 @@ func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
 // TestRemoveAndDemote_Outcomes covers the roster refusals the seam maps
 // for a removal and a demotion.
 func TestRemoveAndDemote_Outcomes(t *testing.T) {
-	remove := func(ctx context.Context, f *fixture, a identity.Actor, id string) error {
-		_, err := f.seam.RemoveMember(ctx, a, ops.RemoveMemberRequest{UserID: id})
+	remove := func(ctx context.Context, f *fixture, a identity.Actor, target id.ID) error {
+		_, err := f.seam.RemoveMember(ctx, a, ops.RemoveMemberRequest{UserID: target})
 		return err
 	}
-	demote := func(ctx context.Context, f *fixture, a identity.Actor, id string) error {
-		_, err := f.seam.DemoteMember(ctx, a, ops.DemoteMemberRequest{UserID: id})
+	demote := func(ctx context.Context, f *fixture, a identity.Actor, target id.ID) error {
+		_, err := f.seam.DemoteMember(ctx, a, ops.DemoteMemberRequest{UserID: target})
 		return err
 	}
-	type write = func(ctx context.Context, f *fixture, a identity.Actor, id string) error
+	type write = func(ctx context.Context, f *fixture, a identity.Actor, target id.ID) error
 	tests := []struct {
 		name   string
 		prep   func(t *testing.T, f *fixture)
 		write  write
-		target string
+		target id.ID
 		code   ops.Code
 		detail string
 	}{
-		{name: "remove an unknown id", write: remove, target: "ee000000000000000000000000000000", code: ops.CodeNotFound},
-		{name: "demote an unknown id", write: demote, target: "ee000000000000000000000000000000", code: ops.CodeNotFound},
-		{name: "remove a removed member", write: remove, target: dave.hex, code: ops.CodeNotFound},
-		{name: "demote a removed member", write: demote, target: dave.hex, code: ops.CodeNotFound},
+		{name: "remove an unknown id", write: remove, target: id.ID{0xee}, code: ops.CodeNotFound},
+		{name: "demote an unknown id", write: demote, target: id.ID{0xee}, code: ops.CodeNotFound},
+		{name: "remove a removed member", write: remove, target: dave.wire(), code: ops.CodeNotFound},
+		{name: "demote a removed member", write: demote, target: dave.wire(), code: ops.CodeNotFound},
 		{
-			name: "remove the last admin", write: remove, target: alice.hex, code: ops.CodeConflict, detail: ops.DetailLastAdmin,
+			name: "remove the last admin", write: remove, target: alice.wire(), code: ops.CodeConflict, detail: ops.DetailLastAdmin,
 			prep: func(t *testing.T, f *fixture) { execSQL(t, f.h, `UPDATE users SET admin = 0 WHERE id = ?`, bob.id[:]) },
 		},
 		{
-			name: "demote the last admin", write: demote, target: alice.hex, code: ops.CodeConflict, detail: ops.DetailLastAdmin,
+			name: "demote the last admin", write: demote, target: alice.wire(), code: ops.CodeConflict, detail: ops.DetailLastAdmin,
 			prep: func(t *testing.T, f *fixture) { execSQL(t, f.h, `UPDATE users SET admin = 0 WHERE id = ?`, bob.id[:]) },
 		},
 	}
@@ -231,7 +232,7 @@ func TestRemoveAndDemote_Outcomes(t *testing.T) {
 func TestDemoteMember_NonAdminWritesNothing(t *testing.T) {
 	f := newFixture(t)
 	before := snapshot(t, f.h)
-	if _, err := f.seam.DemoteMember(writeCtx(t), actor(alice, fresh), ops.DemoteMemberRequest{UserID: carol.hex}); err != nil {
+	if _, err := f.seam.DemoteMember(writeCtx(t), actor(alice, fresh), ops.DemoteMemberRequest{UserID: carol.wire()}); err != nil {
 		t.Fatal(err)
 	}
 	if after := snapshot(t, f.h); after != before {
@@ -243,7 +244,7 @@ func TestDemoteMember_NonAdminWritesNothing(t *testing.T) {
 // roster's revoking path: the address's epoch reads the removal time.
 func TestRemoveMember_BumpsTheEpoch(t *testing.T) {
 	f := newFixture(t)
-	if _, err := f.seam.RemoveMember(writeCtx(t), actor(alice, fresh), ops.RemoveMemberRequest{UserID: carol.hex}); err != nil {
+	if _, err := f.seam.RemoveMember(writeCtx(t), actor(alice, fresh), ops.RemoveMemberRequest{UserID: carol.wire()}); err != nil {
 		t.Fatal(err)
 	}
 	epoch, ok, err := f.epoch.Read(carol.address)
@@ -252,29 +253,19 @@ func TestRemoveMember_BumpsTheEpoch(t *testing.T) {
 	}
 }
 
-// TestUserID_Malformed proves P11's parse: each malformed id answers
-// invalid_request on a removal and a demotion and writes nothing.
-func TestUserID_Malformed(t *testing.T) {
-	ids := map[string]string{
-		"empty":     "",
-		"uppercase": strings.ToUpper(carol.hex),
-		"30 chars":  carol.hex[:30],
-		"34 chars":  carol.hex + "00",
-		"not hex":   strings.Repeat("zz", 16),
-		"all zeros": strings.Repeat("0", 32),
-	}
-	for name, id := range ids {
-		t.Run(name, func(t *testing.T) {
-			f := newFixture(t)
-			before := snapshot(t, f.h)
-			_, err := f.seam.RemoveMember(writeCtx(t), actor(alice, fresh), ops.RemoveMemberRequest{UserID: id})
-			wantCode(t, err, ops.CodeInvalidRequest, "")
-			_, err = f.seam.DemoteMember(writeCtx(t), actor(alice, fresh), ops.DemoteMemberRequest{UserID: id})
-			wantCode(t, err, ops.CodeInvalidRequest, "")
-			if after := snapshot(t, f.h); after != before {
-				t.Errorf("a malformed id wrote:\nbefore:\n%s\nafter:\n%s", before, after)
-			}
-		})
+// TestUserID_Zero proves P11's parse for the one id the seam refuses by
+// value: the zero id answers invalid_request on a removal and a
+// demotion and writes nothing. A malformed id never reaches the seam,
+// since the JSON decoder refuses it upstream.
+func TestUserID_Zero(t *testing.T) {
+	f := newFixture(t)
+	before := snapshot(t, f.h)
+	_, err := f.seam.RemoveMember(writeCtx(t), actor(alice, fresh), ops.RemoveMemberRequest{UserID: id.ID{}})
+	wantCode(t, err, ops.CodeInvalidRequest, "")
+	_, err = f.seam.DemoteMember(writeCtx(t), actor(alice, fresh), ops.DemoteMemberRequest{UserID: id.ID{}})
+	wantCode(t, err, ops.CodeInvalidRequest, "")
+	if after := snapshot(t, f.h); after != before {
+		t.Errorf("a zero id wrote:\nbefore:\n%s\nafter:\n%s", before, after)
 	}
 }
 
@@ -376,7 +367,7 @@ func TestMemberWrite_Busy(t *testing.T) {
 	for _, arm := range busyArms {
 		t.Run(arm.name, func(t *testing.T) {
 			arm.run(t, func(ctx context.Context, f *fixture) error {
-				_, err := f.seam.DemoteMember(ctx, actor(alice, fresh), ops.DemoteMemberRequest{UserID: bob.hex})
+				_, err := f.seam.DemoteMember(ctx, actor(alice, fresh), ops.DemoteMemberRequest{UserID: bob.wire()})
 				return err
 			})
 		})

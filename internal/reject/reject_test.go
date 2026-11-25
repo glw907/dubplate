@@ -15,15 +15,15 @@ var adopted = []struct {
 	friendly string
 	nextStep string
 }{
-	{"bad-extension", "not FLAC", "This isn't a FLAC file, and the library keeps lossless FLAC.", "Download this album as FLAC and upload that instead."},
+	{"bad_extension", "not FLAC", "This isn't a FLAC file, and the library keeps lossless FLAC.", "Download this album as FLAC and upload that instead."},
 	{"symlink", "shortcut file", "This is a shortcut, not the music file itself.", "Replace it with the real file and upload it again."},
 	{"corrupt", "damaged in transit", "This file didn't survive the upload intact. Uploading it again usually fixes this.", "Upload it again from the original file."},
-	{"below-cd-quality", "below CD quality", "This FLAC is below CD quality.", "Get a CD-quality or better FLAC and upload that instead."},
-	{"too-large", "too big", "This upload is larger than the library allows.", "Ask the admin to add this one by hand."},
-	{"unpack-failed", "wouldn't unpack", "This archive wouldn't unpack as a ZIP.", "Repack it as a standard ZIP file and upload it again."},
-	{"unsafe-path", "unsafe file path", "This archive contains a file path the library can't safely use.", "Repack the album as a plain ZIP with real files only, then upload it again."},
-	{"no-space", "library is full", "The library doesn't have enough free space to accept this upload right now.", "Try again in a little while, or let the admin know if this keeps happening."},
-	{"too-many-sessions", "too many uploads", "You already have the maximum number of uploads in progress.", "Wait for one of your other uploads to finish, then try again."},
+	{"below_cd_quality", "below CD quality", "This FLAC is below CD quality.", "Get a CD-quality or better FLAC and upload that instead."},
+	{"too_large", "too big", "This upload is larger than the library allows.", "Ask the admin to add this one by hand."},
+	{"unpack_failed", "wouldn't unpack", "This archive wouldn't unpack as a ZIP.", "Repack it as a standard ZIP file and upload it again."},
+	{"unsafe_path", "unsafe file path", "This archive contains a file path the library can't safely use.", "Repack the album as a plain ZIP with real files only, then upload it again."},
+	{"no_space", "library is full", "The library doesn't have enough free space to accept this upload right now.", "Try again in a little while, or let the admin know if this keeps happening."},
+	{"too_many_sessions", "too many uploads", "You already have the maximum number of uploads in progress.", "Wait for one of your other uploads to finish, then try again."},
 }
 
 func TestAdoptedReasonsEqualPCF(t *testing.T) {
@@ -50,12 +50,12 @@ func TestAdoptedReasonsEqualPCF(t *testing.T) {
 }
 
 var (
-	codeShape = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
+	codeShape = regexp.MustCompile(`^[a-z][a-z0-9]*(_[a-z0-9]+)*$`)
 	// leaks is W8.2's catalogue less the words a reject reason may carry:
-	// FLAC (conductor ruling 6) and "tags" in id3-tags alone.
+	// FLAC (conductor ruling 6) and "tags" in id3_tags alone.
 	leaks    = regexp.MustCompile(`(?i)musicbrainz|beets|transcode|matcher|session|roster|epoch|collection|\btags?\b`)
 	badShape = regexp.MustCompile(`(?i)couldn't be \w+`)
-	warnings = map[Code]bool{"no-cover-art": true, "track-total-differs": true, "extras-dropped": true}
+	warnings = map[Code]bool{"no_cover_art": true, "track_total_differs": true, "extras_dropped": true}
 )
 
 func TestEveryReasonCarriesItsFields(t *testing.T) {
@@ -63,7 +63,7 @@ func TestEveryReasonCarriesItsFields(t *testing.T) {
 	for _, r := range All() {
 		t.Run(string(r.Code), func(t *testing.T) {
 			if !codeShape.MatchString(string(r.Code)) {
-				t.Errorf("code %q is not lowercase and hyphenated", r.Code)
+				t.Errorf("code %q is not lowercase snake_case", r.Code)
 			}
 			if seen[r.Code] {
 				t.Errorf("code %q appears twice", r.Code)
@@ -88,7 +88,7 @@ func TestEveryReasonCarriesItsFields(t *testing.T) {
 				if badShape.MatchString(s) {
 					t.Errorf("%q has the \"couldn't be\" shape", s)
 				}
-				if r.Code != "id3-tags" && leaks.MatchString(s) {
+				if r.Code != "id3_tags" && leaks.MatchString(s) {
 					t.Errorf("%q leaks developer vocabulary", s)
 				}
 			}
@@ -112,10 +112,10 @@ func TestSetHoldsTwentySixBlockingAndThreeWarnings(t *testing.T) {
 
 func TestNewReasonsNamedBySpec(t *testing.T) {
 	for _, code := range []Code{
-		"missing-source", "uploads-off", "over-quota", "too-many-files", "path-too-deep",
-		"no-audio", "tags-too-large", "picture-too-large", "unsupported-flac", "source-damaged",
-		"empty-track", "missing-track-number", "duplicate-track-position", "incomplete-album",
-		"already-in-library", "could-not-check", "id3-tags",
+		"missing_source", "uploads_off", "over_quota", "too_many_files", "path_too_deep",
+		"no_audio", "tags_too_large", "picture_too_large", "unsupported_flac", "source_damaged",
+		"empty_track", "missing_track_number", "duplicate_track_position", "incomplete_album",
+		"already_in_library", "could_not_check", "id3_tags",
 	} {
 		if r, ok := Lookup(code); !ok || !r.Blocking {
 			t.Errorf("Lookup(%q) = %v, %v; want a blocking reason", code, r, ok)
@@ -124,7 +124,7 @@ func TestNewReasonsNamedBySpec(t *testing.T) {
 }
 
 func TestID3TagsNamesTheStripCommand(t *testing.T) {
-	r := Of("id3-tags")
+	r := Of("id3_tags")
 	if want := "mid3v2 --delete-all"; !strings.Contains(r.NextStep, want) {
 		t.Errorf("NextStep = %q, want it to name %q", r.NextStep, want)
 	}
@@ -138,11 +138,11 @@ func TestParameterizedReasons(t *testing.T) {
 		if (r.Param == "") != (r.Canonical == "") {
 			t.Errorf("%s: Param %q and Canonical %q must be set together", r.Code, r.Param, r.Canonical)
 		}
-		if r.Param != "" && r.Code != "bad-extension" {
-			t.Errorf("%s is parameterized; only bad-extension is", r.Code)
+		if r.Param != "" && r.Code != "bad_extension" {
+			t.Errorf("%s is parameterized; only bad_extension is", r.Code)
 		}
 	}
-	r := Of("bad-extension")
+	r := Of("bad_extension")
 	if r.Param != "formats" {
 		t.Errorf("Param = %q, want %q", r.Param, "formats")
 	}
@@ -192,8 +192,8 @@ func TestWithFormats(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := WithFormats(tt.formats)
-			if r.Code != "bad-extension" || !r.Blocking {
-				t.Errorf("Code = %q, Blocking = %v; want bad-extension, true", r.Code, r.Blocking)
+			if r.Code != "bad_extension" || !r.Blocking {
+				t.Errorf("Code = %q, Blocking = %v; want bad_extension, true", r.Code, r.Blocking)
 			}
 			if r.Label != tt.label || r.Friendly != tt.friendly || r.NextStep != tt.nextStep {
 				t.Errorf("got (%q, %q, %q), want (%q, %q, %q)", r.Label, r.Friendly, r.NextStep, tt.label, tt.friendly, tt.nextStep)
@@ -203,11 +203,11 @@ func TestWithFormats(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	got, err := json.Marshal(Of("too-large"))
+	got, err := json.Marshal(Of("too_large"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := `{"code":"too-large","label":"too big","friendly":"This upload is larger than the library allows.","next_step":"Ask the admin to add this one by hand."}`
+	want := `{"code":"too_large","label":"too big","friendly":"This upload is larger than the library allows.","next_step":"Ask the admin to add this one by hand."}`
 	if string(got) != want {
 		t.Errorf("Marshal = %s, want %s", got, want)
 	}

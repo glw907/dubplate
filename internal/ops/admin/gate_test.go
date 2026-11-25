@@ -63,7 +63,7 @@ var gatedCalls = []seamCall{
 	{
 		name: "remove_member",
 		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
-			_, err := f.seam.RemoveMember(ctx, a, ops.RemoveMemberRequest{UserID: carol.hex})
+			_, err := f.seam.RemoveMember(ctx, a, ops.RemoveMemberRequest{UserID: carol.wire()})
 			return err
 		},
 		committed: func(t *testing.T, f *fixture) {
@@ -75,7 +75,7 @@ var gatedCalls = []seamCall{
 	{
 		name: "demote_member",
 		call: func(ctx context.Context, f *fixture, a identity.Actor) error {
-			_, err := f.seam.DemoteMember(ctx, a, ops.DemoteMemberRequest{UserID: bob.hex})
+			_, err := f.seam.DemoteMember(ctx, a, ops.DemoteMemberRequest{UserID: bob.wire()})
 			return err
 		},
 		committed: func(t *testing.T, f *fixture) {

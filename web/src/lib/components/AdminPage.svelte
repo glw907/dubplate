@@ -17,7 +17,7 @@ page's own content.
   import { browser } from '$app/env';
   import { resolve } from '$app/paths';
   import SiteHeader from './SiteHeader.svelte';
-  import { API_REFUSALS, ERROR_PAGE, ROSTER_RETRY, SIGNED_OUT_SIGN_IN, TITLES } from '#lib/copy/deck.js';
+  import { API_REFUSALS, ERROR_PAGE, ADMIN_RETRY, SIGNED_OUT_SIGN_IN, TITLES } from '#lib/copy/deck.js';
   import { pageTitle, siteNameFromDocument } from '#lib/copy/title.js';
 
   interface Props {
@@ -53,7 +53,7 @@ page's own content.
   {:else if status === 'unreachable'}
     <h1 class="display page-title text-4xl">{title}</h1>
     <div class="alert alert-warning">{unreachableMessage}</div>
-    <button type="button" class="btn btn-primary" onclick={retry}>{ROSTER_RETRY}</button>
+    <button type="button" class="btn btn-primary" onclick={retry}>{ADMIN_RETRY}</button>
   {:else if status === 'ok'}
     {@render children()}
   {/if}

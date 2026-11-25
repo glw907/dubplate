@@ -400,7 +400,7 @@ func TestPrune_FailedRunPreservesEverything(t *testing.T) {
 	}
 
 	_, st := runBackup(t, h, remote, lib)
-	wantState(t, st, ops.JobFailed, "rclone-exit-7")
+	wantState(t, st, ops.JobFailed, "rclone_exit_7")
 
 	if got := treeFiles(t, filepath.Join(remoteDir, "snapshots")); len(got) != 15 {
 		t.Errorf("snapshots/ holds %d files after a failed run, want all 15 seeded", len(got))
@@ -412,7 +412,7 @@ func TestPrune_FailedRunPreservesEverything(t *testing.T) {
 
 // TestPrune_SendFailureNoReference is the send-failure row: a
 // stand-in exiting 0 for sync and 1 for copyto. The run fails with
-// rclone-exit-1, writes no reference, and runs no prune step.
+// rclone_exit_1, writes no reference, and runs no prune step.
 func TestPrune_SendFailureNoReference(t *testing.T) {
 	s := useStandin(t, standinConfig{exit: "copyto=1"})
 	dir := newStateDir(t)
@@ -421,7 +421,7 @@ func TestPrune_SendFailureNoReference(t *testing.T) {
 	writeTree(t, lib, "a/one.flac")
 
 	_, st := runBackup(t, h, "name:dir", lib)
-	wantState(t, st, ops.JobFailed, "rclone-exit-1")
+	wantState(t, st, ops.JobFailed, "rclone_exit_1")
 
 	if ref := backupRefName(localSnapshotNames(t, dir)); ref != "" {
 		t.Errorf("local snapshots/ holds a reference %q after a failed send, want none", ref)

@@ -46,23 +46,23 @@ func writeRegistry() *config.Registry {
 	reg.AddSetting(config.Setting{
 		Key: keySensitive, Kind: config.KindInt, Default: "5", Doc: "an integer",
 		Apply: config.ApplyImmediately, Floor: "1", Ceiling: "10",
-		Description: testDescription, Mark: config.Sensitive,
+		Description: testDescription, Sensitivity: config.Sensitive,
 	})
 	reg.AddSetting(config.Setting{
 		Key: keyRestart, Kind: config.KindInt, Default: "5", Doc: "an integer",
 		Apply: config.ApplyRestart, Floor: "1", Ceiling: "10",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	})
-	reg.AddWallRow(config.WallRow{Name: keyWall, Description: testDescription, Mark: config.Sensitive})
+	reg.AddWallRow(config.WallRow{Key: keyWall, Description: testDescription, Sensitivity: config.Sensitive})
 	reg.AddThreshold(config.Threshold{
 		Key: keyThreshold, Kind: config.KindInt, Default: "3", Doc: "an integer",
-		Description: testDescription, Mark: config.NotSensitive,
+		Description: testDescription, Sensitivity: config.NotSensitive,
 	})
 	reg.AddIntegrationClass(config.IntegrationClass{
 		Name: "test",
-		Flag: config.KeyDecl{Name: keyIntegration, Description: testDescription, Mark: config.NotSensitive},
+		Flag: config.KeyDecl{Key: keyIntegration, Description: testDescription, Sensitivity: config.NotSensitive},
 		Required: []config.KeyDecl{
-			{Name: keyIntegExtra, Description: testDescription, Mark: config.Sensitive},
+			{Key: keyIntegExtra, Description: testDescription, Sensitivity: config.Sensitive},
 		},
 	})
 	return reg
@@ -92,7 +92,7 @@ func wantUnchanged(t *testing.T, h *store.Handle, before storeState) {
 
 func adminRow(key, value, seed string) fixtureRow { return fixtureRow{key, value, "admin", seed} }
 
-func seededRow(key, value string) fixtureRow { return fixtureRow{key, value, "env-seed", value} }
+func seededRow(key, value string) fixtureRow { return fixtureRow{key, value, "env_seed", value} }
 
 // setAudit and resetAudit are the audit rows a committed write leaves.
 func setAudit(key, oldVal, newVal string) auditRow {
@@ -127,7 +127,7 @@ func TestSet(t *testing.T) {
 			wantBump:  true,
 		},
 		{
-			name:    "over an env-seed row: seed_value records the seed replaced",
+			name:    "over an env_seed row: seed_value records the seed replaced",
 			fixture: []fixtureRow{seededRow(keyKeep, "20")},
 			key:     keyKeep, value: "30",
 			wantRes:   Result{Written: true, Source: SourceAdmin, Value: "30", Previous: "20", Apply: config.ApplyNextOperation},
@@ -214,7 +214,7 @@ func TestSet(t *testing.T) {
 			environ: []string{keyKeep + "=20"},
 			key:     keyKeep, value: "20",
 			wantRes:  Result{Source: SourceEnvironment, Value: "20", Apply: config.ApplyNextOperation},
-			wantRows: []storedRow{{keyKeep, "20", "env-seed", "20"}},
+			wantRows: []storedRow{{keyKeep, "20", "env_seed", "20"}},
 		},
 		{
 			name:    "equal to the environment's value in another spelling",
@@ -222,7 +222,7 @@ func TestSet(t *testing.T) {
 			environ: []string{keyRetention + "=720h"},
 			key:     keyRetention, value: "43200m",
 			wantRes:  Result{Source: SourceEnvironment, Value: "720h", Apply: config.ApplyNextOperation},
-			wantRows: []storedRow{{keyRetention, "720h", "env-seed", "720h"}},
+			wantRows: []storedRow{{keyRetention, "720h", "env_seed", "720h"}},
 		},
 	}
 	for _, tt := range tests {
@@ -285,7 +285,7 @@ func TestReset(t *testing.T) {
 			wantBump:  true,
 		},
 		{
-			name:      "a sensitive admin row names the mark",
+			name:      "a sensitive admin row names its sensitivity",
 			fixture:   []fixtureRow{adminRow(keySensitive, "7", "")},
 			key:       keySensitive,
 			wantRes:   Result{Written: true, Source: SourceDefault, Value: "5", Previous: "7", Apply: config.ApplyImmediately, Sensitive: true},
@@ -306,12 +306,12 @@ func TestReset(t *testing.T) {
 			wantRes: Result{Source: SourceDefault, Value: "14", Apply: config.ApplyNextOperation},
 		},
 		{
-			name:     "an env-seed row writes nothing and names the seed",
+			name:     "an env_seed row writes nothing and names the seed",
 			fixture:  []fixtureRow{seededRow(keyKeep, "20")},
 			environ:  []string{keyKeep + "=20"},
 			key:      keyKeep,
 			wantRes:  Result{Source: SourceEnvSeed, Value: "20", Apply: config.ApplyNextOperation},
-			wantRows: []storedRow{{keyKeep, "20", "env-seed", "20"}},
+			wantRows: []storedRow{{keyKeep, "20", "env_seed", "20"}},
 		},
 		{
 			name:    "an admin row for a key the environment sets is refused",

@@ -117,9 +117,9 @@ rendering the env from the age store, so a stranger's setup does not change. The
 keeps the wall's compat discipline: an unknown or superseded env key is still a load error.
 
 Each settings row records where its value came from. A row's source is one of `default`,
-`env-seed`, or `admin`, with the seed value, the actor, and a timestamp. A tunable present
+`env_seed`, or `admin`, with the seed value, the actor, and a timestamp. A tunable present
 in the env at boot behaves in one of three ways. If the row is at its default, the env value
-seeds it and the source becomes `env-seed`. If the row is `env-seed` and the env value has
+seeds it and the source becomes `env_seed`. If the row is `env_seed` and the env value has
 changed, the new value re-seeds it and the change is logged. If the row is `admin` and the
 env value differs, the load fails and names both values and the API call that resolves it.
 The wall's loud-failure property survives the move, and an operator who rotates a value in

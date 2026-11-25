@@ -3,7 +3,6 @@ package intake
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -113,15 +112,15 @@ func (m *tusMount) checkCreate(hook handler.HookEvent) (handler.HTTPResponse, ha
 	// The wrapper places the member on every request it hands tusd;
 	// were it missing, the zero id would own no file.
 	member, _ := ctx.Value(memberKey{}).(identity.UserID)
-	submission, ok := parseID(hook.Upload.MetaData["submission"])
-	file, okFile := parseID(hook.Upload.MetaData["file"])
-	if !ok || !okFile {
+	submission, errSubmission := id.Parse(hook.Upload.MetaData["submission"])
+	file, errFile := id.Parse(hook.Upload.MetaData["file"])
+	if errSubmission != nil || errFile != nil || submission.IsZero() || file.IsZero() {
 		return handler.HTTPResponse{}, handler.FileInfoChanges{}, errTusNoFile
 	}
 
 	var size int64
 	err := m.subs.store.QueryRow(ctx, `SELECT f.size FROM submission_files f JOIN submissions s ON s.id = f.submission_id
-		WHERE f.id = ? AND f.submission_id = ? AND s.uploader = ? AND s.state = ? AND f.received_at IS NULL`,
+		WHERE f.id = ? AND f.submission_id = ? AND s.user_id = ? AND s.state = ? AND f.received_at IS NULL`,
 		file, submission, member[:], stateUploading).Scan(&size)
 	if errors.Is(err, sql.ErrNoRows) {
 		return handler.HTTPResponse{}, handler.FileInfoChanges{}, errTusNoFile
@@ -136,15 +135,15 @@ func (m *tusMount) checkCreate(hook handler.HookEvent) (handler.HTTPResponse, ha
 
 	// The filestore creates with O_TRUNC, so a second creation would
 	// empty the upload the first one filled.
-	id := hex.EncodeToString(file)
-	switch _, err := m.files.GetUpload(ctx, id); {
+	upload := file.String()
+	switch _, err := m.files.GetUpload(ctx, upload); {
 	case err == nil:
 		return handler.HTTPResponse{}, handler.FileInfoChanges{}, errTusUploadExists
 	case !errors.Is(err, handler.ErrNotFound):
-		m.subs.log.Error("tus creation could not read its upload", "file", id, "error", err)
+		m.subs.log.Error("tus creation could not read its upload", "file", upload, "error", err)
 		return handler.HTTPResponse{}, handler.FileInfoChanges{}, errTusCouldNotCheck
 	}
-	return handler.HTTPResponse{}, handler.FileInfoChanges{ID: id, MetaData: handler.MetaData{}}, nil
+	return handler.HTTPResponse{}, handler.FileInfoChanges{ID: upload, MetaData: handler.MetaData{}}, nil
 }
 
 // receive runs receipt for an upload that has just finished. Its id is

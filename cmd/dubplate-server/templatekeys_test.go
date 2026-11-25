@@ -71,8 +71,8 @@ func TestTemplateKeysCoverEveryOwnedNowRow(t *testing.T) {
 	}
 
 	for _, row := range productionRegistry().OwnedWall() {
-		if !slices.Contains(names, row.Name) {
-			t.Errorf("%s: owned-now row %s does not appear; a rung adding an owned-now row must add it to the greenfield template in the same pass", greenfieldTemplate, row.Name)
+		if !slices.Contains(names, row.Key) {
+			t.Errorf("%s: owned-now row %s does not appear; a rung adding an owned-now row must add it to the greenfield template in the same pass", greenfieldTemplate, row.Key)
 		}
 	}
 }
@@ -83,7 +83,7 @@ func TestTemplateKeysCoverEveryOwnedNowRow(t *testing.T) {
 // which this package cannot reach.
 func classifyKey(reg *config.Registry, name string) string {
 	for _, row := range reg.OwnedWall() {
-		if row.Name == name {
+		if row.Key == name {
 			return "owned wall"
 		}
 	}
@@ -93,7 +93,7 @@ func classifyKey(reg *config.Registry, name string) string {
 		}
 	}
 	for _, class := range reg.IntegrationClasses() {
-		if name == class.Flag.Name || slices.Contains(config.KeyNames(class.Required), name) {
+		if name == class.Flag.Key || slices.Contains(config.KeyNames(class.Required), name) {
 			return "integration class"
 		}
 	}

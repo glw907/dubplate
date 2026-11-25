@@ -72,7 +72,7 @@ func RouteCollection(ctx context.Context, tx *store.Tx, log *slog.Logger, route 
 	if err := checkNoNesting(ctx, tx, root); err != nil {
 		return nil, err
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer, intake_route)
+	_, err = tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer, intake_route)
 		VALUES (?, ?, ?, ?, 'group', 'server', ?)`, coll, routeNames[route], root, owner[:], string(route))
 	if err != nil {
 		return nil, fmt.Errorf("create %s collection: %w", route, err)

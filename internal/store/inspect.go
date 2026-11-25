@@ -225,7 +225,7 @@ type JobSuccess struct {
 type SettingsRow struct {
 	Key   string
 	Value string
-	// Source is "env-seed" for a value the environment seeded and
+	// Source is "env_seed" for a value the environment seeded and
 	// "admin" for one an administrator set.
 	Source string
 	// SeedValue is the environment seed the row's value came from or,
@@ -476,6 +476,12 @@ func readSettingsFacts(ctx context.Context, db *sql.DB, dbPath string) ([]Settin
 		)
 		if err := rows.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
 			return nil, refusal(StateRefused, "read settings in %s: %w", dbPath, err)
+		}
+		// A store below 0007 still spells the seeded source env-seed,
+		// which the current settings CHECK refuses, so only such a store
+		// can hold it. Its rows read as the migration will leave them.
+		if r.Source == "env-seed" {
+			r.Source = "env_seed"
 		}
 		r.SeedValue = seed.String
 		r.UpdatedAt = Micros(at)

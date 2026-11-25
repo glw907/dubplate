@@ -4,38 +4,39 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/ops"
 )
 
 const (
-	pinZeros     = "00000000000000000000000000000000"
-	pinLowerHex  = "0123456789abcdef0123456789abcdef"
-	pinUpperHex  = "0123456789ABCDEF0123456789ABCDEF"
-	pinShortHex  = "0123456789abcdef0123456789abcde"
-	pinNotHex    = "0123456789abcdef0123456789abcdeg"
-	pinBadWireID = "submission_id must be 32 lowercase hex characters"
+	pinZeros        = "00000000000000000000000000000000"
+	pinLowerHex     = "0123456789abcdef0123456789abcdef"
+	pinUpperHex     = "0123456789ABCDEF0123456789ABCDEF"
+	pinShortHex     = "0123456789abcdef0123456789abcde"
+	pinNotHex       = "0123456789abcdef0123456789abcdeg"
+	pinNoSubmission = "submission_id is missing or names no submission"
 )
 
-// TestIDPinSubmissionID pins the wire id as the seam refuses it: a
-// short, an uppercase, a non-hex, and the all-zeros id each answer one
-// invalid-request sentence, while a well-formed id that names nothing
-// answers not found.
+// TestIDPinSubmissionID pins the wire id as the seam refuses it. The
+// JSON decoder upstream refuses a malformed id, so the seam sees only
+// a typed id: the all-zeros id answers one invalid-request sentence,
+// and a well-formed id that names nothing answers not found.
 func TestIDPinSubmissionID(t *testing.T) {
 	h, seam := newTestService(t)
 	m := member(t, h)
 	ctx := deadline(t)
+	unknown, err := id.Parse(pinLowerHex)
+	if err != nil {
+		t.Fatalf("id.Parse(%q): %v", pinLowerHex, err)
+	}
 	tests := []struct {
 		name     string
-		id       string
+		id       id.ID
 		wantCode ops.Code
 		wantMsg  string
 	}{
-		{"31 characters", pinShortHex, ops.CodeInvalidRequest, pinBadWireID},
-		{"uppercase", pinUpperHex, ops.CodeInvalidRequest, pinBadWireID},
-		{"not hex", pinNotHex, ops.CodeInvalidRequest, pinBadWireID},
-		{"empty", "", ops.CodeInvalidRequest, pinBadWireID},
-		{"all zeros", pinZeros, ops.CodeInvalidRequest, pinBadWireID},
-		{"well formed, unknown", pinLowerHex, ops.CodeNotFound, "no such submission"},
+		{"all zeros", id.ID{}, ops.CodeInvalidRequest, pinNoSubmission},
+		{"well formed, unknown", unknown, ops.CodeNotFound, "no such submission"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

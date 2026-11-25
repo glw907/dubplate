@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/store"
 	"github.com/tus/tusd/v2/pkg/handler"
@@ -28,7 +29,7 @@ const cleanupLockWait = 2 * time.Second
 //   - all of a terminal submission's bytes;
 //   - a submissions/ directory no row names;
 //   - the archive of a ZIP past its verdict, in matching or accepted,
-//     never in check-unfinished, whose retry extracts from it;
+//     never in check_unfinished, whose retry extracts from it;
 //   - the failing files of an accepted separate-tracks submission;
 //   - a tus upload no row names, once older than window.
 //
@@ -45,11 +46,11 @@ func (in *Intake) clean(ctx context.Context, window time.Duration) (int, error) 
 		return 0, err
 	}
 	for name, modified := range uploads {
-		id, ok := parseID(name)
-		if !ok {
+		file, err := id.Parse(name)
+		if err != nil || file.IsZero() {
 			continue
 		}
-		goes, known, err := in.uploadGoes(ctx, id)
+		goes, known, err := in.uploadGoes(ctx, file[:])
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -74,11 +75,11 @@ func (in *Intake) clean(ctx context.Context, window time.Duration) (int, error) 
 		return removed, errors.Join(append(errs, fmt.Errorf("list extractions: %w", err))...)
 	}
 	for _, d := range dirs {
-		id, ok := parseID(d.Name())
-		if !ok {
+		submission, err := id.Parse(d.Name())
+		if err != nil || submission.IsZero() {
 			continue
 		}
-		n, err := in.cleanExtraction(ctx, id)
+		n, err := in.cleanExtraction(ctx, submission[:])
 		if err != nil {
 			errs = append(errs, err)
 		}

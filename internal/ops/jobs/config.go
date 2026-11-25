@@ -22,7 +22,7 @@ var jobRetentionSetting = config.Setting{
 	Floor:       "24h",
 	Ceiling:     "87600h",
 	Description: "how long a finished job record is kept",
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // Register adds the job runner's one setting to reg.

@@ -95,7 +95,7 @@ func TestMemberCmd_AddThenListRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("first add error = %v, want nil; stderr = %q", err, stderr)
 	}
-	for _, want := range []string{"address=a@example.test", "admin=true", "channel=command-line", "client_ip=local"} {
+	for _, want := range []string{"address=a@example.test", "admin=true", "channel=command_line", "client_ip=local"} {
 		if !strings.Contains(stderr, want) {
 			t.Errorf("audit record on stderr = %q, want it to contain %q", stderr, want)
 		}
@@ -151,7 +151,7 @@ func TestMemberListCmd_OmitsTombstonedMembers(t *testing.T) {
 // proves it through OpenWrite, which both verbs call.
 func TestMemberCmd_StoreStates(t *testing.T) {
 	head := store.Inspect(t.Context(), store.InspectOptions{StateDir: t.TempDir(), BusyTimeout: testBackupBusy}).BinaryVersion
-	reconcilePending := `{"format": 1, "state": "reconcile-pending", "stamp": "20260925T120000.000000Z",
+	reconcilePending := `{"format": 1, "state": "reconcile_pending", "stamp": "20260925T120000.000000Z",
 "remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z",
 "incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
 "discard_current": false, "version": 2}`
@@ -570,7 +570,7 @@ func TestMemberRemoveCmd_TombstonesAndRevokes(t *testing.T) {
 		t.Fatalf("remove error = %v; stderr = %q", err, stderr)
 	}
 
-	for _, want := range []string{"roster member removed", "address=b@example.test", "channel=command-line", "client_ip=local"} {
+	for _, want := range []string{"roster member removed", "address=b@example.test", "channel=command_line", "client_ip=local"} {
 		if !strings.Contains(stderr, want) {
 			t.Errorf("audit record on stderr = %q, want it to contain %q", stderr, want)
 		}
@@ -631,7 +631,7 @@ func TestMemberDemoteCmd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("demote error = %v; stderr = %q", err, stderr)
 	}
-	for _, want := range []string{"roster member demoted", "address=c@example.test", "channel=command-line"} {
+	for _, want := range []string{"roster member demoted", "address=c@example.test", "channel=command_line"} {
 		if !strings.Contains(stderr, want) {
 			t.Errorf("audit record on stderr = %q, want it to contain %q", stderr, want)
 		}

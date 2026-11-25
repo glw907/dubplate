@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
@@ -180,7 +181,13 @@ func decode(w http.ResponseWriter, r *http.Request, v any, limit int64) bool {
 	}
 	dec := json.NewDecoder(bytes.NewReader(body))
 	if err := dec.Decode(v); err != nil {
-		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, "request body does not match the operation's request")
+		// The decoder returns an id field's UnmarshalText error as it
+		// came, so the sentinel survives to name the refusal.
+		reason := "request body does not match the operation's request"
+		if errors.Is(err, id.ErrSyntax) {
+			reason = "request body names a malformed id: " + id.ErrSyntax.Error()
+		}
+		writeError(w, http.StatusBadRequest, ops.CodeInvalidRequest, reason)
 		return false
 	}
 	if _, err := dec.Token(); err != io.EOF {

@@ -2,9 +2,9 @@ package admin
 
 import (
 	"context"
-	"encoding/hex"
 
 	"github.com/glw907/dubplate/internal/auth"
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 )
@@ -44,7 +44,7 @@ func (s *Service) AddMember(ctx context.Context, actor identity.Actor, req ops.A
 // RemoveMember removes the member req names, which revokes their
 // sessions. It is gated.
 func (s *Service) RemoveMember(ctx context.Context, actor identity.Actor, req ops.RemoveMemberRequest) (ops.RemoveMemberResponse, error) {
-	id, err := parseUserID(req.UserID)
+	target, err := memberID(req.UserID)
 	if err != nil {
 		return ops.RemoveMemberResponse{}, err
 	}
@@ -52,14 +52,14 @@ func (s *Service) RemoveMember(ctx context.Context, actor identity.Actor, req op
 		return ops.RemoveMemberResponse{}, err
 	}
 	return ops.RemoveMemberResponse{}, writeMember(ctx, func(ctx context.Context) error {
-		return s.cfg.Roster.RemoveMember(ctx, id, actor, s.cfg.Logger)
+		return s.cfg.Roster.RemoveMember(ctx, target, actor, s.cfg.Logger)
 	})
 }
 
 // DemoteMember clears the admin flag of the member req names. It is
 // gated, since the web cannot grant the flag back.
 func (s *Service) DemoteMember(ctx context.Context, actor identity.Actor, req ops.DemoteMemberRequest) (ops.DemoteMemberResponse, error) {
-	id, err := parseUserID(req.UserID)
+	target, err := memberID(req.UserID)
 	if err != nil {
 		return ops.DemoteMemberResponse{}, err
 	}
@@ -67,7 +67,7 @@ func (s *Service) DemoteMember(ctx context.Context, actor identity.Actor, req op
 		return ops.DemoteMemberResponse{}, err
 	}
 	return ops.DemoteMemberResponse{}, writeMember(ctx, func(ctx context.Context) error {
-		return s.cfg.Roster.DemoteMember(ctx, id, actor, s.cfg.Logger)
+		return s.cfg.Roster.DemoteMember(ctx, target, actor, s.cfg.Logger)
 	})
 }
 
@@ -85,7 +85,7 @@ func writeMember(ctx context.Context, write func(context.Context) error) error {
 // wireMember is m as the admin operations carry it.
 func wireMember(m auth.Member) ops.Member {
 	return ops.Member{
-		UserID:      hex.EncodeToString(m.ID[:]),
+		UserID:      id.ID(m.ID),
 		Address:     m.Address,
 		DisplayName: m.DisplayName,
 		Username:    m.Username,

@@ -53,7 +53,7 @@ func LookupFormat(name string) (FormatRow, bool) {
 
 // audioExtensions are the extensions the gate takes for music, lowercase
 // with the dot. The format table names the formats the library keeps; this
-// adds the common ones it does not, so an MP3 answers bad-extension where
+// adds the common ones it does not, so an MP3 answers bad_extension where
 // it would otherwise ride along as an extra.
 var audioExtensions = []string{".flac", ".mp3", ".m4a", ".ogg", ".opus", ".wav", ".aiff"}
 

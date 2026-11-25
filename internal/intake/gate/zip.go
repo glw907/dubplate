@@ -62,12 +62,12 @@ type ZIPWalk struct {
 // It counts the central directory's headers against p.MaxFiles before
 // archive/zip reads it, refuses a member the library could not store
 // (a symlink or other special file, a name [ValidPath] refuses, a directory
-// with content, a duplicate name) with unsafe-path, sums the members'
-// declared sizes against p.MaxAlbumBytes (too-large), and requires an audio
-// member (no-audio). A separate-tracks archive keeps its audio members only.
+// with content, a duplicate name) with unsafe_path, sums the members'
+// declared sizes against p.MaxAlbumBytes (too_large), and requires an audio
+// member (no_audio). A separate-tracks archive keeps its audio members only.
 //
 // The refusals are *[ZIPRefusal]; an archive archive/zip cannot open is
-// unpack-failed. A read error on the staged archive is returned as itself.
+// unpack_failed. A read error on the staged archive is returned as itself.
 func WalkZIP(root *os.Root, name string, p Policy, separateTracks bool) (*ZIPWalk, error) {
 	f, err := root.Open(name)
 	if err != nil {
@@ -172,7 +172,7 @@ func walkZIP(ra io.ReaderAt, size int64, p Policy, separateTracks bool) (*ZIPWal
 //
 // An error from archive/zip or its decompressor (a CRC mismatch, data past
 // or short of the declared size, an unsupported method) is a *[ZIPRefusal]
-// with unpack-failed. A read error on the staged archive, a write or sync
+// with unpack_failed. A read error on the staged archive, a write or sync
 // error, and a cancelled ctx are returned as themselves.
 func (w *ZIPWalk) Extract(ctx context.Context, root *os.Root, dir string, names []string) (err error) {
 	if len(names) != len(w.Members) {

@@ -20,24 +20,24 @@ import (
 // absolute root, and rclone reads a root beginning with "-" as a flag.
 func resolveRoot(root string) (string, error) {
 	if root == "" {
-		return "", fail("library-missing", "no library root is configured")
+		return "", fail("library_missing", "no library root is configured")
 	}
 	if !filepath.IsAbs(root) {
-		return "", fail("library-invalid", "library root %s is not an absolute path", root)
+		return "", fail("library_invalid", "library root %s is not an absolute path", root)
 	}
 	resolved, err := filepath.EvalSymlinks(root)
 	if errors.Is(err, fs.ErrNotExist) || errors.Is(err, syscall.ENOTDIR) {
-		return "", fail("library-missing", "library root %s does not exist", root)
+		return "", fail("library_missing", "library root %s does not exist", root)
 	}
 	if err != nil {
-		return "", fail("library-unreadable", "resolve library root %s: %v", root, err)
+		return "", fail("library_unreadable", "resolve library root %s: %v", root, err)
 	}
 	info, err := os.Stat(resolved)
 	if err != nil {
-		return "", fail("library-unreadable", "stat library root %s: %v", resolved, err)
+		return "", fail("library_unreadable", "stat library root %s: %v", resolved, err)
 	}
 	if !info.IsDir() {
-		return "", fail("library-missing", "library root %s is not a directory", resolved)
+		return "", fail("library_missing", "library root %s is not a directory", resolved)
 	}
 	return resolved, nil
 }
@@ -54,7 +54,7 @@ func checkLibrary(ctx context.Context, h *store.Handle, root string, fraction fl
 	}
 	files, err := countFiles(root)
 	if err != nil {
-		return 0, fail("library-unreadable", "read library root %s: %v", root, err)
+		return 0, fail("library_unreadable", "read library root %s: %v", root, err)
 	}
 	return guard(root, files, tracks, fraction)
 }
@@ -84,12 +84,12 @@ func countFiles(root string) (int, error) {
 func guard(root string, files, tracks int, fraction float64) (int, error) {
 	if tracks == 0 {
 		if files == 0 {
-			return 0, fail("library-empty", "library root %s holds no files", root)
+			return 0, fail("library_empty", "library root %s holds no files", root)
 		}
 		return 0, nil
 	}
 	if float64(files) < fraction*float64(tracks) {
-		return 0, fail("library-short", "library root %s holds %d files, fewer than %g of the catalog's %d tracks", root, files, fraction, tracks)
+		return 0, fail("library_short", "library root %s holds %d files, fewer than %g of the catalog's %d tracks", root, files, fraction, tracks)
 	}
 	return tracks, nil
 }

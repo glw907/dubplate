@@ -36,7 +36,7 @@ the pending change survives in this one, and a control to retry it.
     DEMOTE_CONTROL,
     LIST_REFRESH_FAILED,
     REMOVE_CONTROL,
-    ROSTER_EMPTY_STATE,
+    MEMBERS_EMPTY_STATE,
     SERVER_SETTINGS_LINK,
     TITLES,
     addedMemberLine,
@@ -70,8 +70,8 @@ the pending change survives in this one, and a control to retry it.
     username: 'add-username'
   };
 
-  const OUTCOME_ID = 'roster-outcome';
-  const OUTCOME_TEXT_ID = 'roster-outcome-text';
+  const OUTCOME_ID = 'member-outcome';
+  const OUTCOME_TEXT_ID = 'member-outcome-text';
 
   /** What the alert beneath the form says about the last write. */
   interface Notice {
@@ -114,7 +114,7 @@ the pending change survives in this one, and a control to retry it.
     if (erroredField === field) erroredField = null;
   }
 
-  async function loadRoster(): Promise<void> {
+  async function loadMembers(): Promise<void> {
     const result = await loadList<Member>('list_members', 'members');
     if (result.ok) {
       members = result.entries;
@@ -142,7 +142,7 @@ the pending change survives in this one, and a control to retry it.
   }
 
   onMount(() => {
-    void loadRoster();
+    void loadMembers();
   });
 
   function say(text: string, alertClass: string, politeness: 'polite' | 'assertive', reauthenticate = false): void {
@@ -263,13 +263,13 @@ the pending change survives in this one, and a control to retry it.
   }
 </script>
 
-<AdminPage title={TITLES.members} {status} {unreachableMessage} retry={loadRoster}>
+<AdminPage title={TITLES.members} {status} {unreachableMessage} retry={loadMembers}>
   <h1 class="display page-title text-4xl">{TITLES.members}</h1>
   <p><a href={resolve('server-settings')} class="link link-primary inline-flex min-h-11 items-center">{SERVER_SETTINGS_LINK}</a></p>
 
-  <p id="member-count" tabindex="-1">{members.length === 0 ? ROSTER_EMPTY_STATE : memberCountLine(members.length)}</p>
+  <p id="member-count" tabindex="-1">{members.length === 0 ? MEMBERS_EMPTY_STATE : memberCountLine(members.length)}</p>
   {#if members.length > 0}
-    <ul id="roster-list" class="list" role="list">
+    <ul id="member-list" class="list" role="list">
       {#each members as member (member.user_id)}
         <li class="list-row">
           <div class="list-col-grow">

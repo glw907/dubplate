@@ -149,24 +149,23 @@ func TestJobStatus_RecoversOwnStrandedRecord(t *testing.T) {
 			r := newRunnerFor(t, h, nil, succeed)
 			abortOn(t, h, tt.refused)
 
-			resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+			jobID, err := r.StartBackup(deadline(t), testActor)
 			if err != nil {
 				t.Fatalf("StartBackup: %v", err)
 			}
 			r.wg.Wait()
-			if rec := mustRecord(t, h, idOf(t, resp.JobID)); rec.state != tt.stranded {
+			if rec := mustRecord(t, h, jobID[:]); rec.state != tt.stranded {
 				t.Fatalf("record reads %s after the failed write, want %s", rec.state, tt.stranded)
 			}
 
-			jh := resp.JobID
-			st, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: jh})
+			st, err := r.JobStatus(deadline(t), testActor, jobID)
 			if err != nil {
 				t.Fatalf("JobStatus: %v", err)
 			}
-			if st.Job.State != ops.JobInterrupted {
-				t.Errorf("JobStatus() state = %s, want interrupted", st.Job.State)
+			if st.State != ops.JobInterrupted {
+				t.Errorf("JobStatus() state = %s, want interrupted", st.State)
 			}
-			if rec := mustRecord(t, h, idOf(t, resp.JobID)); rec.state != "interrupted" || rec.finished == 0 {
+			if rec := mustRecord(t, h, jobID[:]); rec.state != "interrupted" || rec.finished == 0 {
 				t.Errorf("record reads %s, finished_at %d; want interrupted with finished_at set", rec.state, rec.finished)
 			}
 		})
@@ -181,7 +180,7 @@ func TestRecovery_LeavesOwnTrackedJob(t *testing.T) {
 	release := make(chan struct{})
 	b, started := blockUntil(release)
 	r := newRunnerFor(t, h, nil, b)
-	resp, err := r.StartBackup(deadline(t), testActor, ops.StartBackupRequest{})
+	jobID, err := r.StartBackup(deadline(t), testActor)
 	if err != nil {
 		t.Fatalf("StartBackup: %v", err)
 	}
@@ -190,14 +189,13 @@ func TestRecovery_LeavesOwnTrackedJob(t *testing.T) {
 	if err := r.recoverJobs(deadline(t)); err != nil {
 		t.Fatalf("recoverJobs: %v", err)
 	}
-	jh := resp.JobID
-	st, err := r.JobStatus(deadline(t), testActor, ops.JobStatusRequest{JobID: jh})
+	st, err := r.JobStatus(deadline(t), testActor, jobID)
 	if err != nil {
 		t.Fatalf("JobStatus: %v", err)
 	}
-	if st.Job.State != ops.JobRunning {
-		t.Errorf("JobStatus() state = %s while the body runs, want running", st.Job.State)
+	if st.State != ops.JobRunning {
+		t.Errorf("JobStatus() state = %s while the body runs, want running", st.State)
 	}
 	close(release)
-	waitState(t, h, idOf(t, resp.JobID), "succeeded", 10*time.Second)
+	waitState(t, h, jobID[:], "succeeded", 10*time.Second)
 }

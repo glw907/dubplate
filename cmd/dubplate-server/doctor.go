@@ -107,11 +107,11 @@ func (r *doctorReport) addChecked(key, status string, failed bool) {
 // the report failed, since the load error behind statuses already has.
 func (r *doctorReport) addRegistryRows(environ []string, reg *config.Registry, statuses map[string]string, storeReport store.Report, storeChecked bool) {
 	for _, row := range reg.OwnedWall() {
-		status := cmp.Or(statuses[row.Name], "ok")
-		if row.Name == adminEmailKey {
+		status := cmp.Or(statuses[row.Key], "ok")
+		if row.Key == adminEmailKey {
 			status = auth.AdminAddressRowStatus(status, storeReport, storeChecked)
 		}
-		r.add(row.Name, status)
+		r.add(row.Key, status)
 	}
 
 	for _, class := range reg.ReservedClasses() {
@@ -185,7 +185,7 @@ func (r *doctorReport) addProbeRows(ctx context.Context, environ []string, reg *
 func unclaimedLoadErrors(reg *config.Registry, statuses map[string]string) []string {
 	claimed := make(map[string]bool)
 	for _, row := range reg.OwnedWall() {
-		claimed[row.Name] = true
+		claimed[row.Key] = true
 	}
 	for _, th := range reg.Thresholds() {
 		claimed[th.Key] = true

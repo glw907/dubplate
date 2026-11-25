@@ -3,21 +3,22 @@ package ops
 import (
 	"context"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 )
 
-// A Member is one roster entry as the admin operations carry it. UserID
-// is the member's durable id as 32 lowercase hex characters, the name a
-// remove or demote request addresses the member by.
+// A Member is one of the group's members as the admin operations carry
+// it. UserID is the member's durable id, the name a remove or demote
+// request addresses the member by.
 type Member struct {
-	UserID      string `json:"user_id"`
+	UserID      id.ID  `json:"user_id"`
 	Address     string `json:"address"`
 	DisplayName string `json:"display_name"`
 	Username    string `json:"username"`
 	Admin       bool   `json:"admin"`
 }
 
-// A ListMembersRequest lists the live roster. It carries no fields.
+// A ListMembersRequest lists the live members. It carries no fields.
 type ListMembersRequest struct{}
 
 // A ListMembersResponse carries the live members [Admin.ListMembers]
@@ -43,7 +44,7 @@ type AddMemberResponse struct {
 // A RemoveMemberRequest names the member [Admin.RemoveMember]
 // removes by UserID.
 type RemoveMemberRequest struct {
-	UserID string `json:"user_id"`
+	UserID id.ID `json:"user_id"`
 }
 
 // A RemoveMemberResponse acknowledges a removal. It carries no fields.
@@ -52,7 +53,7 @@ type RemoveMemberResponse struct{}
 // A DemoteMemberRequest names the member [Admin.DemoteMember]
 // demotes by UserID.
 type DemoteMemberRequest struct {
-	UserID string `json:"user_id"`
+	UserID id.ID `json:"user_id"`
 }
 
 // A DemoteMemberResponse acknowledges a demotion. It carries no fields.
@@ -68,11 +69,11 @@ type ListSettingsRequest struct{}
 // string is a stored empty value. A wall or integration key's value
 // never appears.
 type SettingEntry struct {
-	Name        string  `json:"name"`
+	Key         string  `json:"key"`
 	Home        string  `json:"home"`
 	Description string  `json:"description"`
 	Apply       string  `json:"apply"`
-	Mark        string  `json:"mark"`
+	Sensitivity string  `json:"sensitivity"`
 	Value       *string `json:"value,omitempty"`
 	Source      *string `json:"source,omitempty"`
 	SeedValue   *string `json:"seed_value,omitempty"`
@@ -128,7 +129,7 @@ const (
 // sentinels when it cannot answer. Each call is admin only; the authorizing layer
 // enforces it before any method runs.
 type Admin interface {
-	// ListMembers lists the live roster.
+	// ListMembers lists the live members.
 	ListMembers(ctx context.Context, actor identity.Actor, req ListMembersRequest) (ListMembersResponse, error)
 
 	// AddMember adds a member without the admin flag, or reactivates a

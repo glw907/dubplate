@@ -177,7 +177,7 @@ const (
 // record or a log line carries for it.
 var channelNames = map[Channel]string{
 	ChannelCookie:      "cookie",
-	ChannelCommandLine: "command-line",
+	ChannelCommandLine: "command_line",
 }
 
 // String returns the name an audit record or a log line carries for

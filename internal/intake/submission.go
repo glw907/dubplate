@@ -22,7 +22,7 @@ type state string
 const (
 	stateUploading       state = "uploading"
 	stateChecking        state = "checking"
-	stateCheckUnfinished state = "check-unfinished"
+	stateCheckUnfinished state = "check_unfinished"
 	stateMatching        state = "matching"
 	stateAccepted        state = "accepted"
 	stateRejected        state = "rejected"
@@ -106,16 +106,6 @@ func (s *submissions) poke() {
 	}
 }
 
-// parseID parses a submission or file id as the wire carries it: exactly
-// 32 lowercase hex characters, never the zero id.
-func parseID(s string) ([]byte, bool) {
-	v, err := id.Parse(s)
-	if err != nil || v.IsZero() {
-		return nil, false
-	}
-	return v[:], true
-}
-
 // newSubmission is a member's request to create a submission.
 type newSubmission struct {
 	manifest gate.Manifest
@@ -139,11 +129,11 @@ type createdFile struct {
 // manifestRefusal is a create refused by its manifest, carrying every
 // reason found.
 type manifestRefusal struct {
-	refusal gate.Refusal
+	rejects gate.Rejects
 }
 
 func (e *manifestRefusal) Error() string {
-	return fmt.Sprintf("manifest refused: %d submission reasons, %d files", len(e.refusal.Submission), len(e.refusal.Files))
+	return fmt.Sprintf("manifest refused: %d submission reasons, %d files", len(e.rejects.Submission), len(e.rejects.Files))
 }
 
 // create checks a member's manifest, then the create limits, and writes
@@ -176,7 +166,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 			return err
 		}
 		if len(refusal.Submission) > 0 || len(refusal.Files) > 0 {
-			return &manifestRefusal{refusal: refusal}
+			return &manifestRefusal{rejects: refusal}
 		}
 
 		// A clean manifest's sizes are non-negative and sum within the
@@ -191,7 +181,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 
 		minted := id.New()
 		c = created{id: minted[:]}
-		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, uploader, collection_id, verdict_unit, container, state,
+		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, user_id, collection_id, verdict_unit, container, state,
 			source, source_note, store_url, declared_bytes, reserved_bytes, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			c.id, uploader[:], coll, string(n.manifest.Unit), string(n.manifest.Container), stateUploading,
@@ -229,7 +219,7 @@ func roleOf(c gate.Container, path string) string {
 	return "extra"
 }
 
-// retry moves the uploader's check-unfinished submission back to
+// retry moves the uploader's check_unfinished submission back to
 // checking and pokes the worker.
 func (s *submissions) retry(ctx context.Context, uploader identity.UserID, id []byte) error {
 	err := s.update(ctx, func(ctx context.Context, tx *store.Tx, at int64) error {
@@ -268,7 +258,7 @@ func (s *submissions) expire(ctx context.Context, id []byte, reason string, from
 // another member's id reads as an unknown one.
 func owned(ctx context.Context, tx *store.Tx, uploader identity.UserID, id []byte) error {
 	var n int
-	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE id = ? AND uploader = ?`, id, uploader[:]).Scan(&n); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE id = ? AND user_id = ?`, id, uploader[:]).Scan(&n); err != nil {
 		return fmt.Errorf("read submission owner: %w", err)
 	}
 	if n == 0 {

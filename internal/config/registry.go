@@ -122,36 +122,36 @@ func (r *Registry) claim(family, key string) {
 }
 
 // requireDescribed panics if key, declared in family, carries no
-// description or no named sensitive mark. Every Add* entry point calls
+// description or no named sensitivity. Every Add* entry point calls
 // it for each of its keys, beside [requirePrefix]: a registered key
 // always says what it controls and whether a change to it needs care.
-func requireDescribed(family, key, description string, mark Sensitivity) {
+func requireDescribed(family, key, description string, sensitivity Sensitivity) {
 	if strings.TrimSpace(description) == "" {
 		panic(fmt.Sprintf("%s: declared in %s without a description", key, family))
 	}
-	if mark != NotSensitive && mark != Sensitive {
-		panic(fmt.Sprintf("%s: declared in %s without a sensitive mark, got %v", key, family, mark))
+	if sensitivity != NotSensitive && sensitivity != Sensitive {
+		panic(fmt.Sprintf("%s: declared in %s without a named sensitivity, got %v", key, family, sensitivity))
 	}
 }
 
 // requireDescribedKeys applies [requireDescribed] to each of keys.
 func requireDescribedKeys(family string, keys ...[]KeyDecl) {
 	for _, decl := range slices.Concat(keys...) {
-		requireDescribed(family, decl.Name, decl.Description, decl.Mark)
+		requireDescribed(family, decl.Key, decl.Description, decl.Sensitivity)
 	}
 }
 
 // AddWallRow registers row as an owned wall row, a key [Load]
 // requires. Its Name must carry the DUBPLATE_ prefix and
 // is checked against every other declared key. A row without a
-// description or a sensitive mark panics naming it.
+// description or a sensitivity panics naming it.
 func (r *Registry) AddWallRow(row WallRow) {
-	requirePrefix(familyOwnedWall, row.Name)
-	requireDescribed(familyOwnedWall, row.Name, row.Description, row.Mark)
-	if r.ownedNow(row.Name) {
-		panicDuplicate(row.Name, familyOwnedWall, familyOwnedWall)
+	requirePrefix(familyOwnedWall, row.Key)
+	requireDescribed(familyOwnedWall, row.Key, row.Description, row.Sensitivity)
+	if r.ownedNow(row.Key) {
+		panicDuplicate(row.Key, familyOwnedWall, familyOwnedWall)
 	}
-	r.claim(familyOwnedWall, row.Name)
+	r.claim(familyOwnedWall, row.Key)
 	r.ownedWall = append(r.ownedWall, row)
 }
 
@@ -200,15 +200,15 @@ func (r *Registry) ReservedClasses() []ReservedClass {
 // Flag and Required claim across families, so a key that collides
 // with an owned-wall, reserved, or superseded name is refused rather
 // than registering silently. Each carries a description and a
-// sensitive mark, and one without either panics naming the key.
+// sensitivity, and one without either panics naming the key.
 func (r *Registry) AddIntegrationClass(class IntegrationClass) {
-	if class.Flag.Name == "" {
+	if class.Flag.Key == "" {
 		panic(fmt.Sprintf("%s: integration class declared with an empty Flag", class.Name))
 	}
 	requireDescribedKeys(familyIntegration, []KeyDecl{class.Flag}, class.Required)
 	keys := KeyNames(slices.Concat([]KeyDecl{class.Flag}, class.Required))
-	if slices.Contains(keys[1:], class.Flag.Name) {
-		panic(fmt.Sprintf("%s: integration class's Flag %s also appears in its own key set", class.Name, class.Flag.Name))
+	if slices.Contains(keys[1:], class.Flag.Key) {
+		panic(fmt.Sprintf("%s: integration class's Flag %s also appears in its own key set", class.Name, class.Flag.Key))
 	}
 
 	for _, key := range keys {
@@ -221,7 +221,7 @@ func (r *Registry) AddIntegrationClass(class IntegrationClass) {
 	}
 	for _, key := range keys {
 		for _, existing := range r.integrationClasses {
-			if key == existing.Flag.Name || slices.ContainsFunc(existing.Required, func(k KeyDecl) bool { return k.Name == key }) {
+			if key == existing.Flag.Key || slices.ContainsFunc(existing.Required, func(k KeyDecl) bool { return k.Key == key }) {
 				panicDuplicate(key, familyIntegration, familyIntegration)
 			}
 		}
@@ -243,10 +243,10 @@ func (r *Registry) IntegrationClasses() []IntegrationClass {
 // under t.Kind, and t.Kind must name a parser; both are refused here,
 // at registration, rather than left for Load to discover as an
 // environment-shaped parse failure. A threshold without a description
-// or a sensitive mark panics naming it.
+// or a sensitivity panics naming it.
 func (r *Registry) AddThreshold(t Threshold) {
 	requirePrefix(familyThresholds, t.Key)
-	requireDescribed(familyThresholds, t.Key, t.Description, t.Mark)
+	requireDescribed(familyThresholds, t.Key, t.Description, t.Sensitivity)
 	if slices.ContainsFunc(r.thresholds, func(existing Threshold) bool { return existing.Key == t.Key }) {
 		panicDuplicate(t.Key, familyThresholds, familyThresholds)
 	}
@@ -350,7 +350,7 @@ func (s IdentitySource) Selected(environ []string) bool {
 // across families, so a source key colliding with an owned-wall,
 // reserved, integration, or superseded name is refused here rather
 // than misclassifying at load, and a key without a description or a
-// sensitive mark panics naming it. Two sources may share a key, since two
+// sensitivity panics naming it. Two sources may share a key, since two
 // ways of establishing identity can legitimately need one value, and
 // [Registry.claim] permits a repeat claim from the same family.
 //
@@ -404,7 +404,7 @@ func (r *Registry) IdentitySources() []IdentitySource {
 // call the selector unknown in the meantime.
 func (r *Registry) identitySourceKey(name string) bool {
 	for _, src := range r.identitySources {
-		if name == src.Selector || slices.ContainsFunc(slices.Concat(src.Required, src.Optional), func(k KeyDecl) bool { return k.Name == name }) {
+		if name == src.Selector || slices.ContainsFunc(slices.Concat(src.Required, src.Optional), func(k KeyDecl) bool { return k.Key == name }) {
 			return true
 		}
 	}
@@ -422,10 +422,10 @@ func (r *Registry) identitySourceKey(name string) bool {
 // setting with no allowed values or a bound of another kind, a default
 // that does not parse or falls outside the bounds, an apply mode
 // left at its zero value or set to one no one named, or a missing
-// description or sensitive mark.
+// description or sensitivity.
 func (r *Registry) AddSetting(s Setting) {
 	requirePrefix(familySettings, s.Key)
-	requireDescribed(familySettings, s.Key, s.Description, s.Mark)
+	requireDescribed(familySettings, s.Key, s.Description, s.Sensitivity)
 	if r.hasSetting(s.Key) {
 		panicDuplicate(s.Key, familySettings, familySettings)
 	}

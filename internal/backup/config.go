@@ -18,12 +18,12 @@ var Class = config.IntegrationClass{
 	Name: "backup",
 	Rung: 6,
 	Flag: config.KeyDecl{
-		Name:        "DUBPLATE_BACKUP_ENABLED",
+		Key:         "DUBPLATE_BACKUP_ENABLED",
 		Description: "turns on backups to the remote",
-		Mark:        config.Sensitive,
+		Sensitivity: config.Sensitive,
 	},
 	Required: []config.KeyDecl{
-		{Name: RemoteKey, Description: "the rclone destination a backup syncs to", Mark: config.Sensitive},
+		{Key: RemoteKey, Description: "the rclone destination a backup syncs to", Sensitivity: config.Sensitive},
 	},
 }
 
@@ -42,7 +42,7 @@ var guardFractionSetting = config.Setting{
 	Floor:       "0.25",
 	Ceiling:     "1",
 	Description: "the share of the catalog's tracks the library tree must hold as files before a backup sync runs",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // snapshotKeepSetting is DUBPLATE_BACKUP_SNAPSHOT_KEEP: how many
@@ -60,7 +60,7 @@ var snapshotKeepSetting = config.Setting{
 	Floor:       "3",
 	Ceiling:     "1000",
 	Description: "how many remote snapshots a backup keeps in total",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // archiveRetentionSetting is DUBPLATE_BACKUP_ARCHIVE_RETENTION: how
@@ -78,7 +78,7 @@ var archiveRetentionSetting = config.Setting{
 	Floor:       "168h",
 	Ceiling:     "87600h",
 	Description: "how long a backup keeps an archived directory after moving it aside",
-	Mark:        config.Sensitive,
+	Sensitivity: config.Sensitive,
 }
 
 // Register adds [Class] and the three backup settings to reg. The

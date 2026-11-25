@@ -31,11 +31,11 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 			func(*testing.T) any { return submissionSuccesses()[ops.OpCreateSubmission].resp }},
 		{ops.OpListSubmissions, `{}`, ops.ListSubmissionsRequest{},
 			func(*testing.T) any { return submissionSuccesses()[ops.OpListSubmissions].resp }},
-		{ops.OpGetSubmission, idBody, ops.GetSubmissionRequest{SubmissionID: testHandle},
+		{ops.OpGetSubmission, idBody, ops.GetSubmissionRequest{SubmissionID: testID},
 			func(*testing.T) any { return testSubmission }},
-		{ops.OpRetrySubmission, idBody, ops.RetrySubmissionRequest{SubmissionID: testHandle},
+		{ops.OpRetrySubmission, idBody, ops.RetrySubmissionRequest{SubmissionID: testID},
 			func(*testing.T) any { return testSubmission }},
-		{ops.OpCancelSubmission, idBody, ops.CancelSubmissionRequest{SubmissionID: testHandle},
+		{ops.OpCancelSubmission, idBody, ops.CancelSubmissionRequest{SubmissionID: testID},
 			func(*testing.T) any { return testSubmission }},
 	}
 	for _, tt := range tests {
@@ -145,7 +145,7 @@ func TestServeHTTPSubmissionBodyCaps(t *testing.T) {
 func TestServeHTTPRejectsEnvelope(t *testing.T) {
 	refusal := ops.NewInvalidRequestError("the manifest was refused").WithRejects(ops.Rejects{
 		Submission: []reject.Reason{reject.Of(reject.NoAudio)},
-		Files:      []ops.FileReject{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
+		Files:      []ops.FileReason{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 	})
 	f := newFixture(t, grant(ann, ops.PrivilegeMember))
 	f.subs.answers[ops.OpCreateSubmission] = fakeAnswer{err: refusal}
@@ -169,12 +169,12 @@ func TestServeHTTPRejectsEnvelope(t *testing.T) {
 		t.Fatalf("decode %q: %v", rec.Body, err)
 	}
 	noAudio := reject.Of(reject.NoAudio)
-	wantSubmission := map[string]string{"code": "no-audio", "label": noAudio.Label, "friendly": noAudio.Friendly, "next_step": noAudio.NextStep}
+	wantSubmission := map[string]string{"code": "no_audio", "label": noAudio.Label, "friendly": noAudio.Friendly, "next_step": noAudio.NextStep}
 	if got.Error.Code != "invalid_request" || len(got.Error.Rejects.Submission) != 1 || !reflect.DeepEqual(got.Error.Rejects.Submission[0], wantSubmission) {
 		t.Errorf("rejects.submission = %+v, want [%+v]", got.Error.Rejects.Submission, wantSubmission)
 	}
-	if len(got.Error.Rejects.Files) != 1 || got.Error.Rejects.Files[0].Path != "a/../b.flac" || got.Error.Rejects.Files[0].Reason["code"] != "unsafe-path" {
-		t.Errorf("rejects.files = %+v, want one unsafe-path for a/../b.flac", got.Error.Rejects.Files)
+	if len(got.Error.Rejects.Files) != 1 || got.Error.Rejects.Files[0].Path != "a/../b.flac" || got.Error.Rejects.Files[0].Reason["code"] != "unsafe_path" {
+		t.Errorf("rejects.files = %+v, want one unsafe_path for a/../b.flac", got.Error.Rejects.Files)
 	}
 
 	f.subs.answers[ops.OpGetSubmission] = fakeAnswer{err: ops.NewNotFoundError("no such submission")}

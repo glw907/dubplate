@@ -52,8 +52,8 @@ func plantRow(t *testing.T, path, key, value, source string) {
 	switch source {
 	case "admin":
 		q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, ?, 'admin', ?, 'fixture', 1)`
-	case "env-seed":
-		q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`
+	case "env_seed":
+		q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at) VALUES (?, ?, 'env_seed', ?, 'fixture', 1)`
 	default:
 		t.Fatalf("source %q", source)
 	}
@@ -128,7 +128,7 @@ func TestSettingsResetCmd_ResolvesEachRefusal(t *testing.T) {
 			value:     "720h",
 			serveEnv:  []string{retentionKey + "=48h"},
 			wantRefus: "unset " + retentionKey,
-			wantRow:   settingRow{"48h", "env-seed"},
+			wantRow:   settingRow{"48h", "env_seed"},
 			wantHas:   true,
 		},
 	}
@@ -152,7 +152,7 @@ func TestSettingsResetCmd_ResolvesEachRefusal(t *testing.T) {
 			if _, has := rows[retentionKey]; has {
 				t.Errorf("row after reset = %v, want it deleted", rows[retentionKey])
 			}
-			if got, want := strings.Join(audit[len(baseAudit):], "|"), "reset local:operator command-line "+retentionKey; got != want {
+			if got, want := strings.Join(audit[len(baseAudit):], "|"), "reset local:operator command_line "+retentionKey; got != want {
 				t.Errorf("new audit rows = %q, want %q", got, want)
 			}
 			if gen != baseGen+1 {
@@ -246,14 +246,14 @@ func TestSettingsResetCmd_RuleRefusal(t *testing.T) {
 	}
 }
 
-// TestSettingsResetCmd_EnvSeedRowStays proves a reset over an env-seed
+// TestSettingsResetCmd_EnvSeedRowStays proves a reset over an env_seed
 // row writes nothing and says which source is in force, and that the
 // refusal such a row raises does not point at the verb. Fixture: an
-// env-seed row that does not parse.
+// env_seed row that does not parse.
 func TestSettingsResetCmd_EnvSeedRowStays(t *testing.T) {
 	environ, stateDir, path := currentStore(t)
-	plantRow(t, path, retentionKey, "soon", "env-seed")
-	requireServeRefuses(t, environ, retentionKey, "stored env-seed value refused")
+	plantRow(t, path, retentionKey, "soon", "env_seed")
+	requireServeRefuses(t, environ, retentionKey, "stored env_seed value refused")
 	shell, err := buildServeShellWithLogger(t, environ, discardTestLogger())
 	if err == nil || strings.Contains(err.Error(), "settings reset") {
 		t.Fatalf("serve start = %v, %v, want a refusal that does not name settings reset", shell, err)
@@ -265,12 +265,12 @@ func TestSettingsResetCmd_EnvSeedRowStays(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reset error = %v, want nil", err)
 	}
-	if !strings.Contains(stdout, "env-seed") {
-		t.Errorf("stdout = %q, want it to name the env-seed source in force", stdout)
+	if !strings.Contains(stdout, "env_seed") {
+		t.Errorf("stdout = %q, want it to name the env_seed source in force", stdout)
 	}
 	rows, audit, gen := readSeedState(t, stateDir)
-	if got := rows[retentionKey]; got != (settingRow{"soon", "env-seed"}) {
-		t.Errorf("row after reset = %v, want the env-seed row kept", got)
+	if got := rows[retentionKey]; got != (settingRow{"soon", "env_seed"}) {
+		t.Errorf("row after reset = %v, want the env_seed row kept", got)
 	}
 	if len(audit) != len(auditBefore) || gen != genBefore {
 		t.Errorf("audit %v -> %v, generation %d -> %d, want nothing written", auditBefore, audit, genBefore, gen)
@@ -298,7 +298,7 @@ func TestSettingsResetCmd_RefusesUnknownKeys(t *testing.T) {
 // the store as it was.
 func TestSettingsResetCmd_StoreStates(t *testing.T) {
 	head := storeReport(t, t.TempDir()).BinaryVersion
-	reconcilePending := `{"format": 1, "state": "reconcile-pending", "stamp": "20260925T120000.000000Z",
+	reconcilePending := `{"format": 1, "state": "reconcile_pending", "stamp": "20260925T120000.000000Z",
 "remote": "remote:dubplate", "snapshot": "20260924T030000.000000Z",
 "incoming": "restore-20260925T120000.000000Z.db", "pre_restore": "pre-restore-20260925T120000.000000Z.db",
 "discard_current": false, "version": 2}`
@@ -430,8 +430,8 @@ func TestSettingsResetCmd_AuditRow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read the audit row: %v", err)
 	}
-	if kind != "reset" || actor != "local:operator" || channel != "command-line" || oldValue != "50" || !newIsNull {
-		t.Errorf("audit row = %q %q %q old %q new NULL %v, want reset local:operator command-line old 50 new NULL",
+	if kind != "reset" || actor != "local:operator" || channel != "command_line" || oldValue != "50" || !newIsNull {
+		t.Errorf("audit row = %q %q %q old %q new NULL %v, want reset local:operator command_line old 50 new NULL",
 			kind, actor, channel, oldValue, newIsNull)
 	}
 }

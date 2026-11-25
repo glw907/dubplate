@@ -96,7 +96,7 @@ func readCollection(t *testing.T, h *store.Handle, id []byte) collectionRow {
 	t.Helper()
 	var c collectionRow
 	err := h.QueryRow(deadline(t),
-		`SELECT name, owner, root_path, visibility, writer, layout_template, intake_route FROM collections WHERE id = ?`, id).
+		`SELECT name, user_id, root_path, visibility, writer, layout_template, intake_route FROM collections WHERE id = ?`, id).
 		Scan(&c.name, &c.owner, &c.root, &c.visibility, &c.writer, &c.layout, &c.route)
 	if err != nil {
 		t.Fatalf("read collection %x: %v", id, err)
@@ -202,7 +202,7 @@ func TestCheckNoNesting(t *testing.T) {
 	existing := []string{"a", "x/y"}
 	err := h.Update(deadline(t), func(ctx context.Context, tx *store.Tx) error {
 		for _, root := range existing {
-			if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+			if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 				VALUES (?, ?, ?, ?, 'group', 'server')`, id.New(), root, []byte(root), admin); err != nil {
 				return err
 			}

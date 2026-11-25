@@ -297,7 +297,7 @@ func TestChannel_StringAndValid(t *testing.T) {
 		want    string
 	}{
 		{"cookie", ChannelCookie, "cookie"},
-		{"command line", ChannelCommandLine, "command-line"},
+		{"command line", ChannelCommandLine, "command_line"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

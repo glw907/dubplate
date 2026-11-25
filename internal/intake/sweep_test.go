@@ -2,6 +2,7 @@ package intake
 
 import (
 	"bytes"
+	"encoding/hex"
 	"io"
 	"net/http"
 	"os"
@@ -51,7 +52,7 @@ func TestSweepExpiresPastTheirWindows(t *testing.T) {
 		{"an idle upload", idle, "expired"},
 		{"an upload written inside the window", busy, "uploading"},
 		{"a check held past the hold", heldLong, "expired"},
-		{"a check held inside the hold", heldShort, "check-unfinished"},
+		{"a check held inside the hold", heldShort, "check_unfinished"},
 	} {
 		if got := stateOf(t, f.h, tc.c.id); got != tc.want {
 			t.Errorf("%s = %q, want %q", tc.name, got, tc.want)
@@ -94,7 +95,7 @@ func TestSweepStallsOnceAndMailsAfterTheCommit(t *testing.T) {
 		if mail.waited {
 			t.Errorf("the mail to %s went while a write callback held the store", mail.to)
 		}
-		if !bytes.Contains([]byte(mail.body), []byte(wireID(long.id))) {
+		if !bytes.Contains([]byte(mail.body), []byte(hex.EncodeToString(long.id))) {
 			t.Errorf("the mail to %s names no stalled submission: %q", mail.to, mail.body)
 		}
 	}
@@ -133,7 +134,7 @@ func TestSweepDuringExtraction(t *testing.T) {
 	f := newIntakeFixture(t)
 	archive := twoTrackZIP(t)
 	c := f.checkingWith(t, member(t, f.h), zipped(gate.UnitAlbum, archive), archive)
-	xDir := "submissions/" + wireID(c.id) + "/x"
+	xDir := "submissions/" + hex.EncodeToString(c.id) + "/x"
 
 	ctx := newPauseWhen(func() bool { return f.entries(t, xDir) == 1 })
 	done := make(chan struct{})
@@ -166,7 +167,7 @@ func TestCleanupLeavesAFileWhoseLockIsHeld(t *testing.T) {
 	if err := f.s.cancel(deadline(t), m, c.id); err != nil {
 		t.Fatal(err)
 	}
-	lock, err := f.in.locker.NewLock(wireID(c.files[0].id))
+	lock, err := f.in.locker.NewLock(hex.EncodeToString(c.files[0].id))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -234,7 +235,7 @@ func TestPatchInFlightAfterCancelIsGoneAfterOneSweep(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r.Header.Set(memberHeader, wireID(m[:]))
+	r.Header.Set(memberHeader, hex.EncodeToString(m[:]))
 	r.Header.Set("Tus-Resumable", "1.0.0")
 	r.Header.Set("Upload-Offset", "0")
 	r.Header.Set("Content-Type", "application/offset+octet-stream")

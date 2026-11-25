@@ -46,7 +46,7 @@ func keepSetting(def string) config.Setting {
 		Ceiling: "1000",
 
 		Description: testDescription,
-		Mark:        config.NotSensitive,
+		Sensitivity: config.NotSensitive,
 	}
 }
 
@@ -62,7 +62,7 @@ var retentionSetting = config.Setting{
 	Ceiling: "87600h",
 
 	Description: testDescription,
-	Mark:        config.NotSensitive,
+	Sensitivity: config.NotSensitive,
 }
 
 // newRegistry returns a registry declaring the keep setting with
@@ -139,9 +139,9 @@ func writeFixture(t *testing.T, h *store.Handle, rows ...fixtureRow) {
 			case "admin":
 				q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
 					VALUES (?, ?, 'admin', ?, 'fixture', 1)`
-			case "env-seed":
+			case "env_seed":
 				q = `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-					VALUES (?, ?, 'env-seed', ?, 'fixture', 1)`
+					VALUES (?, ?, 'env_seed', ?, 'fixture', 1)`
 			default:
 				return fmt.Errorf("fixture source %q", r.source)
 			}

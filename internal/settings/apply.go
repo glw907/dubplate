@@ -26,7 +26,7 @@ var errNoGeneration = errors.New("settings_generation holds no row")
 //
 // The rows are read inside the write's own transaction, so a write
 // another process commits between the read and the write cannot be
-// overwritten. Every row it writes carries the source 'env-seed'.
+// overwritten. Every row it writes carries the source 'env_seed'.
 //
 // h.Update refuses a context with no deadline, so ctx must carry one.
 func Apply(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string, now time.Time, log *slog.Logger) error {
@@ -72,19 +72,19 @@ func writeChanges(ctx context.Context, tx *store.Tx, outcomes []Outcome, now tim
 		case Seed:
 			newValue = o.Env
 			_, err = tx.Exec(ctx, `INSERT INTO settings (key, value, source, seed_value, actor, updated_at)
-				VALUES (?, ?, 'env-seed', ?, 'system', ?)`, o.Key, o.Env, o.Env, at)
+				VALUES (?, ?, 'env_seed', ?, 'system', ?)`, o.Key, o.Env, o.Env, at)
 		case Reseed:
 			oldValue, newValue = o.Stored.Value, o.Env
 			_, err = tx.Exec(ctx, `UPDATE settings SET value = ?, seed_value = ?, actor = 'system', updated_at = ?
-				WHERE key = ? AND source = 'env-seed'`, o.Env, o.Env, at, o.Key)
+				WHERE key = ? AND source = 'env_seed'`, o.Env, o.Env, at, o.Key)
 		case Remove:
 			oldValue = o.Stored.Value
-			_, err = tx.Exec(ctx, `DELETE FROM settings WHERE key = ? AND source = 'env-seed'`, o.Key)
+			_, err = tx.Exec(ctx, `DELETE FROM settings WHERE key = ? AND source = 'env_seed'`, o.Key)
 		}
 		if err != nil {
 			return fmt.Errorf("%s: write %s: %w", o.Key, o.Change, err)
 		}
-		if err := insertAudit(ctx, tx, at, o.Change.String(), "system", "env-seed", o.Key, oldValue, newValue); err != nil {
+		if err := insertAudit(ctx, tx, at, o.Change.String(), "system", "env_seed", o.Key, oldValue, newValue); err != nil {
 			return fmt.Errorf("%s: audit %s: %w", o.Key, o.Change, err)
 		}
 		changed = true

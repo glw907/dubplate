@@ -17,7 +17,7 @@ import (
 // The two values a settings row's source column holds. A key whose
 // value is the registry default has no row, so no source names it.
 const (
-	sourceEnvSeed = "env-seed"
+	sourceEnvSeed = "env_seed"
 	sourceAdmin   = "admin"
 )
 
@@ -296,7 +296,7 @@ func outcome(s config.Setting, environ []string, stored *Row) Outcome {
 }
 
 // resetHint appends to err, a refusal of stored's value, the verb that
-// clears it when stored is an administrator's row. An env-seed row
+// clears it when stored is an administrator's row. An env_seed row
 // takes no hint: a reset leaves it in place, and the environment heals
 // it at the next seed.
 func resetHint(err error, key string, stored *Row) error {

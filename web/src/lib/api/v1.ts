@@ -4,17 +4,36 @@
  * composes from the runtime base through `endpointPath`, as the form
  * POST's does, so a deployment under any prefix reaches its own server.
  */
-import { API_DETAILS, API_REFUSALS, AUTH_OUTCOMES, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE } from '#lib/copy/deck.js';
+import { API_DETAILS, API_OUTCOMES, API_REFUSALS, CROSS_ORIGIN_REFUSED, NETWORK_FAILURE } from '#lib/copy/deck.js';
 import { endpointPath } from './post.js';
 import { send } from './request.js';
 
-/** One roster entry as `list_members` and `add_member` carry it. */
+/** One member as `list_members` and `add_member` carry it. */
 export interface Member {
   user_id: string;
   address: string;
   display_name: string;
   username: string;
   admin: boolean;
+}
+
+/** One registered key as `list_settings` answers it. */
+export interface SettingEntry {
+  key: string;
+  home: string;
+  description: string;
+  apply: string;
+  sensitivity: string;
+  value?: string;
+  source?: string;
+  seed_value?: string;
+}
+
+/** What `set_setting` and `reset_setting` answer with. */
+export interface SettingWriteResponse {
+  key: string;
+  apply: string;
+  source: string;
 }
 
 /**
@@ -74,7 +93,7 @@ export async function loadList<T>(
   const result = await call<Record<string, unknown>>(operation);
   if (result.kind === 'ok') {
     const list = result.value[field];
-    if (!Array.isArray(list)) return { ok: false, state: 'unreachable', message: AUTH_OUTCOMES.failed };
+    if (!Array.isArray(list)) return { ok: false, state: 'unreachable', message: API_OUTCOMES.failed };
     return { ok: true, entries: list as T[] };
   }
   if (result.kind === 'refused' && result.code === 'forbidden') return { ok: false, state: 'refused', message: '' };
@@ -86,7 +105,7 @@ export async function loadList<T>(
 function refusalText(code: string, detail: string): string {
   if (detail !== '' && Object.hasOwn(API_DETAILS, detail)) return API_DETAILS[detail];
   if (Object.hasOwn(API_REFUSALS, code)) return API_REFUSALS[code];
-  return AUTH_OUTCOMES.failed;
+  return API_OUTCOMES.failed;
 }
 
 /** The deck line for any result that is not `ok`. */
@@ -99,7 +118,7 @@ export function failureText(result: Exclude<ApiResult<unknown>, { kind: 'ok' }>)
     case 'network_failure':
       return NETWORK_FAILURE;
     case 'failed':
-      return AUTH_OUTCOMES.failed;
+      return API_OUTCOMES.failed;
   }
 }
 

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
@@ -85,7 +86,7 @@ type Runner struct {
 	// mu guards jobs and closed. Every wg.Add happens under mu while
 	// closed is false, so none can race Close's Wait at zero.
 	mu     sync.Mutex
-	jobs   map[ops.Handle]*job
+	jobs   map[id.ID]*job
 	closed bool
 	wg     sync.WaitGroup
 }
@@ -109,7 +110,7 @@ func New(ctx context.Context, cfg Config) (*Runner, error) {
 		backup:    cfg.Backup,
 		retention: cfg.Retention,
 		now:       cfg.Now,
-		jobs:      make(map[ops.Handle]*job),
+		jobs:      make(map[id.ID]*job),
 	}
 	if err := r.recoverJobs(ctx); err != nil {
 		return nil, errors.Join(fmt.Errorf("open job runner: %w", err), lease.Release())
@@ -133,12 +134,12 @@ func (r *Runner) Close() error {
 }
 
 // StartBackup starts a backup job owned by this runner, recording
-// actor as the one who started it, and returns its handle. It answers
-// unavailable while backup integration is off, and conflict while
-// another backup holds the kind's lease: naming that job's handle when
-// its record is live, or a transfer that outlived its process when
-// none is.
-func (r *Runner) StartBackup(ctx context.Context, actor identity.Actor, _ ops.StartBackupRequest) (ops.StartBackupResponse, error) {
+// actor as the one who started it, and returns its record id. It
+// answers unavailable while backup integration is off, and conflict
+// while another backup holds the kind's lease: naming that job's id
+// when its record is live, or a transfer that outlived its process
+// when none is.
+func (r *Runner) StartBackup(ctx context.Context, actor identity.Actor) (id.ID, error) {
 	return r.startBackup(ctx, actor, r.backupBind)
 }
 
@@ -147,21 +148,17 @@ func (r *Runner) StartBackup(ctx context.Context, actor identity.Actor, _ ops.St
 // on and before any record is queued. A test passes a bindFor that
 // returns a body of its choosing, so a start runs without the three
 // backup reads.
-func (r *Runner) startBackup(ctx context.Context, actor identity.Actor, bindFor func(context.Context) (binder, error)) (resp ops.StartBackupResponse, err error) {
+func (r *Runner) startBackup(ctx context.Context, actor identity.Actor, bindFor func(context.Context) (binder, error)) (jobID id.ID, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
 
 	if !r.backup.Enabled {
-		return ops.StartBackupResponse{}, ops.NewUnavailableError(backupDisabled)
+		return id.ID{}, ops.NewUnavailableError(backupDisabled)
 	}
 	bind, err := bindFor(ctx)
 	if err != nil {
-		return ops.StartBackupResponse{}, fmt.Errorf("start backup job: %w", err)
+		return id.ID{}, fmt.Errorf("start backup job: %w", err)
 	}
-	h, err := r.start(ctx, actor, ops.KindBackup, bind)
-	if err != nil {
-		return ops.StartBackupResponse{}, err
-	}
-	return ops.StartBackupResponse{JobID: h}, nil
+	return r.start(ctx, actor, ops.KindBackup, bind)
 }
 
 // backupBind returns the binder StartBackup passes to start, from the
@@ -193,32 +190,32 @@ func (r *Runner) backupBind(ctx context.Context) (binder, error) {
 // finds the record live here without a job running it, and a start
 // after [Runner.Close] has begun answers unavailable and writes
 // nothing.
-func (r *Runner) start(ctx context.Context, actor identity.Actor, kind string, bind binder) (ops.Handle, error) {
+func (r *Runner) start(ctx context.Context, actor identity.Actor, kind string, bind binder) (id.ID, error) {
 	retention, err := r.retention(ctx)
 	if err != nil {
-		return "", fmt.Errorf("start %s job: %w", kind, err)
+		return id.ID{}, fmt.Errorf("start %s job: %w", kind, err)
 	}
 	kl, err := r.store.TakeKindLease(kind)
 	if errors.Is(err, store.ErrLeaseBusy) {
-		return "", r.conflict(ctx, kind)
+		return id.ID{}, r.conflict(ctx, kind)
 	}
 	if err != nil {
-		return "", fmt.Errorf("start %s job: %w", kind, err)
+		return id.ID{}, fmt.Errorf("start %s job: %w", kind, err)
 	}
 	if err := r.recoverJobs(ctx); err != nil {
-		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
+		return id.ID{}, errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
 	j := newJob(ctx, nil)
-	j.body = bind(kl, j.handle)
+	j.body = bind(kl, j.id)
 	if err := r.track(j); err != nil {
 		j.cancel()
-		return "", errors.Join(err, kl.Release())
+		return id.ID{}, errors.Join(err, kl.Release())
 	}
 	if err := r.insert(ctx, actor, kind, retention, j); err != nil {
 		j.cancel()
 		r.untrack(j)
 		r.wg.Done()
-		return "", errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
+		return id.ID{}, errors.Join(fmt.Errorf("start %s job: %w", kind, err), kl.Release())
 	}
 
 	go func() {
@@ -226,12 +223,12 @@ func (r *Runner) start(ctx context.Context, actor identity.Actor, kind string, b
 		defer func() {
 			r.untrack(j)
 			if err := kl.Release(); err != nil {
-				r.logger.Error("release kind lease", "job", j.handle, "err", err)
+				r.logger.Error("release kind lease", "job", j.id, "err", err)
 			}
 		}()
 		r.run(j)
 	}()
-	return j.handle, nil
+	return j.id, nil
 }
 
 // track records j as running under this runner and counts it in
@@ -243,7 +240,7 @@ func (r *Runner) track(j *job) error {
 	if r.closed {
 		return ops.NewUnavailableError("job runner closed")
 	}
-	r.jobs[j.handle] = j
+	r.jobs[j.id] = j
 	r.wg.Add(1)
 	return nil
 }
@@ -251,15 +248,16 @@ func (r *Runner) track(j *job) error {
 // untrack forgets j once it has made its last write.
 func (r *Runner) untrack(j *job) {
 	r.mu.Lock()
-	delete(r.jobs, j.handle)
+	delete(r.jobs, j.id)
 	r.mu.Unlock()
 }
 
-// tracked reports whether a job of this runner's still runs h.
-func (r *Runner) tracked(h ops.Handle) bool {
+// tracked reports whether a job of this runner's still runs jobID's
+// record.
+func (r *Runner) tracked(jobID id.ID) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	_, ok := r.jobs[h]
+	_, ok := r.jobs[jobID]
 	return ok
 }
 
@@ -272,56 +270,40 @@ func (r *Runner) conflict(ctx context.Context, kind string) error {
 		return fmt.Errorf("start %s job: %w", kind, err)
 	}
 	var (
-		id    []byte
+		live  id.ID
 		state string
 	)
 	err := r.store.QueryRow(ctx, `SELECT id, state FROM jobs
 WHERE kind = ? AND state IN ('queued', 'running')
-ORDER BY at DESC, id DESC LIMIT 1`, kind).Scan(&id, &state)
+ORDER BY at DESC, id DESC LIMIT 1`, kind).Scan(&live, &state)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ops.NewConflictError("a previous run's transfer is still running")
 	}
 	if err != nil {
 		return fmt.Errorf("start %s job: read live job: %w", kind, err)
 	}
-	return ops.NewConflictError(fmt.Sprintf("%s job %s is %s", kind, handleOf(id), state))
+	return ops.NewConflictError(fmt.Sprintf("%s job %s is %s", kind, live, state))
 }
 
-// JobStatus reads the record req names.
-func (r *Runner) JobStatus(ctx context.Context, _ identity.Actor, req ops.JobStatusRequest) (resp ops.JobStatusResponse, err error) {
+// JobStatus reads jobID's record. It answers not found for an id no
+// record holds.
+func (r *Runner) JobStatus(ctx context.Context, _ identity.Actor, jobID id.ID) (st ops.JobStatus, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
-
-	id, err := parseID(req.JobID)
-	if err != nil {
-		return ops.JobStatusResponse{}, err
-	}
-	st, err := r.status(ctx, id)
-	if err != nil {
-		return ops.JobStatusResponse{}, err
-	}
-	return ops.JobStatusResponse{Job: st}, nil
+	return r.status(ctx, jobID)
 }
 
-// CancelJob asks for the cancellation of the job req names. A queued
-// job ends canceled at once. A running job, whichever process owns it,
-// has its cancel_requested set, and its owner ends it canceled unless
-// it finishes first; the response reports it running. A finished job
-// is left unchanged and its state reported.
-func (r *Runner) CancelJob(ctx context.Context, _ identity.Actor, req ops.CancelJobRequest) (resp ops.CancelJobResponse, err error) {
+// CancelJob asks for the cancellation of jobID's job. A queued job
+// ends canceled at once. A running job, whichever process owns it, has
+// its cancel_requested set, and its owner ends it canceled unless it
+// finishes first; the status returned reports it running. A finished
+// job is left unchanged and its state reported.
+func (r *Runner) CancelJob(ctx context.Context, _ identity.Actor, jobID id.ID) (st ops.JobStatus, err error) {
 	defer func() { err = wrapCanceled(ctx, err) }()
 
-	id, err := parseID(req.JobID)
-	if err != nil {
-		return ops.CancelJobResponse{}, err
+	if err := r.requestCancel(ctx, jobID); err != nil {
+		return ops.JobStatus{}, err
 	}
-	if err := r.requestCancel(ctx, id); err != nil {
-		return ops.CancelJobResponse{}, err
-	}
-	st, err := r.status(ctx, id)
-	if err != nil {
-		return ops.CancelJobResponse{}, err
-	}
-	return ops.CancelJobResponse{Job: st}, nil
+	return r.status(ctx, jobID)
 }
 
 // wrapCanceled reports err as an error matching [ops.ErrCanceled] when
@@ -343,14 +325,13 @@ func wrapCanceled(ctx context.Context, err error) error {
 	return fmt.Errorf("%w: %v", ops.NewCanceledError(""), err)
 }
 
-// CancelOwn cancels the context of the job h names when this runner
-// owns it and it has not yet ended, and reports whether it did. It
-// writes nothing: it is the path for a caller whose cancel write
-// failed, and the job then ends canceled through its own terminal
-// write.
-func (r *Runner) CancelOwn(h ops.Handle) bool {
+// CancelOwn cancels the context of jobID's job when this runner owns
+// it and it has not yet ended, and reports whether it did. It writes
+// nothing: it is the path for a caller whose cancel write failed, and
+// the job then ends canceled through its own terminal write.
+func (r *Runner) CancelOwn(jobID id.ID) bool {
 	r.mu.Lock()
-	j, ok := r.jobs[h]
+	j, ok := r.jobs[jobID]
 	r.mu.Unlock()
 	if ok {
 		j.cancel()

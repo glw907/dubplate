@@ -383,8 +383,8 @@ func TestRestoreCmd_ReconcilePending(t *testing.T) {
 	if !strings.HasSuffix(stdout.String(), restoreRotation+"\n") {
 		t.Errorf("stdout does not end with the rotation instruction:\n%s", stdout.String())
 	}
-	if reason := recordReason(t, stateDir); !strings.Contains(reason, "(state reconcile-pending)") {
-		t.Errorf("the record: %q, want it reconcile-pending", reason)
+	if reason := recordReason(t, stateDir); !strings.Contains(reason, "(state reconcile_pending)") {
+		t.Errorf("the record: %q, want it reconcile_pending", reason)
 	}
 
 	code, err = restoreRunFor(context.Background(), environ, restoreFlags{resume: true}, io.Discard, io.Discard)
@@ -590,7 +590,7 @@ func backedUpLeaf(t *testing.T) restoreFixture {
 VALUES (?, ?, ?, 'owner', 1, 1)`, user, restoreOwner, restoreOwnerName); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 VALUES (?, 'main', ?, ?, 'group', 'server')`, coll, []byte("main"), user); err != nil {
 			return err
 		}

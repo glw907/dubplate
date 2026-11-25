@@ -3,12 +3,12 @@ package intake
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 
+	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake/gate"
 	"github.com/glw907/dubplate/internal/ops"
@@ -75,9 +75,9 @@ func (s *Service) CreateSubmission(ctx context.Context, actor identity.Actor, re
 		return ops.CreateSubmissionResponse{}, createError(err)
 	}
 
-	resp := ops.CreateSubmissionResponse{SubmissionID: wireID(c.id), Files: make([]ops.CreatedFile, 0, len(c.files))}
+	resp := ops.CreateSubmissionResponse{SubmissionID: id.ID(c.id), Files: make([]ops.CreatedFile, 0, len(c.files))}
 	for _, f := range c.files {
-		resp.Files = append(resp.Files, ops.CreatedFile{Path: f.path, FileID: wireID(f.id)})
+		resp.Files = append(resp.Files, ops.CreatedFile{Path: f.path, FileID: id.ID(f.id)})
 	}
 	return resp, nil
 }
@@ -104,17 +104,17 @@ func createError(err error) error {
 	case errors.Is(err, gate.ErrExtraInTracks):
 		return ops.NewInvalidRequestError(err.Error()).WithDetail(ops.DetailExtra)
 	case errors.As(err, &manifest):
-		rejects := ops.Rejects{Submission: manifest.refusal.Submission, Files: make([]ops.FileReject, 0, len(manifest.refusal.Files))}
+		rejects := ops.Rejects{Submission: manifest.rejects.Submission, Files: make([]ops.FileReason, 0, len(manifest.rejects.Files))}
 		if rejects.Submission == nil {
 			rejects.Submission = []reject.Reason{}
 		}
-		for _, f := range manifest.refusal.Files {
-			rejects.Files = append(rejects.Files, ops.FileReject{Path: validUTF8(string(f.Path)), Reason: f.Reason})
+		for _, f := range manifest.rejects.Files {
+			rejects.Files = append(rejects.Files, ops.FileReason{Path: validUTF8(string(f.Path)), Reason: f.Reason})
 		}
 		return ops.NewInvalidRequestError("the manifest was refused").WithRejects(rejects)
 	case errors.As(err, &limit):
 		reason := reject.Of(limit.code)
-		rejects := ops.Rejects{Submission: []reject.Reason{reason}, Files: []ops.FileReject{}}
+		rejects := ops.Rejects{Submission: []reject.Reason{reason}, Files: []ops.FileReason{}}
 		if limit.code == reject.CouldNotCheck {
 			return fmt.Errorf("%w: %w", ops.NewUnavailableError(reason.Friendly).WithRejects(rejects), limit.err)
 		}
@@ -137,16 +137,15 @@ func writeFault(err error) error {
 func (s *Service) ListSubmissions(ctx context.Context, actor identity.Actor, _ ops.ListSubmissionsRequest) (ops.ListSubmissionsResponse, error) {
 	uploader := actor.UserID()
 	list, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionSummary, error) {
-		var id []byte
 		var createdAt, updatedAt int64
 		var sum ops.SubmissionSummary
-		if err := rows.Scan(&id, &sum.State, &sum.VerdictUnit, &createdAt, &updatedAt); err != nil {
+		if err := rows.Scan(&sum.SubmissionID, &sum.State, &sum.VerdictUnit, &createdAt, &updatedAt); err != nil {
 			return sum, err
 		}
-		sum.SubmissionID, sum.CreatedAt, sum.UpdatedAt = wireID(id), store.Micros(createdAt), store.Micros(updatedAt)
+		sum.CreatedAt, sum.UpdatedAt = store.Micros(createdAt), store.Micros(updatedAt)
 		return sum, nil
 	}, `SELECT id, state, verdict_unit, created_at, updated_at FROM submissions
-		WHERE uploader = ? ORDER BY created_at DESC, id DESC`, uploader[:])
+		WHERE user_id = ? ORDER BY created_at DESC, id DESC`, uploader[:])
 	if err != nil {
 		return ops.ListSubmissionsResponse{}, fmt.Errorf("list submissions: %w", err)
 	}
@@ -155,11 +154,10 @@ func (s *Service) ListSubmissions(ctx context.Context, actor identity.Actor, _ o
 
 // GetSubmission implements [ops.Submissions].
 func (s *Service) GetSubmission(ctx context.Context, actor identity.Actor, req ops.GetSubmissionRequest) (ops.GetSubmissionResponse, error) {
-	id, err := parseWireID(req.SubmissionID)
-	if err != nil {
+	if err := namesSubmission(req.SubmissionID); err != nil {
 		return ops.GetSubmissionResponse{}, err
 	}
-	return s.status(ctx, actor.UserID(), id)
+	return s.status(ctx, actor.UserID(), req.SubmissionID)
 }
 
 // RetrySubmission implements [ops.Submissions].
@@ -174,18 +172,17 @@ func (s *Service) CancelSubmission(ctx context.Context, actor identity.Actor, re
 	return ops.CancelSubmissionResponse(status), err
 }
 
-// act runs one of the uploader's actions on the submission wireID names
-// and answers the submission as it stands afterwards.
-func (s *Service) act(ctx context.Context, uploader identity.UserID, wire string,
+// act runs one of the uploader's actions on submission sub and answers
+// the submission as it stands afterwards.
+func (s *Service) act(ctx context.Context, uploader identity.UserID, sub id.ID,
 	action func(ctx context.Context, uploader identity.UserID, id []byte) error) (ops.GetSubmissionResponse, error) {
-	id, err := parseWireID(wire)
-	if err != nil {
+	if err := namesSubmission(sub); err != nil {
 		return ops.GetSubmissionResponse{}, err
 	}
-	if err := action(ctx, uploader, id); err != nil {
+	if err := action(ctx, uploader, sub[:]); err != nil {
 		return ops.GetSubmissionResponse{}, actionError(err)
 	}
-	return s.status(ctx, uploader, id)
+	return s.status(ctx, uploader, sub)
 }
 
 // actionError maps a refused action to the wire. The submission is the
@@ -204,23 +201,24 @@ func actionError(err error) error {
 // notFound is the one answer for an unknown id and another member's.
 func notFound() error { return ops.NewNotFoundError("no such submission") }
 
-// parseWireID parses a submission id as the wire carries it.
-func parseWireID(wire string) ([]byte, error) {
-	id, ok := parseID(wire)
-	if !ok {
-		return nil, ops.NewInvalidRequestError("submission_id must be 32 lowercase hex characters")
+// namesSubmission refuses the zero id, which no submission holds. The
+// decoder has already refused any text that does not spell an id, and
+// it leaves an absent or null submission_id as the zero id.
+func namesSubmission(sub id.ID) error {
+	if sub.IsZero() {
+		return ops.NewInvalidRequestError("submission_id is missing or names no submission")
 	}
-	return id, nil
+	return nil
 }
 
-// status reads submission id as uploader's. Another member's submission
+// status reads submission sub as uploader's. Another member's submission
 // reads as one that does not exist.
-func (s *Service) status(ctx context.Context, uploader identity.UserID, id []byte) (ops.GetSubmissionResponse, error) {
+func (s *Service) status(ctx context.Context, uploader identity.UserID, sub id.ID) (ops.GetSubmissionResponse, error) {
 	var out ops.GetSubmissionResponse
 	var coll []byte
 	var createdAt, updatedAt int64
 	err := s.subs.store.QueryRow(ctx, `SELECT state, verdict_unit, container, source, collection_id, created_at, updated_at
-		FROM submissions WHERE id = ? AND uploader = ?`, id, uploader[:]).
+		FROM submissions WHERE id = ? AND user_id = ?`, sub, uploader[:]).
 		Scan(&out.State, &out.VerdictUnit, &out.Container, &out.Source, &coll, &createdAt, &updatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, notFound()
@@ -228,7 +226,7 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, id []byt
 	if err != nil {
 		return out, fmt.Errorf("read submission: %w", err)
 	}
-	out.SubmissionID, out.CreatedAt, out.UpdatedAt = wireID(id), store.Micros(createdAt), store.Micros(updatedAt)
+	out.SubmissionID, out.CreatedAt, out.UpdatedAt = sub, store.Micros(createdAt), store.Micros(updatedAt)
 
 	reasons := &reasonReader{svc: s, collection: coll}
 	out.Events, err = store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (ops.SubmissionEvent, error) {
@@ -238,28 +236,28 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, id []byt
 		if err := rows.Scan(&at, &ev.Kind, &reason); err != nil {
 			return ev, err
 		}
-		ev.At, ev.Reason = store.Micros(at), reason.String
-		// An event's reason is a reject code or free text, so text that
-		// names no code is no error here.
+		ev.At = store.Micros(at)
+		// The column carries no CHECK, so a text that names no code is
+		// an event with no reason rather than an error.
 		if r, ok := reject.Lookup(reject.Code(reason.String)); ok {
-			ev.Reject = &r
+			ev.Reason = &r
 		}
 		return ev, nil
-	}, `SELECT at, kind, reason FROM submission_events WHERE submission_id = ? ORDER BY seq`, id)
+	}, `SELECT at, kind, reason FROM submission_events WHERE submission_id = ? ORDER BY seq`, sub)
 	if err != nil {
 		return out, fmt.Errorf("read submission events: %w", err)
 	}
 
 	files, err := store.QueryAll(ctx, s.subs.store, func(rows *sql.Rows) (storedFile, error) {
 		var f storedFile
-		var fid, path []byte
-		if err := rows.Scan(&fid, &path, &f.Size, &f.Received, &f.verdict); err != nil {
+		var path []byte
+		if err := rows.Scan(&f.FileID, &path, &f.Size, &f.Received, &f.verdict); err != nil {
 			return f, err
 		}
-		f.FileID, f.Path = wireID(fid), validUTF8(string(path))
+		f.Path = validUTF8(string(path))
 		return f, nil
 	}, `SELECT id, rel_path, size, received_at IS NOT NULL, verdict FROM submission_files
-		WHERE submission_id = ? ORDER BY rel_path`, id)
+		WHERE submission_id = ? ORDER BY rel_path`, sub)
 	if err != nil {
 		return out, fmt.Errorf("read submission files: %w", err)
 	}
@@ -270,7 +268,7 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, id []byt
 			if err != nil {
 				return out, err
 			}
-			f.Verdict = &r
+			f.Reason = &r
 		}
 		out.Files = append(out.Files, f.SubmissionFile)
 	}
@@ -286,7 +284,7 @@ func (s *Service) status(ctx context.Context, uploader identity.UserID, id []byt
 			w.Subject = &name
 		}
 		return w, nil
-	}, `SELECT code, subject FROM submission_warnings WHERE submission_id = ? ORDER BY at, subject IS NOT NULL, code, subject`, id)
+	}, `SELECT code, subject FROM submission_warnings WHERE submission_id = ? ORDER BY at, subject IS NOT NULL, code, subject`, sub)
 	if err != nil {
 		return out, fmt.Errorf("read submission warnings: %w", err)
 	}
@@ -313,7 +311,7 @@ type storedWarning struct {
 }
 
 // A reasonReader renders the reject codes stored for one submission. The
-// format a bad-extension verdict names is the submission's effective
+// format a bad_extension verdict names is the submission's effective
 // allowlist, read the first time one is rendered.
 type reasonReader struct {
 	svc        *Service
@@ -345,9 +343,6 @@ func (r *reasonReader) read(ctx context.Context, code string) (reject.Reason, er
 	}
 	return reject.WithFormats(r.allowlist), nil
 }
-
-// wireID renders an id as the wire carries it.
-func wireID(id []byte) string { return hex.EncodeToString(id) }
 
 // validUTF8 renders a stored path or name that need not be UTF-8.
 func validUTF8(s string) string { return strings.ToValidUTF8(s, "�") }

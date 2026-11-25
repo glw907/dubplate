@@ -39,13 +39,13 @@ func TestLocalSnapshotKeep(t *testing.T) {
 		wantErr []string
 	}{
 		{
-			name:   "env-seed row of 1, key unset in the environment",
-			report: older(facts(row(key, "1", "env-seed"))),
+			name:   "env_seed row of 1, key unset in the environment",
+			report: older(facts(row(key, "1", "env_seed"))),
 			want:   1,
 		},
 		{
 			name:    "in-bounds row, the environment names another in-bounds value",
-			report:  older(facts(row(key, "5", "env-seed"))),
+			report:  older(facts(row(key, "5", "env_seed"))),
 			environ: []string{key + "=7"},
 			want:    5,
 		},
@@ -55,19 +55,19 @@ func TestLocalSnapshotKeep(t *testing.T) {
 			wantErr: []string{key, "above the ceiling 100"},
 		},
 		{
-			name:    "env-seed row outside its bounds, the environment re-seeds it in bounds",
-			report:  older(facts(row(key, "500", "env-seed"))),
+			name:    "env_seed row outside its bounds, the environment re-seeds it in bounds",
+			report:  older(facts(row(key, "500", "env_seed"))),
 			environ: []string{key + "=4"},
 			want:    4,
 		},
 		{
-			name:   "env-seed row outside its bounds, the environment no longer sets it",
-			report: older(facts(row(key, "500", "env-seed"))),
+			name:   "env_seed row outside its bounds, the environment no longer sets it",
+			report: older(facts(row(key, "500", "env_seed"))),
 			want:   3,
 		},
 		{
 			name:   "no keep row",
-			report: older(facts(row(retention, "48h", "env-seed"))),
+			report: older(facts(row(retention, "48h", "env_seed"))),
 			want:   3,
 		},
 		{
@@ -107,13 +107,13 @@ func TestLocalSnapshotKeep(t *testing.T) {
 		},
 		{
 			name:    "older store, the environment's keep value does not parse",
-			report:  older(facts(row(retention, "48h", "env-seed"))),
+			report:  older(facts(row(retention, "48h", "env_seed"))),
 			environ: []string{key + "=many"},
 			wantErr: []string{key, "invalid value"},
 		},
 		{
 			name:    "current store, the environment's keep value does not parse: the seed decides",
-			report:  current(facts(row(retention, "48h", "env-seed"))),
+			report:  current(facts(row(retention, "48h", "env_seed"))),
 			environ: []string{key + "=many"},
 			want:    3,
 		},

@@ -190,6 +190,12 @@ func TestBackupCmd_LongNamesExitCodes(t *testing.T) {
 	}
 }
 
+// reportedJob is the job id TestReportOutcome_Table reports, and
+// reportedJobWire is its 32-character wire spelling, written out.
+var reportedJob = id.ID{0xab, 0xc1, 0x23}
+
+const reportedJobWire = "abc12300000000000000000000000000"
+
 // TestReportOutcome_Table proves the states table's terminal-state half
 // directly: every [ops.JobState] reportOutcome switches on, including
 // [ops.JobInterrupted], the state unreachable through a live job
@@ -205,28 +211,28 @@ func TestReportOutcome_Table(t *testing.T) {
 	}{
 		{
 			name:       "succeeded, with a final phase",
-			job:        ops.JobStatus{ID: "abc123", State: ops.JobSucceeded, Phase: "pruned 3 old snapshots"},
-			wantStdout: "backup abc123: succeeded: pruned 3 old snapshots\n",
+			job:        ops.JobStatus{JobID: reportedJob, State: ops.JobSucceeded, Phase: "pruned 3 old snapshots"},
+			wantStdout: "backup abc12300000000000000000000000000: succeeded: pruned 3 old snapshots\n",
 		},
 		{
 			name:       "succeeded, no final phase",
-			job:        ops.JobStatus{ID: "abc123", State: ops.JobSucceeded},
-			wantStdout: "backup abc123: succeeded\n",
+			job:        ops.JobStatus{JobID: reportedJob, State: ops.JobSucceeded},
+			wantStdout: "backup abc12300000000000000000000000000: succeeded\n",
 		},
 		{
 			name:     "canceled",
-			job:      ops.JobStatus{ID: "abc123", State: ops.JobCanceled},
+			job:      ops.JobStatus{JobID: reportedJob, State: ops.JobCanceled},
 			wantErr:  true,
 			wantCode: exitInterrupted,
 		},
 		{
 			name:    "failed",
-			job:     ops.JobStatus{ID: "abc123", State: ops.JobFailed, FailureCode: "rclone-exit-7", FailureMessage: "max-delete exceeded"},
+			job:     ops.JobStatus{JobID: reportedJob, State: ops.JobFailed, FailureCode: "rclone_exit_7", FailureMessage: "max-delete exceeded"},
 			wantErr: true,
 		},
 		{
 			name:    "interrupted",
-			job:     ops.JobStatus{ID: "abc123", State: ops.JobInterrupted},
+			job:     ops.JobStatus{JobID: reportedJob, State: ops.JobInterrupted},
 			wantErr: true,
 		},
 	}
@@ -247,8 +253,8 @@ func TestReportOutcome_Table(t *testing.T) {
 			if err == nil {
 				t.Fatalf("reportOutcome() error = nil, want an error")
 			}
-			if !strings.Contains(err.Error(), string(tt.job.ID)) {
-				t.Errorf("error %q does not name the job's handle %s", err, tt.job.ID)
+			if !strings.Contains(err.Error(), reportedJobWire) {
+				t.Errorf("error %q does not name the job's handle %s", err, reportedJobWire)
 			}
 			ece, wrapped := errors.AsType[*exitCodeErr](err)
 			if tt.wantCode == 0 {
@@ -425,8 +431,8 @@ func TestBackupCmd_Failed(t *testing.T) {
 	if code != 1 {
 		t.Errorf("exit = %d, want 1", code)
 	}
-	if err == nil || !strings.Contains(err.Error(), "rclone-exit-7") {
-		t.Errorf("error = %v, want it to name the failure code rclone-exit-7", err)
+	if err == nil || !strings.Contains(err.Error(), "rclone_exit_7") {
+		t.Errorf("error = %v, want it to name the failure code rclone_exit_7", err)
 	}
 }
 
@@ -475,7 +481,7 @@ func plantCatalogTracks(t *testing.T, stateDir string, n int) {
 VALUES (?, 'owner@example.org', 'Owner', 'owner', 1, 1)`, user); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, owner, visibility, writer)
+		if _, err := tx.Exec(ctx, `INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
 VALUES (?, 'main', CAST('main' AS BLOB), ?, 'group', 'server')`, coll, user); err != nil {
 			return err
 		}
@@ -572,8 +578,8 @@ func TestBackupCmd_GuardAdminRow(t *testing.T) {
 				if code != 1 {
 					t.Errorf("exit = %d, want 1; error: %v", code, err)
 				}
-				if err == nil || !strings.Contains(err.Error(), "library-short") {
-					t.Errorf("error = %v, want it to name library-short", err)
+				if err == nil || !strings.Contains(err.Error(), "library_short") {
+					t.Errorf("error = %v, want it to name library_short", err)
 				}
 				if lines := backupStandinLines(t, os.Getenv(backupStandinRecordEnv)); len(lines) != 0 {
 					t.Errorf("stand-in recorded %d invocation(s), want 0: %v", len(lines), lines)
@@ -586,7 +592,7 @@ func TestBackupCmd_GuardAdminRow(t *testing.T) {
 }
 
 // TestBackupCmd_RetentionReaderPrune is criterion 13's retention half,
-// end to end: an env-seed row of 48h for DUBPLATE_JOB_RETENTION prunes
+// end to end: an env_seed row of 48h for DUBPLATE_JOB_RETENTION prunes
 // a finished job record aged 72h that the registry's own 2160h default
 // would have kept.
 func TestBackupCmd_RetentionReaderPrune(t *testing.T) {
@@ -600,7 +606,7 @@ func TestBackupCmd_RetentionReaderPrune(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	seedSettingRow(t, h, "DUBPLATE_JOB_RETENTION", "48h", "env-seed")
+	seedSettingRow(t, h, "DUBPLATE_JOB_RETENTION", "48h", "env_seed")
 	if err := h.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}
@@ -687,7 +693,7 @@ func dumpRows(t *testing.T, h *store.Handle, query string) string {
 }
 
 // TestBackupCmd_SettingsEvaluationNeverApplies is spec criterion 8: a
-// store holding an env-seed row of 14 for DUBPLATE_BACKUP_SNAPSHOT_KEEP,
+// store holding an env_seed row of 14 for DUBPLATE_BACKUP_SNAPSHOT_KEEP,
 // with the environment at 20, leaves every settings, settings_audit,
 // and generation row byte-identical, logs the disagreement naming the
 // key, and runs the job with 14. It runs against a real local rclone
@@ -727,7 +733,7 @@ func TestBackupCmd_SettingsEvaluationNeverApplies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env-seed")
+	seedSettingRow(t, h, "DUBPLATE_BACKUP_SNAPSHOT_KEEP", "14", "env_seed")
 	if err := h.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}

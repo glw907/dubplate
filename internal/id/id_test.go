@@ -2,6 +2,8 @@ package id
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"testing"
 )
 
@@ -60,6 +62,100 @@ func TestString(t *testing.T) {
 	const want = "0123456789abcdef0123456789abcdef"
 	if got := id.String(); got != want {
 		t.Errorf("String() = %q, want %q", got, want)
+	}
+}
+
+func TestMarshalText(t *testing.T) {
+	id := ID{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef}
+	got, err := id.MarshalText()
+	if err != nil {
+		t.Fatalf("MarshalText() error = %v", err)
+	}
+	if string(got) != "0123456789abcdef0123456789abcdef" {
+		t.Errorf("MarshalText() = %q, want %q", got, "0123456789abcdef0123456789abcdef")
+	}
+}
+
+func TestUnmarshalText(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want ID
+		ok   bool
+	}{
+		{"lowercase", "0123456789abcdef0123456789abcdef", ID{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef}, true},
+		{"all zeros", "00000000000000000000000000000000", ID{}, true},
+		{"uppercase", "0123456789ABCDEF0123456789ABCDEF", ID{}, false},
+		{"empty", "", ID{}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ID{0xff}
+			err := got.UnmarshalText([]byte(tt.in))
+			if tt.ok {
+				if err != nil {
+					t.Fatalf("UnmarshalText(%q) error = %v", tt.in, err)
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalText(%q) = %x, want %x", tt.in, got[:], tt.want[:])
+				}
+				return
+			}
+			if !errors.Is(err, ErrSyntax) {
+				t.Fatalf("UnmarshalText(%q) error = %v, want ErrSyntax", tt.in, err)
+			}
+			if got != (ID{0xff}) {
+				t.Errorf("UnmarshalText(%q) changed the id to %x on a refusal", tt.in, got[:])
+			}
+		})
+	}
+}
+
+func TestJSON(t *testing.T) {
+	type wire struct {
+		ID ID `json:"id"`
+	}
+	in := wire{ID: ID{15: 0x2a}}
+	b, err := json.Marshal(in)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+	if string(b) != `{"id":"0000000000000000000000000000002a"}` {
+		t.Errorf("json.Marshal() = %s, want the id as a hex string", b)
+	}
+	var out wire
+	if err := json.Unmarshal(b, &out); err != nil || out != in {
+		t.Errorf("json.Unmarshal(%s) = %+v, %v; want %+v", b, out, err, in)
+	}
+	if err := json.Unmarshal([]byte(`{"id":"nope"}`), &out); !errors.Is(err, ErrSyntax) {
+		t.Errorf("json.Unmarshal of a malformed id error = %v, want ErrSyntax", err)
+	}
+}
+
+func TestScan(t *testing.T) {
+	tests := []struct {
+		name string
+		src  any
+		want ID
+		ok   bool
+	}{
+		{"16 bytes", []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}, ID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}, true},
+		{"15 bytes", make([]byte, 15), ID{}, false},
+		{"17 bytes", make([]byte, 17), ID{}, false},
+		{"text", "0123456789abcdef0123456789abcdef", ID{}, false},
+		{"null", nil, ID{}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got ID
+			err := got.Scan(tt.src)
+			if (err == nil) != tt.ok {
+				t.Fatalf("Scan(%#v) error = %v, want success %v", tt.src, err, tt.ok)
+			}
+			if got != tt.want {
+				t.Errorf("Scan(%#v) = %x, want %x", tt.src, got[:], tt.want[:])
+			}
+		})
 	}
 }
 
