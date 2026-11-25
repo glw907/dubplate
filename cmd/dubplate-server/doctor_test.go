@@ -44,7 +44,7 @@ const membersRowLines = 1
 // storeRowLines's own precedent: the backup remote row reads
 // "unavailable" rather than disappear while the flag is off, so both
 // constants carry the same total. Named separately, one per flag
-// state, because [backup.RemoteRowStatus]'s content, not its presence,
+// state, because the remote row's content, not its presence,
 // is what the flag controls, and a caller asserting a flag-off total
 // should never have to know that fact to pick the right constant.
 const (

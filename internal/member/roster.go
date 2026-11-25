@@ -65,8 +65,7 @@ var errAdminGrantForbidden = errors.New("admin flag may be granted only from the
 var errInvalidActor = errors.New("invalid audit actor or channel")
 
 // The refusals below are the ones internal/ops/admin branches on with
-// errors.Is to choose a wire code and detail. Each content refusal also
-// wraps errRosterRecordInvalid.
+// errors.Is to choose a wire code and detail.
 var (
 	// ErrDuplicateAddress reports that a candidate's address matches a
 	// live member, once both are normalized.

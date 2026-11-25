@@ -161,6 +161,8 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   - `internal/doctor` is a leaf, so every package that reports a doctor row can import it.
   - `internal/auth` does not import `serve`.
   - `internal/member` imports neither `auth` nor `serve`: it reaches revocation through its `Revoker`.
+  - `internal/settings` imports none of `auth`, `serve`, `member`, `intake`, `backup`, `notify`, or
+    `ops/...`: those packages read their settings through it.
 - Exports follow record 0003.
 - Config keys follow record 0010; `newProductionRegistry` is in `cmd/dubplate-server/main.go`.
 - Skills. Go work runs under `go-conventions`. `web/` work runs under `svelte-conventions`,

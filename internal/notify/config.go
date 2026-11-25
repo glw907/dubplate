@@ -72,10 +72,7 @@ func validatePort(value string) error {
 // a mail header. Checked at load, a typo fails doctor rather than the
 // first login's send. The returned error never repeats value.
 func validateFrom(value string) error {
-	if strings.ContainsAny(value, "\r\n") {
-		return &config.KeyError{Key: fromKey, Reason: "invalid email address"}
-	}
-	if _, err := mail.ParseAddress(value); err != nil {
+	if _, err := mail.ParseAddress(value); err != nil || strings.ContainsAny(value, "\r\n") {
 		return &config.KeyError{Key: fromKey, Reason: "invalid email address"}
 	}
 	return nil

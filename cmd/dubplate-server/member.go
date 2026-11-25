@@ -34,7 +34,7 @@ type operatorVerbs struct {
 
 // newMemberCmd builds the member verb: add, remove, demote, and list,
 // the subcommands that give an operator the group's members, which
-// internal/auth keeps in the store. None reads the environment itself; each resolves
+// internal/member keeps in the store. None reads the environment itself; each resolves
 // configuration through loadConfig against reg, the same wall serve
 // enforces.
 func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
@@ -50,12 +50,12 @@ func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry, std
 }
 
 // openOperatorStore loads the wall and opens the store in write mode, the
-// mode both verbs share: it refuses an absent store, a store at any
-// version but the binary's, a restore in progress, and a leaf another
-// user owns, each with the store's own message. Add writes through the
-// handle, and list opens the same mode so one set of refusals covers
-// both verbs. It also returns the state directory the store lives
-// under. The caller closes the handle.
+// mode every operator verb shares: it refuses an absent store, a store at
+// any version but the binary's, a restore in progress, and a leaf another
+// user owns, each with the store's own message. A verb that only reads
+// opens the same mode, so one set of refusals covers them all. It also
+// returns the state directory the store lives under. The caller closes
+// the handle.
 func openOperatorStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, string, error) {
 	cfg, err := loadConfig(environ, reg)
 	if err != nil {

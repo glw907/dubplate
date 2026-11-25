@@ -107,10 +107,9 @@ func (f *Facts) Reader(environ []string) store.Reader {
 const membersRowName = "members"
 
 // DoctorRows renders the members row from report and the roster facts
-// f its inspection read. The row decides on the report's
-// StoreVersion, never on whether Facts is present, since a version 1
-// store carries no facts while a version 2 store carries facts without
-// the users table. A store the store row cannot vouch for reads "not
+// f its inspection read. The row checks the report's StoreVersion
+// before Facts: a version 1 store carries no facts, while a version 2
+// store carries facts without the users table. A store the store row cannot vouch for reads "not
 // read"; the row fails only for a store that holds the users table and
 // no live admin, since nobody could then add a member through the
 // page.

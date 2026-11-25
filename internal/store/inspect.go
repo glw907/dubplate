@@ -92,9 +92,11 @@ type InspectOptions struct {
 }
 
 // A Reader reads the facts one package reports about the tables it
-// owns. [Inspect] calls it under the store's shared lock, on its own
-// read-only connection, with the store's version, so a reader tells a
-// table the store predates from an empty one by version alone.
+// owns. [Inspect] calls it under the store's shared lock, through the
+// inspection's read-only connection pool, with the store's version, so
+// a reader tells a table the store predates from an empty one by
+// version alone. Readers share no transaction, so two of them may read
+// different snapshots.
 type Reader func(ctx context.Context, q Querier, version int) error
 
 // A Querier runs read queries. A [*sql.DB] is one, and so is the
