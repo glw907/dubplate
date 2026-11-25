@@ -27,7 +27,20 @@ const selectRows = `SELECT key, value, source, seed_value, actor, updated_at
 	FROM settings ORDER BY key`
 
 // A Row is one settings row as the store holds it.
-type Row = store.SettingsRow
+type Row struct {
+	Key   string
+	Value string
+	// Source is "env_seed" for a value the environment seeded and
+	// "admin" for one an administrator set.
+	Source string
+	// SeedValue is the environment seed the row's value came from or,
+	// on an admin row, replaced. It is empty when the row records
+	// none; an environment seed is never empty, since an empty
+	// environment value counts as unset.
+	SeedValue string
+	Actor     string
+	UpdatedAt time.Time
+}
 
 // A Change is what the seed rule does to one setting's row.
 type Change int
@@ -99,32 +112,32 @@ type Evaluation struct {
 // reads through h's read pool and writes nothing. The returned error
 // reports a failed read; a refusal is the Evaluation's Err.
 func Evaluate(ctx context.Context, h *store.Handle, reg *config.Registry, environ []string) (Evaluation, error) {
-	rows, err := readRows(ctx, h)
+	rows, err := readRows(ctx, h.Query)
 	if err != nil {
 		return Evaluation{}, err
 	}
 	return evaluate(reg, environ, rows), nil
 }
 
-// EvaluateFacts runs the seed rule for reg's settings against facts, a
-// [store.Facts] value [store.Inspect] already read, and the
-// environment in environ. It opens no connection of its own: its
+// EvaluateFacts runs the seed rule for reg's settings against facts,
+// rows a [Facts.Reader] already read, and the environment in environ. It opens no connection of its own: its
 // caller has already inspected the store. When facts marks the
 // settings table absent, the rule runs against an empty row set, which
 // is the table serve's first seed into it will meet: every environment
 // value is bounded and compared now, so a value that start would
 // refuse is refused here first. check and doctor call it; backup calls
 // [Evaluate] from its own write-mode handle instead.
-func EvaluateFacts(reg *config.Registry, environ []string, facts store.Facts) Evaluation {
-	if facts.SettingsAbsent {
+func EvaluateFacts(reg *config.Registry, environ []string, facts Facts) Evaluation {
+	if facts.Absent {
 		return evaluate(reg, environ, nil)
 	}
-	return evaluate(reg, environ, facts.Settings)
+	return evaluate(reg, environ, facts.Rows)
 }
 
-// readRows reads every settings row through h's read pool.
-func readRows(ctx context.Context, h *store.Handle) ([]Row, error) {
-	rs, err := h.Query(ctx, selectRows)
+// readRows reads every settings row through query, a read pool's
+// query method.
+func readRows(ctx context.Context, query func(ctx context.Context, query string, args ...any) (*sql.Rows, error)) ([]Row, error) {
+	rs, err := query(ctx, selectRows)
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
@@ -158,6 +171,13 @@ func scanRows(rs rowScanner) ([]Row, error) {
 		)
 		if err := rs.Scan(&r.Key, &r.Value, &r.Source, &seed, &r.Actor, &at); err != nil {
 			return nil, err
+		}
+		// A store below 0007 still spells the seeded source env-seed,
+		// which the current settings CHECK refuses, so only an older
+		// store's inspection can read it. Its rows read as the
+		// migration will leave them.
+		if r.Source == "env-seed" {
+			r.Source = sourceEnvSeed
 		}
 		r.SeedValue = seed.String
 		r.UpdatedAt = time.UnixMicro(at).UTC()

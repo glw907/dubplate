@@ -3,8 +3,8 @@
 // of the extraction that turns the wheel into that format, and a
 // lookup that reproduces Unidecode's replacement rules. It also
 // installs the table into the state directory ([Install]) and renders
-// doctor's row for it ([RowStatus]). It imports the standard library
-// and internal/atomicfile only, so it carries no data of its own;
-// every table [Build] produces or [Parse] accepts is verified against
-// a checksum pinned in this package's source.
+// doctor's row for it ([DoctorRows]). Beyond the standard library it
+// imports internal/atomicfile and internal/doctor only, so it carries
+// no data of its own; every table [Build] produces or [Parse] accepts
+// is verified against a checksum pinned in this package's source.
 package unidecode

@@ -65,7 +65,7 @@ func deviceOf(t *testing.T, path string) string {
 	return strconv.FormatUint(uint64(st.Dev), 10)
 }
 
-func TestVolumeRowStatus(t *testing.T) {
+func TestVolumeStatus(t *testing.T) {
 	const same = "ok: staging and the library root share one mount"
 	// A directory on a mount other than the temporary directory's: the
 	// shared-memory tmpfs is a mount of its own on every Linux host.
@@ -235,7 +235,7 @@ func TestVolumeRowStatus(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := newVolumeFixture(t)
 			tt.setup(t, &f)
-			status, failed := VolumeRowStatus(f.cfg, tt.roots)
+			status, failed := volumeStatus(f.cfg, tt.roots)
 			if want := tt.want(t, f); status != want {
 				t.Errorf("status = %q, want %q", status, want)
 			}
@@ -246,9 +246,9 @@ func TestVolumeRowStatus(t *testing.T) {
 	}
 
 	t.Run("a refused environment", func(t *testing.T) {
-		status, failed := VolumeRowStatus(nil, [][]byte{[]byte("abab")})
+		status, failed := volumeStatus(nil, [][]byte{[]byte("abab")})
 		if status != "not checked" || failed {
-			t.Errorf("VolumeRowStatus(nil) = %q, %v, want \"not checked\", false", status, failed)
+			t.Errorf("volumeStatus(nil) = %q, %v, want \"not checked\", false", status, failed)
 		}
 	})
 }

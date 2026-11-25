@@ -18,7 +18,6 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
-	"github.com/glw907/dubplate/internal/store"
 )
 
 // TestRegisterAuthConfig_SelectorIsOwnedNow proves the selector lands as
@@ -409,23 +408,23 @@ func TestAuthCorrelatedRules(t *testing.T) {
 		lifetime  = "DUBPLATE_SESSION_LIFETIME"
 		absCap    = "DUBPLATE_SESSION_ABSOLUTE_CAP"
 	)
-	row := func(key, value, source string) store.SettingsRow {
-		return store.SettingsRow{Key: key, Value: value, Source: source, SeedValue: value}
+	row := func(key, value, source string) settings.Row {
+		return settings.Row{Key: key, Value: value, Source: source, SeedValue: value}
 	}
 	tests := []struct {
 		name     string
-		rows     []store.SettingsRow
+		rows     []settings.Row
 		env      []string
 		wantKeys []string // nil: passes
 	}{
 		{
 			name: "retention and expiry raised together in one seed set",
-			rows: []store.SettingsRow{row(expiry, "15m", "env_seed"), row(retention, "30m", "env_seed")},
+			rows: []settings.Row{row(expiry, "15m", "env_seed"), row(retention, "30m", "env_seed")},
 			env:  []string{expiry + "=45m", retention + "=1h"},
 		},
 		{
 			name:     "only the expiry raised past the stored retention",
-			rows:     []store.SettingsRow{row(expiry, "15m", "env_seed"), row(retention, "30m", "admin")},
+			rows:     []settings.Row{row(expiry, "15m", "env_seed"), row(retention, "30m", "admin")},
 			env:      []string{expiry + "=45m"},
 			wantKeys: []string{expiry, retention},
 		},
@@ -441,7 +440,7 @@ func TestAuthCorrelatedRules(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ev := settings.EvaluateFacts(productionRegistry(), tt.env, store.Facts{Settings: tt.rows})
+			ev := settings.EvaluateFacts(productionRegistry(), tt.env, settings.Facts{Rows: tt.rows})
 			if tt.wantKeys == nil {
 				if ev.Err != nil {
 					t.Fatalf("Err = %v, want the pair to pass", ev.Err)

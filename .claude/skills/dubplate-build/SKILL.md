@@ -158,6 +158,7 @@ finding whose cost exceeds the risk it removes, with a one-line reason in the pu
   import-graph tests ("Gate") holds each. `internal/webapp/layering_test.go` holds these rows:
   - `internal/webapp` imports none of `auth`, `ops`, `settings`, `store`, or `engine/...`.
   - `internal/fsys` is a leaf: it imports no module package.
+  - `internal/doctor` is a leaf, so every package that reports a doctor row can import it.
   - `internal/auth` does not import `serve`.
   - `internal/member` imports neither `auth` nor `serve`: it reaches revocation through its `Revoker`.
 - Exports follow record 0003.

@@ -251,8 +251,9 @@ func TestDoctorCmd(t *testing.T) {
 			}
 			li++
 
-			// The four boundary rows follow the unidecode row.
-			for _, key := range []string{clientIPDoctorRow, webDoctorRow, bindAddrsDoctorRow, boundaryProbeDoctorRow} {
+			// The three serve boundary rows follow the unidecode row, then
+			// the web row.
+			for _, key := range []string{clientIPDoctorRow, bindAddrsDoctorRow, boundaryProbeDoctorRow, webDoctorRow} {
 				if li >= len(lines) {
 					t.Fatalf("stdout ran out of lines before boundary row %s", key)
 				}
@@ -1638,22 +1639,24 @@ func TestDoctorCmd_SMTPRefusalNamedOnce(t *testing.T) {
 
 // TestDoctorCmd_AuthSettingsGolden is spec criterion 10's doctor half:
 // after a start seeds every auth key from the environment, each row
-// prints the value in force, its env_seed source, its apply mode, and
-// the sensitive mark on the link expiry, the session lifetime, and the
-// absolute cap, whose values print like any other. Each value differs
-// from its default, so a row that read the default fails.
+// prints the value in force, its env_seed source, and its apply mode.
+// A sensitive key (the link expiry, the session lifetime, the absolute
+// cap, and the unknown-address answer) prints "(withheld)" in place of
+// its value, with the sensitive mark. Each value differs from its
+// default, so a row that read the default fails on its value or, for a
+// withheld one, on its source.
 func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 	want := []struct{ key, value, status string }{
-		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `"20m" (source env_seed, next operation, sensitive)`},
-		{"DUBPLATE_SESSION_LIFETIME", "1h", `"1h" (source env_seed, next operation, sensitive)`},
-		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `"4000h" (source env_seed, immediately, sensitive)`},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", `(withheld) (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", `(withheld) (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", `(withheld) (source env_seed, immediately, sensitive)`},
 		{"DUBPLATE_NONCE_RETENTION", "2h", `"2h" (source env_seed, next operation)`},
 		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", `"7" (source env_seed, restart)`},
 		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", `"22" (source env_seed, restart)`},
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", `"33" (source env_seed, restart)`},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", `"66" (source env_seed, restart)`},
 		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", `"8192" (source env_seed, next operation)`},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `"generic" (source env_seed, next operation, sensitive)`},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", `(withheld) (source env_seed, next operation, sensitive)`},
 	}
 	environ := withMusicVolume(t, doctorEnviron(t))
 	for _, w := range want {

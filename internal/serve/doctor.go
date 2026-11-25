@@ -17,7 +17,23 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/doctor"
 )
+
+// DoctorRows renders the network boundary's three rows: how the server
+// learns a client's address, the bind addresses against this host's
+// interfaces, and the boundary probe. cfg is nil when [config.Load]
+// refused the environment.
+func DoctorRows(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) []doctor.Row {
+	clientIP := doctor.Row{Name: "client ip"}
+	clientIP.Status, clientIP.Failed = clientIPStatus(cfg)
+	addrs, addrsErr := net.InterfaceAddrs()
+	bind := doctor.Row{Name: "bind addresses"}
+	bind.Status, bind.Failed = bindAddrsStatus(environ, addrs, addrsErr)
+	probe := doctor.Row{Name: "boundary probe"}
+	probe.Status, probe.Failed = boundaryProbeStatus(ctx, environ, reg, cfg)
+	return []doctor.Row{clientIP, bind, probe}
+}
 
 // foldRefusal renders err as one status line: its message with every
 // newline an [errors.Join] carries folded to "; ".
@@ -31,7 +47,7 @@ func foldRefusal(err error) string {
 // proxy's address and one client can exhaust the whole group's sign-in limits.
 const directAssumption = "the peer must be the browser; a proxy in front must be configured as trusted"
 
-// ClientIPRowStatus reports how the server learns a client's address:
+// clientIPStatus reports how the server learns a client's address:
 // "direct" and the assumption direct mode makes when the trusted proxy
 // class is off, "trusted proxy: <header> from <n> address(es)" when it
 // is on and [ParseTrustedProxy] accepts it, and "invalid: " plus every
@@ -41,7 +57,7 @@ const directAssumption = "the peer must be the browser; a proxy in front must be
 // doctor. It names no proxy address: an address is deployment
 // topology a terminal need not show, and the count is enough to see the
 // mode.
-func ClientIPRowStatus(cfg *config.Config) (status string, failed bool) {
+func clientIPStatus(cfg *config.Config) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
@@ -60,7 +76,7 @@ func ClientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 	return fmt.Sprintf("%s: %s from %d %s", proxy.Mode(), header, len(distinct), noun), false
 }
 
-// BindAddrsRowStatus reports, for each address
+// bindAddrsStatus reports, for each address
 // DUBPLATE_SERVE_BIND_ADDRS configures, whether the host holds it:
 // "<address> present" when it is a loopback address or equals the IP
 // of one of ifaceAddrs, and "<address> not on any interface"
@@ -77,7 +93,7 @@ func ClientIPRowStatus(cfg *config.Config) (status string, failed bool) {
 // and fails the row, naming that setting as the likely cause. An unset
 // key is the registered loopback default; a value [SplitBindAddrs]
 // refuses reads "invalid: " plus its refusal.
-func BindAddrsRowStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
+func bindAddrsStatus(environ []string, ifaceAddrs []net.Addr, ifaceErr error) (status string, failed bool) {
 	raw, err := config.ParseString(environ, BindAddrsThreshold)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
@@ -164,7 +180,7 @@ const trustedProbeNote = " (a trusted proxy, identity only)"
 // them.
 const allTrustedUnproven = "forwarded and Connection-listed removal unproven: every local address is a trusted proxy"
 
-// BoundaryProbeRowStatus dials each configured bind address on the
+// boundaryProbeStatus dials each configured bind address on the
 // configured port, from that same address, sends the one probe request
 // [NewProbeRequest] builds, and reports what the running server's probe
 // route counted. Per address: "refused" when every count is zero;
@@ -195,7 +211,7 @@ const allTrustedUnproven = "forwarded and Connection-listed removal unproven: ev
 // environ, or when the serve keys or the trusted proxy values do not
 // resolve: each of those causes is reported, and failed, by the row
 // that owns it.
-func BoundaryProbeRowStatus(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) (status string, failed bool) {
+func boundaryProbeStatus(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) (status string, failed bool) {
 	declared := slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool {
 		return th.Key == PortThreshold.Key
 	})

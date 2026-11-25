@@ -118,7 +118,7 @@ func (a *Accessor) value(ctx context.Context, s config.Setting) (string, error) 
 	a.mu.Unlock()
 
 	if !fresh {
-		loaded, err := readRows(ctx, a.h)
+		loaded, err := readRows(ctx, a.h.Query)
 		if err != nil {
 			return "", err
 		}

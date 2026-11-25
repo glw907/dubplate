@@ -248,7 +248,3 @@ func backupExitCode(err error) error {
 		return err
 	}
 }
-
-// backupFeaturesTimeout bounds the `rclone backend features` probe
-// behind doctor's "backup remote" row.
-const backupFeaturesTimeout = 10 * time.Second

@@ -99,7 +99,7 @@ func TestRowStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := tt.stateDir(t)
-			status, failed := RowStatus(stateDir)
+			status, failed := rowStatus(stateDir)
 			if failed != tt.wantFailed {
 				t.Errorf("failed = %v, want %v", failed, tt.wantFailed)
 			}
@@ -122,8 +122,8 @@ func TestRowStatus(t *testing.T) {
 // table missing.
 func TestRowStatus_CreatesNothing(t *testing.T) {
 	stateDir := t.TempDir()
-	if status, failed := RowStatus(stateDir); !failed {
-		t.Fatalf("RowStatus = %q, %v, want a failure on an empty state directory", status, failed)
+	if status, failed := rowStatus(stateDir); !failed {
+		t.Fatalf("rowStatus = %q, %v, want a failure on an empty state directory", status, failed)
 	}
 	after, err := os.ReadDir(stateDir)
 	if err != nil {

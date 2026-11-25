@@ -10,8 +10,8 @@ import (
 )
 
 // LocalSnapshotKeep decides [store.ServeOptions.Keep] before serve
-// opens the store, from the facts report holds and the registry's own
-// setting, and refuses a start that a migration would otherwise make
+// opens the store, from the settings facts f an inspection into report
+// read and the registry's own setting, and refuses a start that a migration would otherwise make
 // unrecoverable.
 //
 // A stored keep row in its bounds is the keep, even when the
@@ -33,18 +33,18 @@ import (
 // first seed meets. A store that does not migrate gets no such check,
 // nor does one that carries no facts, and the seed apply after the
 // open decides.
-func LocalSnapshotKeep(report store.Report, environ []string, reg *config.Registry) (int, error) {
+func LocalSnapshotKeep(report store.Report, f Facts, environ []string, reg *config.Registry) (int, error) {
 	setting := byKey(reg.Settings(), store.LocalSnapshotKeepSetting.Key)
 	keep, err := strconv.Atoi(setting.Default)
 	if err != nil {
 		return 0, fmt.Errorf("%s: default %q: %w", setting.Key, setting.Default, err)
 	}
-	var facts store.Facts
+	var facts Facts
 	switch {
 	case report.State == store.StateOlder:
-		facts, _ = SeedFacts(report)
+		facts, _ = SeedFacts(report, f)
 	case report.Facts != nil:
-		facts = *report.Facts
+		facts = f
 	default:
 		return keep, nil
 	}
@@ -85,27 +85,6 @@ func olderStoreRefusal(ev Evaluation) error {
 	}
 	return fmt.Errorf("%w; this store is older than this binary, which cannot write it: redeploy the previous release, run its settings reset for %s, then upgrade",
 		ev.Err, strings.Join(keys, ", "))
-}
-
-// SeedFacts returns the facts the seed rule is evaluated against for
-// a store in report, and false when there are none to evaluate. An
-// absent store, and an older one whose version predates the settings
-// table, holds no settings row: its facts are an absent table, the
-// empty row set serve's first seed meets, so an environment value that
-// start would refuse is refused before it. An older store below the
-// version that adds the jobs table carries no facts at all, and its
-// state alone marks it. Any other state evaluates the facts
-// [store.Inspect] read, and a state that read none has nothing to
-// evaluate.
-func SeedFacts(report store.Report) (store.Facts, bool) {
-	switch {
-	case report.State == store.StateAbsent,
-		report.State == store.StateOlder && (report.Facts == nil || report.Facts.SettingsAbsent):
-		return store.Facts{SettingsAbsent: true}, true
-	case report.Facts != nil:
-		return *report.Facts, true
-	}
-	return store.Facts{}, false
 }
 
 // byKey returns the setting named key out of list, or its zero value

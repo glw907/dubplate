@@ -44,3 +44,13 @@ type JobStatus struct {
 	UpdatedAt      time.Time
 	FinishedAt     *time.Time
 }
+
+// A JobSuccess is a job kind's newest succeeded record.
+type JobSuccess struct {
+	// Finished is when the job finished, in UTC.
+	Finished time.Time
+
+	// Progress is the record's final progress text, "" when it has
+	// none.
+	Progress string
+}

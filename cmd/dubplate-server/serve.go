@@ -303,8 +303,13 @@ func openServeStore(ctx context.Context, environ []string, reg *config.Registry,
 	if err != nil {
 		return nil, err
 	}
-	report := store.Inspect(ctx, store.InspectOptions{StateDir: cfg.StateDir, BusyTimeout: busyTimeout})
-	keep, err := settings.LocalSnapshotKeep(report, environ, reg)
+	var stored settings.Facts
+	report := store.Inspect(ctx, store.InspectOptions{
+		StateDir:    cfg.StateDir,
+		BusyTimeout: busyTimeout,
+		Readers:     []store.Reader{stored.Reader()},
+	})
+	keep, err := settings.LocalSnapshotKeep(report, stored, environ, reg)
 	if err != nil {
 		return nil, err
 	}

@@ -409,8 +409,12 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 		env     []string
 		// want maps each key whose row the run must print to every
 		// part that row must name.
-		want     map[string][]string
-		wantFail bool
+		want map[string][]string
+		// doctorWant replaces want for doctor's rows where they
+		// differ: doctor withholds a sensitive setting's value, and
+		// check prints it.
+		doctorWant map[string][]string
+		wantFail   bool
 	}{
 		{
 			name:     "a current store, a rate out of bounds",
@@ -426,11 +430,12 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 			wantFail: true,
 		},
 		{
-			name:     "a store at 0003, an expiry that does not parse",
-			version:  3,
-			env:      []string{"DUBPLATE_MAGIC_LINK_EXPIRY=soon"},
-			want:     map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {"refused:", `invalid value "soon"`, "a Go duration string"}},
-			wantFail: true,
+			name:       "a store at 0003, an expiry that does not parse",
+			version:    3,
+			env:        []string{"DUBPLATE_MAGIC_LINK_EXPIRY=soon"},
+			want:       map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {"refused:", `invalid value "soon"`, "a Go duration string"}},
+			doctorWant: map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {"refused:", "invalid value (withheld)", "a Go duration string"}},
+			wantFail:   true,
 		},
 		{
 			name:     "a store at 0001, a rate out of bounds",
@@ -449,9 +454,10 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 			wantFail: true,
 		},
 		{
-			name: "an absent store, an in-bounds expiry",
-			env:  []string{"DUBPLATE_MAGIC_LINK_EXPIRY=20m"},
-			want: map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {`"20m"`, "seeds"}},
+			name:       "an absent store, an in-bounds expiry",
+			env:        []string{"DUBPLATE_MAGIC_LINK_EXPIRY=20m"},
+			want:       map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {`"20m"`, "seeds"}},
+			doctorWant: map[string][]string{"DUBPLATE_MAGIC_LINK_EXPIRY": {"env (withheld) seeds at serve's next start"}},
 		},
 	}
 	for _, tt := range tests {
@@ -500,7 +506,11 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 				if !tt.wantFail && err != nil {
 					t.Fatalf("Execute() error = %v, want nil; stdout %q", err, stdout.String())
 				}
-				for key, parts := range tt.want {
+				want := tt.want
+				if tt.doctorWant != nil {
+					want = tt.doctorWant
+				}
+				for key, parts := range want {
 					status, ok := doctorKeyStatus(stdout.String(), key)
 					if !ok {
 						t.Fatalf("stdout = %q, want exactly one row keyed %s", stdout.String(), key)
@@ -509,12 +519,6 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 						if !strings.Contains(status, part) {
 							t.Errorf("%s row = %q, want it to contain %q", key, status, part)
 						}
-					}
-				}
-				if !tt.wantFail {
-					status, _ := doctorKeyStatus(stdout.String(), "DUBPLATE_MAGIC_LINK_EXPIRY")
-					if want := `env "20m" seeds at serve's next start`; !strings.Contains(status, want) {
-						t.Errorf("row = %q, want it to contain %q", status, want)
 					}
 				}
 			})

@@ -76,7 +76,8 @@ type Setting struct {
 	Description string
 	// Sensitivity is whether a live change to the value is dangerous, though
 	// it is no secret: a write to a Sensitive setting requires fresh
-	// re-authentication. A report prints its value and its sensitivity.
+	// re-authentication. A report prints its sensitivity; doctor
+	// withholds its value.
 	Sensitivity Sensitivity
 
 	// validate is the check AddSetting built from the setting's bound;
@@ -102,7 +103,9 @@ func (s Setting) Validate(value string) error {
 // setting's bounds can express, such as one duration having to cover
 // another. Check receives each of Keys' values in force, in string
 // form and keyed by key, and returns an error naming every key it
-// compares, or nil when the values agree.
+// compares, or nil when the values agree. The error quotes each value
+// it prints with %q, the form doctor matches to withhold a
+// [Sensitive] setting's value.
 type CorrelatedRule struct {
 	Name  string
 	Keys  []string

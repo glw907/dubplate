@@ -1,21 +1,68 @@
 package intake
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/doctor"
 	"github.com/glw907/dubplate/internal/intake/staging"
+	"github.com/glw907/dubplate/internal/store"
 	"golang.org/x/sys/unix"
 )
 
-// VolumeRowStatus renders doctor's "music volume" row: what the check
-// serve runs at startup finds of staging and the library root, then
-// where each of roots sits. roots are the collection roots the store
-// lists, relative to the library root, and are nil when the store was
-// not read.
+// collectionsVersion is the lowest store version holding the
+// collections table (0003_catalog.sql).
+const collectionsVersion = 3
+
+// Facts are the collection roots a store inspection lists for the
+// doctor command, relative to the library root.
+type Facts struct {
+	roots [][]byte
+}
+
+// Reader returns the [store.Reader] that fills f from the collections
+// table.
+func (f *Facts) Reader() store.Reader {
+	return func(ctx context.Context, q store.Querier, version int) error {
+		if version < collectionsVersion {
+			return nil
+		}
+		rows, err := q.QueryContext(ctx, `SELECT root_path FROM collections ORDER BY root_path`)
+		if err != nil {
+			return fmt.Errorf("list collection roots: %w", err)
+		}
+		defer func() { _ = rows.Close() }()
+		for rows.Next() {
+			var root []byte
+			if err := rows.Scan(&root); err != nil {
+				return fmt.Errorf("scan a collection root: %w", err)
+			}
+			f.roots = append(f.roots, root)
+		}
+		return rows.Err()
+	}
+}
+
+// volumeRowName is the name of the row reporting the music volume:
+// staging, the library root, and the collection roots under it.
+const volumeRowName = "music volume"
+
+// DoctorRows renders the music volume row for cfg, with the collection
+// roots f holds, which are none when the store was not read.
+func DoctorRows(cfg *config.Config, f Facts) []doctor.Row {
+	row := doctor.Row{Name: volumeRowName}
+	row.Status, row.Failed = volumeStatus(cfg, f.roots)
+	return []doctor.Row{row}
+}
+
+// volumeStatus renders the music volume row: what the check serve runs
+// at startup finds of staging and the library root, then where each of
+// roots sits.
 //
 // A directory not created yet is named without failing the row, as on
 // a fresh box before deploy.sh runs, and a collection root not created
@@ -23,7 +70,7 @@ import (
 // is made. Any other refusal from the startup check fails the row, as
 // does a collection root outside the library root's mount. A nil cfg
 // ([config.Load] refused the environment) reads "not checked".
-func VolumeRowStatus(cfg *config.Config, roots [][]byte) (status string, failed bool) {
+func volumeStatus(cfg *config.Config, roots [][]byte) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
