@@ -29,11 +29,10 @@ func TestFactsRows(t *testing.T) {
 	}
 	current := func(f store.Facts) store.Report { return store.Report{State: store.StateCurrent, Facts: &f} }
 	tests := []struct {
-		name    string
-		report  store.Report
-		checked bool
-		last    map[string]ops.JobSuccess
-		want    []doctor.Row
+		name   string
+		report store.Report
+		last   map[string]ops.JobSuccess
+		want   []doctor.Row
 	}{
 		{
 			name:   "not checked at all: the store row never ran Inspect",
@@ -42,16 +41,14 @@ func TestFactsRows(t *testing.T) {
 			want:   notChecked,
 		},
 		{
-			name:    "checked, but the store carries no Facts (absent, busy, older, newer, not a store, refused, or mid-restore)",
-			report:  store.Report{State: store.StateAbsent},
-			checked: true,
-			want:    notChecked,
+			name:   "inspected, but the store carries no Facts (absent, busy, older, newer, not a store, refused, or mid-restore)",
+			report: store.Report{State: store.StateAbsent},
+			want:   notChecked,
 		},
 		{
-			name:    "no succeeded backup: never, no wal, free known, no copies",
-			report:  current(store.Facts{FreeBytes: 2048, FreeKnown: true}),
-			checked: true,
-			last:    map[string]ops.JobSuccess{"scan": {Finished: testNow}},
+			name:   "no succeeded backup: never, no wal, free known, no copies",
+			report: current(store.Facts{FreeBytes: 2048, FreeKnown: true}),
+			last:   map[string]ops.JobSuccess{"scan": {Finished: testNow}},
 			want: []doctor.Row{
 				{Name: "backup last success", Status: "never"},
 				{Name: "backup wal size", Status: "0 B"},
@@ -66,8 +63,7 @@ func TestFactsRows(t *testing.T) {
 				Copies:     3,
 				CopiesSize: 3*1024*1024 + 512*1024,
 			}),
-			checked: true,
-			last:    map[string]ops.JobSuccess{ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: finishedMessage}},
+			last: map[string]ops.JobSuccess{ops.KindBackup: {Finished: testNow.Add(-95 * time.Minute), Progress: finishedMessage}},
 			want: []doctor.Row{
 				{Name: "backup last success", Status: "1h35m ago"},
 				{Name: "backup wal size", Status: "4.0 KiB"},
@@ -76,9 +72,8 @@ func TestFactsRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "a succeeded backup whose prune was skipped names the reason",
-			report:  current(store.Facts{}),
-			checked: true,
+			name:   "a succeeded backup whose prune was skipped names the reason",
+			report: current(store.Facts{}),
 			last: map[string]ops.JobSuccess{ops.KindBackup: {
 				Finished: testNow.Add(-30 * time.Second), Progress: "prune skipped: the run's stamp is not the newest on the remote",
 			}},
@@ -90,9 +85,8 @@ func TestFactsRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "a succeeded backup whose prune failed names the reason",
-			report:  current(store.Facts{}),
-			checked: true,
+			name:   "a succeeded backup whose prune failed names the reason",
+			report: current(store.Facts{}),
 			last: map[string]ops.JobSuccess{ops.KindBackup: {
 				Finished: testNow.Add(-25 * time.Hour), Progress: "prune failed: list remote snapshots: exit status 1",
 			}},
@@ -106,7 +100,7 @@ func TestFactsRows(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := factsRows(testNow, tt.report, tt.checked, tt.last)
+			got := factsRows(testNow, tt.report, tt.last)
 			if !slices.Equal(got, tt.want) {
 				t.Errorf("factsRows() = %+v, want %+v", got, tt.want)
 			}

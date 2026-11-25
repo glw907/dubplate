@@ -313,8 +313,8 @@ func TestConfigFrom_ResolvesTheSource(t *testing.T) {
 // never signs with the empty secrets such a config resolves to.
 func TestConfigFrom_RefusesAnotherSource(t *testing.T) {
 	_, err := ConfigFrom(&config.Config{}, settings.NewAccessor(nil, config.NewRegistry()))
-	if !errors.Is(err, ErrSourceNotSelected) {
-		t.Fatalf("ConfigFrom() error = %v, want ErrSourceNotSelected", err)
+	if !errors.Is(err, errSourceNotSelected) {
+		t.Fatalf("ConfigFrom() error = %v, want errSourceNotSelected", err)
 	}
 }
 

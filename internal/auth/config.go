@@ -477,9 +477,9 @@ func ReadLimits(ctx context.Context, acc *settings.Accessor) (Limits, error) {
 	return limits, nil
 }
 
-// ErrSourceNotSelected is the refusal [ConfigFrom] returns for a config
+// errSourceNotSelected is the refusal [ConfigFrom] returns for a config
 // whose selected identity source is not the magic-link source.
-var ErrSourceNotSelected = errors.New("the magic-link identity source is not selected")
+var errSourceNotSelected = errors.New("the magic-link identity source is not selected")
 
 // Config is everything the magic-link source resolves from the wall and
 // the settings store, read once at serve's start. The secrets and the
@@ -508,12 +508,12 @@ type Config struct {
 }
 
 // ConfigFrom resolves the magic-link source's values from cfg and its
-// settings through acc. It returns [ErrSourceNotSelected] when cfg
-// selects another source, since that config resolves every secret to
-// empty and an empty HMAC key would sign every token.
+// settings through acc. It refuses a cfg that selects another source,
+// since that config resolves every secret to empty and an empty HMAC
+// key would sign every token.
 func ConfigFrom(cfg *config.Config, acc *settings.Accessor) (Config, error) {
 	if cfg.IdentitySource != magicLinkIdentitySource.Name {
-		return Config{}, ErrSourceNotSelected
+		return Config{}, errSourceNotSelected
 	}
 	return Config{
 		LinkSecret:            []byte(cfg.IdentitySourceValue(MagicLinkSecretKey)),

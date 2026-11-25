@@ -38,3 +38,7 @@ a correlated rule that prints a value bare would leak it. Every registered rule 
 today.
 
 `check` still prints a refused value in full: it is not a doctor row.
+
+The rule binds the settings family only. A wall key or threshold marked `config.Sensitive` prints
+as its row needs it: the bind-address and boundary-probe rows exist to report each address, and
+the threshold rows show the port and prefix in force.

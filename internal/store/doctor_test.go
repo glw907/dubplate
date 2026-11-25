@@ -109,7 +109,7 @@ func TestReportRow(t *testing.T) {
 func TestStoreRow_EndToEnd(t *testing.T) {
 	t.Run("no leaf reports absent", func(t *testing.T) {
 		environ := []string{"DUBPLATE_STATE_DIR=" + t.TempDir()}
-		row, report, checked := Doctor(context.Background(), environ)
+		row, report := Doctor(context.Background(), environ)
 		status, failed := row.Status, row.Failed
 		if status != "absent" {
 			t.Errorf("Doctor() status = %q, want %q", status, "absent")
@@ -117,8 +117,8 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 		if failed {
 			t.Errorf("Doctor() failed = true, want false")
 		}
-		if !checked {
-			t.Error("Doctor() checked = false, want true")
+		if report.State != StateAbsent {
+			t.Errorf("Doctor() report.State = %v, want %v", report.State, StateAbsent)
 		}
 		if report.Facts != nil {
 			t.Errorf("Doctor() report.Facts = %+v, want nil for an absent store", report.Facts)
@@ -130,7 +130,7 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 		buildZeroByteStoreLeaf(t, stateDir)
 		environ := []string{"DUBPLATE_STATE_DIR=" + stateDir}
 
-		row, _, checked := Doctor(context.Background(), environ)
+		row, report := Doctor(context.Background(), environ)
 		status, failed := row.Status, row.Failed
 		if !strings.HasPrefix(status, "not a store: ") {
 			t.Errorf("Doctor() status = %q, want prefix %q", status, "not a store: ")
@@ -138,8 +138,8 @@ func TestStoreRow_EndToEnd(t *testing.T) {
 		if !failed {
 			t.Errorf("Doctor() failed = false, want true")
 		}
-		if !checked {
-			t.Error("Doctor() checked = false, want true")
+		if report.State != StateNotAStore {
+			t.Errorf("Doctor() report.State = %v, want %v", report.State, StateNotAStore)
 		}
 	})
 }
@@ -177,14 +177,14 @@ func TestStoreRow_RestoreIntent(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			row, _, checked := Doctor(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir})
+			row, report := Doctor(context.Background(), []string{"DUBPLATE_STATE_DIR=" + stateDir})
 			status, failed := row.Status, row.Failed
 			want := "restore in progress: restore-intent record " + path + " " + tt.detail
 			if status != want {
 				t.Errorf("Doctor() status = %q, want %q", status, want)
 			}
-			if !failed || !checked {
-				t.Errorf("Doctor() failed, checked = %v, %v, want true, true", failed, checked)
+			if !failed || report.State != StateRestoreInProgress {
+				t.Errorf("Doctor() failed, report.State = %v, %v, want true, %v", failed, report.State, StateRestoreInProgress)
 			}
 		})
 	}
@@ -196,11 +196,12 @@ func TestStoreRow_RestoreIntent(t *testing.T) {
 // distinct from TestStoreBusyTimeout_ParseFailure's proof that
 // the parse failure does not wrap store.ErrOutOfRange.
 func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
+	var ran readerRan
 	environ := []string{
 		"DUBPLATE_STATE_DIR=" + t.TempDir(),
 		"DUBPLATE_STORE_BUSY_TIMEOUT=not-a-duration",
 	}
-	row, _, checked := Doctor(context.Background(), environ)
+	row, report := Doctor(context.Background(), environ, ran.reader)
 	status, failed := row.Status, row.Failed
 	if status != "not checked" {
 		t.Errorf("Doctor() status = %q, want %q", status, "not checked")
@@ -208,20 +209,19 @@ func TestStoreRow_BusyTimeoutUnparseable(t *testing.T) {
 	if !failed {
 		t.Errorf("Doctor() failed = false, want true")
 	}
-	if checked {
-		t.Error("Doctor() checked = true, want false: an unparseable busy timeout never runs Inspect")
-	}
+	ran.requireNotInspected(t, report, "an unparseable busy timeout")
 }
 
 // TestStoreRow_BusyTimeoutOutOfRange proves the range refusal reads
 // differently from a parse failure: the row names the key and the
 // bound, fails, and never opens the state directory.
 func TestStoreRow_BusyTimeoutOutOfRange(t *testing.T) {
+	var ran readerRan
 	environ := []string{
 		"DUBPLATE_STATE_DIR=" + t.TempDir(),
 		"DUBPLATE_STORE_BUSY_TIMEOUT=0s",
 	}
-	row, _, checked := Doctor(context.Background(), environ)
+	row, report := Doctor(context.Background(), environ, ran.reader)
 	status, failed := row.Status, row.Failed
 	if want := "not checked: DUBPLATE_STORE_BUSY_TIMEOUT must be at least 1ms"; status != want {
 		t.Errorf("Doctor() status = %q, want %q", status, want)
@@ -229,16 +229,15 @@ func TestStoreRow_BusyTimeoutOutOfRange(t *testing.T) {
 	if !failed {
 		t.Error("Doctor() failed = false, want true")
 	}
-	if checked {
-		t.Error("Doctor() checked = true, want false: an out-of-range busy timeout never runs Inspect")
-	}
+	ran.requireNotInspected(t, report, "an out-of-range busy timeout")
 }
 
 // TestStoreRow_StateDirUnset proves the "not checked" row a missing
 // DUBPLATE_STATE_DIR reports, with no failure of its own (the owned
 // wall row already reports the missing key).
 func TestStoreRow_StateDirUnset(t *testing.T) {
-	row, _, checked := Doctor(context.Background(), nil)
+	var ran readerRan
+	row, report := Doctor(context.Background(), nil, ran.reader)
 	status, failed := row.Status, row.Failed
 	if status != "not checked" {
 		t.Errorf("Doctor() status = %q, want %q", status, "not checked")
@@ -246,8 +245,25 @@ func TestStoreRow_StateDirUnset(t *testing.T) {
 	if failed {
 		t.Errorf("Doctor() failed = true, want false")
 	}
-	if checked {
-		t.Error("Doctor() checked = true, want false: a missing state directory never runs Inspect")
+	ran.requireNotInspected(t, report, "a missing state directory")
+}
+
+// readerRan records whether its reader ran, for a test of a row that
+// must never reach [Inspect].
+type readerRan bool
+
+func (r *readerRan) reader(context.Context, Querier, int) error {
+	*r = true
+	return nil
+}
+
+// requireNotInspected fails t unless report is the zero Report and the
+// reader never ran, as Doctor promises when why stops it before
+// [Inspect].
+func (r *readerRan) requireNotInspected(t *testing.T, report Report, why string) {
+	t.Helper()
+	if *r || report.State != 0 || report.Facts != nil {
+		t.Errorf("Doctor() reader ran = %v, report = %+v; want no reader run and the zero Report: %s never runs Inspect", bool(*r), report, why)
 	}
 }
 

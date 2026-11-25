@@ -49,13 +49,11 @@ func TestDoctorRows(t *testing.T) {
 		environ []string
 		report  store.Report
 		facts   Facts
-		checked bool
 		want    []doctor.Row
 	}{
 		{
-			name:    "no row, env absent: the default is in force",
-			checked: true,
-			report:  current,
+			name:   "no row, env absent: the default is in force",
+			report: current,
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
@@ -63,7 +61,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "no row, env present: seeds at serve's next start",
-			checked: true,
 			environ: []string{key + "=20"},
 			report:  current,
 			want: []doctor.Row{
@@ -73,7 +70,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "env_seed row, env equal: the seeded value is in force",
-			checked: true,
 			environ: []string{key + "=20"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}},
@@ -84,7 +80,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "env_seed row, env different: re-seeds at serve's next start",
-			checked: true,
 			environ: []string{key + "=30"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}},
@@ -94,20 +89,18 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "env_seed row, env absent: returns to the default at serve's next start",
-			checked: true,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}},
+			name:   "env_seed row, env absent: returns to the default at serve's next start",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: key, Value: "20", Source: "env_seed", SeedValue: "20"}}},
 			want: []doctor.Row{
 				{Name: key, Status: `"20" (source env_seed, next operation); returns to the default at serve's next start`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
 			},
 		},
 		{
-			name:    "admin row, env absent: the administrator's value is in force",
-			checked: true,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}},
+			name:   "admin row, env absent: the administrator's value is in force",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}},
 			want: []doctor.Row{
 				{Name: key, Status: `"40" (source admin, next operation)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
@@ -115,7 +108,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "admin row, env equal: the administrator's value is in force",
-			checked: true,
 			environ: []string{key + "=40"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}},
@@ -126,7 +118,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "admin row, env different: refusing",
-			checked: true,
 			environ: []string{key + "=50"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: key, Value: "40", Source: "admin", SeedValue: "20"}}},
@@ -136,10 +127,9 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "out-of-bounds admin value stays in force: refusing",
-			checked: true,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: key, Value: "1", Source: "admin", SeedValue: "1"}}},
+			name:   "out-of-bounds admin value stays in force: refusing",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: key, Value: "1", Source: "admin", SeedValue: "1"}}},
 			want: []doctor.Row{
 				{Name: key, Status: `refused: stored admin value refused: DUBPLATE_TEST_SETTING: value "1" is below the floor 3; clear the administrator's value with: dubplate-server settings reset DUBPLATE_TEST_SETTING`, Failed: true},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
@@ -147,7 +137,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "out-of-bounds env_seed row healed by re-seed",
-			checked: true,
 			environ: []string{key + "=15"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: key, Value: "1", Source: "env_seed", SeedValue: "1"}}},
@@ -157,20 +146,18 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "out-of-bounds env_seed row healed by removal",
-			checked: true,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: key, Value: "1", Source: "env_seed", SeedValue: "1"}}},
+			name:   "out-of-bounds env_seed row healed by removal",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: key, Value: "1", Source: "env_seed", SeedValue: "1"}}},
 			want: []doctor.Row{
 				{Name: key, Status: `"1" (source env_seed, next operation); returns to the default at serve's next start`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
 			},
 		},
 		{
-			name:    "a stored value that does not parse: refusing naming the reason",
-			checked: true,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: key, Value: "not-a-number", Source: "env_seed", SeedValue: "not-a-number"}}},
+			name:   "a stored value that does not parse: refusing naming the reason",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: key, Value: "not-a-number", Source: "env_seed", SeedValue: "not-a-number"}}},
 			want: []doctor.Row{
 				{Name: key, Status: `refused: stored env_seed value refused: DUBPLATE_TEST_SETTING: invalid value "not-a-number", want an integer`, Failed: true},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
@@ -178,7 +165,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "an env value that does not parse: refusing naming the reason",
-			checked: true,
 			environ: []string{key + "=abc"},
 			report:  current,
 			want: []doctor.Row{
@@ -187,10 +173,9 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "an orphan row for an unregistered key",
-			checked: true,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: "DUBPLATE_TEST_RETIRED", Value: "1", Source: "admin", SeedValue: "1"}}},
+			name:   "an orphan row for an unregistered key",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: "DUBPLATE_TEST_RETIRED", Value: "1", Source: "admin", SeedValue: "1"}}},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive)"},
@@ -198,9 +183,8 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "absent store: holds no settings yet",
-			checked: true,
-			report:  store.Report{State: store.StateAbsent},
+			name:   "absent store: holds no settings yet",
+			report: store.Report{State: store.StateAbsent},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store holds no settings yet`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store holds no settings yet"},
@@ -208,7 +192,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "absent store, env present: seeds at serve's next start",
-			checked: true,
 			environ: []string{key + "=20"},
 			report:  store.Report{State: store.StateAbsent},
 			want: []doctor.Row{
@@ -217,28 +200,25 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "older store below the version that adds the settings table",
-			checked: true,
-			report:  store.Report{State: store.StateOlder, StoreVersion: 3, Facts: &store.Facts{}},
-			facts:   Facts{Absent: true},
+			name:   "older store below the version that adds the settings table",
+			report: store.Report{State: store.StateOlder, StoreVersion: 3, Facts: &store.Facts{}},
+			facts:  Facts{Absent: true},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store holds no settings yet`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store holds no settings yet"},
 			},
 		},
 		{
-			name:    "older store below the version that adds the jobs table: nil facts",
-			checked: true,
-			report:  store.Report{State: store.StateOlder, StoreVersion: 1},
+			name:   "older store below the version that adds the jobs table: nil facts",
+			report: store.Report{State: store.StateOlder, StoreVersion: 1},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store holds no settings yet`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store holds no settings yet"},
 			},
 		},
 		{
-			name:    "busy: not checked",
-			checked: true,
-			report:  store.Report{State: store.StateBusy},
+			name:   "busy: not checked",
+			report: store.Report{State: store.StateBusy},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked (busy)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (busy)"},
@@ -246,7 +226,6 @@ func TestDoctorRows(t *testing.T) {
 		},
 		{
 			name:    "busy, env present: not checked against the store",
-			checked: true,
 			environ: []string{key + "=20"},
 			report:  store.Report{State: store.StateBusy},
 			want: []doctor.Row{
@@ -255,53 +234,47 @@ func TestDoctorRows(t *testing.T) {
 			},
 		},
 		{
-			name:    "restore in progress: not checked",
-			checked: true,
-			report:  store.Report{State: store.StateRestoreInProgress},
+			name:   "restore in progress: not checked",
+			report: store.Report{State: store.StateRestoreInProgress},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked (restore in progress)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (restore in progress)"},
 			},
 		},
 		{
-			name:    "not a store: not checked",
-			checked: true,
-			report:  store.Report{State: store.StateNotAStore},
+			name:   "not a store: not checked",
+			report: store.Report{State: store.StateNotAStore},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked (not a store)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (not a store)"},
 			},
 		},
 		{
-			name:    "refused: not checked",
-			checked: true,
-			report:  store.Report{State: store.StateRefused},
+			name:   "refused: not checked",
+			report: store.Report{State: store.StateRefused},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked (refused)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (refused)"},
 			},
 		},
 		{
-			name:    "newer: not checked",
-			checked: true,
-			report:  store.Report{State: store.StateNewer},
+			name:   "newer: not checked",
+			report: store.Report{State: store.StateNewer},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked (newer)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (newer)"},
 			},
 		},
 		{
-			name:    "an unrecognized state: not checked",
-			checked: true,
-			report:  store.Report{State: store.State(99), Facts: &store.Facts{}},
+			name:   "an unrecognized state: not checked",
+			report: store.Report{State: store.State(99), Facts: &store.Facts{}},
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked (unknown)`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (unknown)"},
 			},
 		},
 		{
-			name:    "the store row never ran Inspect: not checked",
-			checked: false,
+			name: "the store row never ran Inspect: not checked",
 			want: []doctor.Row{
 				{Name: key, Status: `"10" (source default, next operation); store not checked`},
 				{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked"},
@@ -310,7 +283,7 @@ func TestDoctorRows(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rows := DoctorRows(tt.environ, settingsDoctorRowsRegistry(), tt.report, tt.checked, tt.facts)
+			rows := DoctorRows(tt.environ, settingsDoctorRowsRegistry(), tt.report, tt.facts)
 			if !slices.Equal(rows, tt.want) {
 				t.Errorf("rows = %+v, want %+v", rows, tt.want)
 			}
@@ -332,36 +305,31 @@ func TestDoctorRows_SensitiveWithheld(t *testing.T) {
 		environ []string
 		report  store.Report
 		facts   Facts
-		checked bool
 		want    doctor.Row
 	}{
 		{
-			name:    "a stored value in force",
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: secretKey, Value: "42", Source: "admin", SeedValue: "42"}}},
-			checked: true,
-			want:    doctor.Row{Name: secretKey, Status: "(withheld) (source admin, immediately, sensitive)"},
+			name:   "a stored value in force",
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: secretKey, Value: "42", Source: "admin", SeedValue: "42"}}},
+			want:   doctor.Row{Name: secretKey, Status: "(withheld) (source admin, immediately, sensitive)"},
 		},
 		{
 			name:    "an environment value that re-seeds",
 			environ: []string{secretKey + "=53"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: secretKey, Value: "42", Source: "env_seed", SeedValue: "42"}}},
-			checked: true,
 			want:    doctor.Row{Name: secretKey, Status: "(withheld) (source env_seed, immediately, sensitive); env (withheld) re-seeds at serve's next start"},
 		},
 		{
 			name:    "an environment value that seeds an absent store",
 			environ: []string{secretKey + "=53"},
 			report:  store.Report{State: store.StateAbsent},
-			checked: true,
 			want:    doctor.Row{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store holds no settings yet; env (withheld) seeds at serve's next start"},
 		},
 		{
 			name:    "an environment value not checked against a busy store",
 			environ: []string{secretKey + "=53"},
 			report:  store.Report{State: store.StateBusy},
-			checked: true,
 			want:    doctor.Row{Name: secretKey, Status: "(withheld) (source default, immediately, sensitive); store not checked (busy); env (withheld) not checked against the store"},
 		},
 		{
@@ -369,7 +337,6 @@ func TestDoctorRows_SensitiveWithheld(t *testing.T) {
 			environ: []string{secretKey + "=53"},
 			report:  current,
 			facts:   Facts{Rows: []Row{{Key: secretKey, Value: "42", Source: "admin", SeedValue: "42"}}},
-			checked: true,
 			want: doctor.Row{Name: secretKey, Failed: true, Status: "refused: DUBPLATE_TEST_SECRET: the environment seeds (withheld) but an administrator set (withheld); " +
 				"unset DUBPLATE_TEST_SECRET, or set it to (withheld), or clear the administrator's value by running dubplate-server settings reset DUBPLATE_TEST_SECRET"},
 		},
@@ -377,22 +344,19 @@ func TestDoctorRows_SensitiveWithheld(t *testing.T) {
 			name:    "an environment value that does not parse",
 			environ: []string{secretKey + "=53.5"},
 			report:  current,
-			checked: true,
 			want:    doctor.Row{Name: secretKey, Failed: true, Status: "refused: environment seed refused: DUBPLATE_TEST_SECRET: invalid value (withheld), want an integer"},
 		},
 		{
 			name:    "an environment value above the ceiling",
 			environ: []string{secretKey + "=530"},
 			report:  current,
-			checked: true,
 			want:    doctor.Row{Name: secretKey, Failed: true, Status: "refused: environment seed refused: DUBPLATE_TEST_SECRET: value (withheld) is above the ceiling 100"},
 		},
 		{
-			name:    "a stored value a correlated rule refuses",
-			reg:     secretBelowSettingRegistry,
-			report:  current,
-			facts:   Facts{Rows: []Row{{Key: secretKey, Value: "42", Source: "admin", SeedValue: "42"}}},
-			checked: true,
+			name:   "a stored value a correlated rule refuses",
+			reg:    secretBelowSettingRegistry,
+			report: current,
+			facts:  Facts{Rows: []Row{{Key: secretKey, Value: "42", Source: "admin", SeedValue: "42"}}},
 			want: doctor.Row{Name: secretKey, Failed: true, Status: `refused: correlated rule "secret below the setting": ` +
 				`DUBPLATE_TEST_SECRET (withheld) is not below DUBPLATE_TEST_SETTING "10"`},
 		},
@@ -403,7 +367,7 @@ func TestDoctorRows_SensitiveWithheld(t *testing.T) {
 			if tt.reg != nil {
 				reg = tt.reg
 			}
-			rows := DoctorRows(tt.environ, reg(), tt.report, tt.checked, tt.facts)
+			rows := DoctorRows(tt.environ, reg(), tt.report, tt.facts)
 			i := slices.IndexFunc(rows, func(r doctor.Row) bool { return r.Name == secretKey })
 			if i < 0 {
 				t.Fatalf("rows carry no entry for %s: %+v", secretKey, rows)
@@ -464,7 +428,7 @@ func TestStoreRowsAgreeOnVouch(t *testing.T) {
 		t.Run(state.String(), func(t *testing.T) {
 			report := store.Report{State: state, Facts: &store.Facts{}}
 			storeFailed := report.Row().Failed
-			rows := DoctorRows(nil, settingsDoctorRowsRegistry(), report, true, Facts{})
+			rows := DoctorRows(nil, settingsDoctorRowsRegistry(), report, Facts{})
 			if len(rows) == 0 {
 				t.Fatal("DoctorRows rendered no rows")
 			}
@@ -489,7 +453,7 @@ func TestDoctorRows_LocalKeep(t *testing.T) {
 
 	report := store.Report{State: store.StateCurrent, Facts: &store.Facts{}}
 	facts := Facts{Rows: []Row{{Key: key, Value: "2", Source: "env_seed", SeedValue: "2"}}}
-	rows := DoctorRows([]string{key + "=2"}, reg, report, true, facts)
+	rows := DoctorRows([]string{key + "=2"}, reg, report, facts)
 	want := doctor.Row{Name: key, Status: `"2" (source env_seed, next operation)`}
 	if i := slices.IndexFunc(rows, func(r doctor.Row) bool { return r.Name == key }); i < 0 || rows[i] != want {
 		t.Errorf("rows = %+v, want one %+v", rows, want)
@@ -507,7 +471,7 @@ func TestDoctorRows_CorrelatedRule(t *testing.T) {
 		{Key: keyNonce, Value: "30m", Source: "admin", SeedValue: "24h"},
 	}}
 
-	rows := DoctorRows([]string{keyExpiry + "=45m"}, correlatedRegistry(), report, true, facts)
+	rows := DoctorRows([]string{keyExpiry + "=45m"}, correlatedRegistry(), report, facts)
 
 	for _, key := range []string{keyExpiry, keyNonce} {
 		i := slices.IndexFunc(rows, func(r doctor.Row) bool { return r.Name == key })

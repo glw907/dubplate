@@ -10,7 +10,9 @@ import (
 )
 
 // jobsVersion is the lowest store version holding the jobs table
-// (0002_jobs.sql).
+// (0002_jobs.sql). It equals the version below which [store.Inspect]
+// reads no facts at all, and the reader checks it anyway, so the jobs
+// package never leans on the store's threshold.
 const jobsVersion = 2
 
 // Facts are the job facts a store inspection reads for the doctor

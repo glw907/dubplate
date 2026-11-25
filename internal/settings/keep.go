@@ -39,13 +39,8 @@ func LocalSnapshotKeep(report store.Report, f Facts, environ []string, reg *conf
 	if err != nil {
 		return 0, fmt.Errorf("%s: default %q: %w", setting.Key, setting.Default, err)
 	}
-	var facts Facts
-	switch {
-	case report.State == store.StateOlder:
-		facts, _ = SeedFacts(report, f)
-	case report.Facts != nil:
-		facts = f
-	default:
+	facts, ok := SeedFacts(report, f)
+	if !ok || report.State == store.StateAbsent {
 		return keep, nil
 	}
 

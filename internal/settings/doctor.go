@@ -18,21 +18,20 @@ const withheld = "(withheld)"
 
 // DoctorRows renders doctor's one row per registered setting, in
 // declaration order, and one row per orphan, from report and the
-// settings facts f its inspection read. checked names whether the
-// store row ran [store.Inspect] at all. A state [store.State.Vouches]
+// settings facts f its inspection read. A state [store.State.Vouches]
 // refuses reports every setting "not checked"; every other state
 // evaluates the seed rule against the facts [SeedFacts] picks. A store
 // with no settings table yet shows each setting at its default and
 // what serve's next start seeds, unless the seed would refuse, which
 // fails here as it would there. A [config.Sensitive] setting's value
 // never prints.
-func DoctorRows(environ []string, reg *config.Registry, report store.Report, checked bool, f Facts) []doctor.Row {
+func DoctorRows(environ []string, reg *config.Registry, report store.Report, f Facts) []doctor.Row {
 	list := reg.Settings()
 	var rows []doctor.Row
 	facts, ok := SeedFacts(report, f)
-	if !checked || !report.State.Vouches() || !ok {
+	if !report.State.Vouches() || !ok {
 		for _, s := range list {
-			rows = append(rows, doctor.Row{Name: s.Key, Status: notCheckedStatus(environ, s, report.State, checked)})
+			rows = append(rows, doctor.Row{Name: s.Key, Status: notCheckedStatus(environ, s, report.State)})
 		}
 		return rows
 	}
@@ -147,12 +146,12 @@ func noTableStatus(environ []string, s config.Setting) string {
 // notCheckedStatus renders s's row for a store state this binary
 // cannot vouch for: the default is shown for reference, since no read
 // reached the store's row, and an env value is named as not checked
-// rather than compared. When checked is false the store row never ran
-// [store.Inspect], no state names why, and the row says only "not
-// checked".
-func notCheckedStatus(environ []string, s config.Setting, state store.State, checked bool) string {
+// rather than compared. The zero state, which [store.Doctor] reports
+// when it never ran [store.Inspect], names no reason, and the row says
+// only "not checked".
+func notCheckedStatus(environ []string, s config.Setting, state store.State) string {
 	label := "not checked"
-	if checked {
+	if state != 0 {
 		label = fmt.Sprintf("not checked (%s)", state)
 	}
 	status := shown(s, s.Default) + " " + traits(s, "default") + "; store " + label

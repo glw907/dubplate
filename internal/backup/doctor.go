@@ -46,21 +46,20 @@ const (
 // is the newest succeeded job of each kind the same inspection read,
 // and now is the time the last success's age is measured from.
 //
-// Every facts row prints, reading "not checked" when checked is false
-// (the store row never ran [store.Inspect]) or report carries no
-// Facts, which [store.Inspect] leaves nil for a store this binary
-// cannot read as current: absent, busy, mid-restore, not a store,
+// Every facts row prints, reading "not checked" when report carries no
+// Facts: the store row never ran [store.Inspect], or it left Facts nil
+// for a store this binary cannot read as current: absent, busy, mid-restore, not a store,
 // refused, newer, or older below the version that added the jobs
 // table. Only the remote row can fail.
-func DoctorRows(ctx context.Context, environ []string, now time.Time, report store.Report, checked bool, last map[string]ops.JobSuccess) []doctor.Row {
-	rows := factsRows(now, report, checked, last)
+func DoctorRows(ctx context.Context, environ []string, now time.Time, report store.Report, last map[string]ops.JobSuccess) []doctor.Row {
+	rows := factsRows(now, report, last)
 	remote := doctor.Row{Name: remoteRowName}
 	remote.Status, remote.Failed = remoteStatus(ctx, environ, featuresTimeout)
 	return append(rows, remote)
 }
 
-func factsRows(now time.Time, report store.Report, checked bool, last map[string]ops.JobSuccess) []doctor.Row {
-	if !checked || report.Facts == nil {
+func factsRows(now time.Time, report store.Report, last map[string]ops.JobSuccess) []doctor.Row {
+	if report.Facts == nil {
 		return []doctor.Row{
 			{Name: lastSuccessRowName, Status: "not checked"},
 			{Name: walSizeRowName, Status: "not checked"},

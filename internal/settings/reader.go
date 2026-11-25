@@ -7,10 +7,11 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 )
 
-// A Reader returns one setting's value in force. Each call reads it
-// afresh, so a caller that reads at the point of use follows a change
-// without a restart. A non-nil error means the value is unknown, and
-// is a [*ReadError] naming the setting when an [Accessor] made it.
+// A Reader returns a value in force: one setting's, or one a package
+// builds from several, such as a set of limits. Each call reads afresh,
+// so a caller that reads at the point of use follows a change without
+// a restart. A non-nil error means the value is unknown, and is a
+// [*ReadError] naming the setting when an [Accessor] made it.
 type Reader[T any] func(ctx context.Context) (T, error)
 
 // A ReadError reports a failed read of the setting named Key. A

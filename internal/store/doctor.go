@@ -22,29 +22,29 @@ const doctorRowName = "store"
 // anything; a busy timeout that parses outside its range reports "not
 // checked" naming the key and the bound.
 //
-// It also returns the [Report] it read and whether it ran [Inspect]
-// at all (checked), so a caller building further rows from the same
-// report never inspects the store twice: report is the zero value, and
-// no reader ran, whenever checked is false.
-func Doctor(ctx context.Context, environ []string, readers ...Reader) (row doctor.Row, report Report, checked bool) {
+// It also returns the [Report] it read, so a caller building further
+// rows from the same report never inspects the store twice. When it
+// never ran [Inspect], no reader ran and report is the zero value: its
+// State is zero, which [State.Vouches] refuses, and its Facts is nil.
+func Doctor(ctx context.Context, environ []string, readers ...Reader) (row doctor.Row, report Report) {
 	notChecked := doctor.Row{Name: doctorRowName, Status: "not checked"}
 	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 	if !ok {
-		return notChecked, Report{}, false
+		return notChecked, Report{}
 	}
 
 	d, err := BusyTimeout(environ)
 	switch {
 	case errors.Is(err, ErrOutOfRange):
 		notChecked.Status, notChecked.Failed = "not checked: "+err.Error(), true
-		return notChecked, Report{}, false
+		return notChecked, Report{}
 	case err != nil:
 		notChecked.Failed = true
-		return notChecked, Report{}, false
+		return notChecked, Report{}
 	}
 
 	r := Inspect(ctx, InspectOptions{StateDir: stateDir, BusyTimeout: d, Readers: readers})
-	return r.Row(), r, true
+	return r.Row(), r
 }
 
 // Row renders r as the "store" row. The row fails for every state

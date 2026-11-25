@@ -107,24 +107,21 @@ func (f *Facts) Reader(environ []string) store.Reader {
 const membersRowName = "members"
 
 // DoctorRows renders the members row from report and the roster facts
-// f its inspection read; checked names whether the store row ran
-// [store.Inspect] at all. The row decides on the report's
+// f its inspection read. The row decides on the report's
 // StoreVersion, never on whether Facts is present, since a version 1
 // store carries no facts while a version 2 store carries facts without
 // the users table. A store the store row cannot vouch for reads "not
 // read"; the row fails only for a store that holds the users table and
 // no live admin, since nobody could then add a member through the
 // page.
-func DoctorRows(report store.Report, checked bool, f Facts) []doctor.Row {
+func DoctorRows(report store.Report, f Facts) []doctor.Row {
 	row := doctor.Row{Name: membersRowName}
-	row.Status, row.Failed = membersStatus(report, checked, f)
+	row.Status, row.Failed = membersStatus(report, f)
 	return []doctor.Row{row}
 }
 
-func membersStatus(r store.Report, checked bool, f Facts) (status string, failed bool) {
+func membersStatus(r store.Report, f Facts) (status string, failed bool) {
 	switch {
-	case !checked:
-		return "not read", false
 	case r.State == store.StateAbsent:
 		return "no store yet; start serve, then member add --admin", false
 	case !r.State.Vouches():
@@ -145,21 +142,21 @@ func membersStatus(r store.Report, checked bool, f Facts) (status string, failed
 // report and the roster facts f its inspection read, and returns any
 // other row unchanged. The admin email row's status stands unless it
 // is "ok". An "ok" stays when the store cannot speak for the roster
-// (not checked, not vouched for, absent, older than the users table)
+// (not vouched for, absent, older than the users table)
 // and when the roster holds no live member, which the members row
 // already fails. Otherwise the address's standing decides: a live
 // admin is "ok", and any other standing is a warning in the row's
 // status, which never fails doctor.
-func RefineAdminEmail(row doctor.Row, report store.Report, checked bool, f Facts) doctor.Row {
+func RefineAdminEmail(row doctor.Row, report store.Report, f Facts) doctor.Row {
 	if row.Name == adminEmailKey {
-		row.Status = adminEmailStatus(row.Status, report, checked, f)
+		row.Status = adminEmailStatus(row.Status, report, f)
 	}
 	return row
 }
 
-func adminEmailStatus(wall string, report store.Report, checked bool, f Facts) string {
+func adminEmailStatus(wall string, report store.Report, f Facts) string {
 	switch {
-	case wall != "ok", !checked, !report.State.Vouches():
+	case wall != "ok", !report.State.Vouches():
 		return wall
 	case report.Facts == nil, report.StoreVersion < usersVersion, f.members == 0:
 		return wall

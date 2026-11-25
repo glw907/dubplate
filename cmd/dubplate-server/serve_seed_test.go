@@ -256,7 +256,7 @@ func TestPrepareServe_SeedMakesTheStringsTrue(t *testing.T) {
 	doctorRow := func() string {
 		t.Helper()
 		report, stored := inspect()
-		rows := settings.DoctorRows(environ, reg, report, true, stored)
+		rows := settings.DoctorRows(environ, reg, report, stored)
 		for _, r := range rows {
 			if r.Failed {
 				t.Fatalf("doctor rows refuse: %v", rows)

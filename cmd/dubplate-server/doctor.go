@@ -61,25 +61,25 @@ func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdo
 		stored  settings.Facts
 		history jobs.Facts
 	)
-	storeRow, report, checked := store.Doctor(ctx, environ,
+	storeRow, report := store.Doctor(ctx, environ,
 		roster.Reader(environ), volume.Reader(), stored.Reader(), history.Reader())
 
 	wall := registryRows(environ, reg, rowStatuses(loadErr))
 	for i, row := range wall {
-		wall[i] = member.RefineAdminEmail(row, report, checked, roster)
+		wall[i] = member.RefineAdminEmail(row, report, roster)
 	}
 	stateDir, _ := config.Lookup(environ, "DUBPLATE_STATE_DIR")
 	rows := slices.Concat(
 		wall,
 		[]doctor.Row{storeRow},
-		member.DoctorRows(report, checked, roster),
+		member.DoctorRows(report, roster),
 		auth.DoctorRows(cfg),
-		backup.DoctorRows(ctx, environ, time.Now(), report, checked, history.LastSuccess),
+		backup.DoctorRows(ctx, environ, time.Now(), report, history.LastSuccess),
 		unidecode.DoctorRows(stateDir),
 		serve.DoctorRows(ctx, environ, reg, cfg),
 		webapp.DoctorRows(cfg, webRowResolve(environ)),
 		intake.DoctorRows(cfg, volume),
-		settings.DoctorRows(environ, reg, report, checked, stored),
+		settings.DoctorRows(environ, reg, report, stored),
 	)
 
 	failed := loadErr != nil
