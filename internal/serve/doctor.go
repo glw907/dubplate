@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
-	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -24,14 +23,14 @@ import (
 // learns a client's address, the bind addresses against this host's
 // interfaces, and the boundary probe. cfg is nil when [config.Load]
 // refused the environment.
-func DoctorRows(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) []doctor.Row {
+func DoctorRows(ctx context.Context, environ []string, cfg *config.Config) []doctor.Row {
 	clientIP := doctor.Row{Name: "client ip"}
 	clientIP.Status, clientIP.Failed = clientIPStatus(cfg)
 	addrs, addrsErr := net.InterfaceAddrs()
 	bind := doctor.Row{Name: "bind addresses"}
 	bind.Status, bind.Failed = bindAddrsStatus(environ, addrs, addrsErr)
 	probe := doctor.Row{Name: "boundary probe"}
-	probe.Status, probe.Failed = boundaryProbeStatus(ctx, environ, reg, cfg)
+	probe.Status, probe.Failed = boundaryProbeStatus(ctx, environ, cfg)
 	return []doctor.Row{clientIP, bind, probe}
 }
 
@@ -61,19 +60,18 @@ func clientIPStatus(cfg *config.Config) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	proxy, distinct, err := trustedProxy(cfg)
+	proxy, err := ParseTrustedProxy(cfg)
 	if err != nil {
 		return "invalid: " + foldRefusal(err), true
 	}
 	if proxy.Mode() == ModeDirect {
 		return proxy.Mode().String() + ": " + directAssumption, false
 	}
-	header := strings.TrimSpace(cfg.IntegrationValue(TrustedProxyClass.Name, TrustedProxyHeaderKey))
 	noun := "addresses"
-	if len(distinct) == 1 {
+	if len(proxy.proxies) == 1 {
 		noun = "address"
 	}
-	return fmt.Sprintf("%s: %s from %d %s", proxy.Mode(), header, len(distinct), noun), false
+	return fmt.Sprintf("%s: %s from %d %s", proxy.Mode(), proxy.header, len(proxy.proxies), noun), false
 }
 
 // bindAddrsStatus reports, for each address
@@ -205,19 +203,11 @@ const allTrustedUnproven = "forwarded and Connection-listed removal unproven: ev
 // fixed forwarded-address family, so an untrusted address proves the
 // strip removes the one header the client address is read from.
 //
-// The row probes nothing, and adds no failure, when reg
-// does not declare the serve port (a registry built for a test of
-// another family), when cfg is nil because [config.Load] refused
-// environ, or when the serve keys or the trusted proxy values do not
-// resolve: each of those causes is reported, and failed, by the row
-// that owns it.
-func boundaryProbeStatus(ctx context.Context, environ []string, reg *config.Registry, cfg *config.Config) (status string, failed bool) {
-	declared := slices.ContainsFunc(reg.Thresholds(), func(th config.Threshold) bool {
-		return th.Key == PortThreshold.Key
-	})
-	if !declared {
-		return "not probed: " + PortThreshold.Key + " is not registered", false
-	}
+// The row probes nothing, and adds no failure, when cfg is nil because
+// [config.Load] refused environ, or when the serve keys or the trusted
+// proxy values do not resolve: each of those causes is reported, and
+// failed, by the row that owns it.
+func boundaryProbeStatus(ctx context.Context, environ []string, cfg *config.Config) (status string, failed bool) {
 	if cfg == nil {
 		return "not probed", false
 	}
@@ -225,7 +215,7 @@ func boundaryProbeStatus(ctx context.Context, environ []string, reg *config.Regi
 	if err != nil {
 		return "not probed", false
 	}
-	proxy, trusted, err := trustedProxy(cfg)
+	proxy, err := ParseTrustedProxy(cfg)
 	if err != nil {
 		return "not probed", false
 	}
@@ -241,7 +231,7 @@ func boundaryProbeStatus(ctx context.Context, environ []string, reg *config.Regi
 			continue
 		}
 		ip = ip.Unmap()
-		_, isTrusted := trusted[ip]
+		_, isTrusted := proxy.proxies[ip]
 		result := probeAddress(ctx, prefix, ip, port, proxy, isTrusted)
 		part := text + " " + result.status
 		if isTrusted {
@@ -260,25 +250,6 @@ func boundaryProbeStatus(ctx context.Context, environ []string, reg *config.Regi
 		status += "; " + probeTrailer
 	}
 	return status, failed
-}
-
-// trustedProxy returns the trusted proxy configuration cfg resolves to
-// and its set of proxy addresses, empty when the class is off, or
-// [ParseTrustedProxy]'s refusal when its values do not resolve.
-func trustedProxy(cfg *config.Config) (TrustedProxyConfig, map[netip.Addr]struct{}, error) {
-	proxy, err := ParseTrustedProxy(cfg)
-	if err != nil {
-		return TrustedProxyConfig{}, nil, err
-	}
-	set := make(map[netip.Addr]struct{})
-	if proxy.Mode() == ModeDirect {
-		return proxy, set, nil
-	}
-	addrs, _ := ParseProxyAddrs(cfg.IntegrationValue(TrustedProxyClass.Name, TrustedProxyAddrsKey))
-	for _, a := range addrs {
-		set[a] = struct{}{}
-	}
-	return proxy, set, nil
 }
 
 // probeResult is one address's part of the probe row.

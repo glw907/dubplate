@@ -76,7 +76,7 @@ func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdo
 		auth.DoctorRows(cfg),
 		backup.DoctorRows(ctx, environ, time.Now(), report, history.LastSuccess),
 		unidecode.DoctorRows(stateDir),
-		serve.DoctorRows(ctx, environ, reg, cfg),
+		serve.DoctorRows(ctx, environ, cfg),
 		webapp.DoctorRows(cfg, webRowResolve(environ)),
 		intake.DoctorRows(cfg, report, volume),
 		settings.DoctorRows(environ, reg, report, stored),
