@@ -1085,17 +1085,17 @@ func TestSendsHSTS(t *testing.T) {
 func firstImmutableAsset(t *testing.T) string {
 	t.Helper()
 	var found string
-	err := fs.WalkDir(web.Assets, "build/_app/immutable", func(p string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(web.Build, "_app/immutable", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if found == "" && !d.IsDir() {
-			found = strings.TrimPrefix(p, "build/_app/")
+			found = strings.TrimPrefix(p, "_app/")
 		}
 		return nil
 	})
 	if err != nil || found == "" {
-		t.Fatalf("no file under build/_app/immutable (err %v); run `npm run build` in web/", err)
+		t.Fatalf("no file under _app/immutable (err %v); run `npm run build` in web/", err)
 	}
 	return found
 }
@@ -1395,10 +1395,7 @@ func placeholderOnlyBuild() fstest.MapFS {
 }
 
 func TestServedDocuments_CSPCoversEveryInlineScript(t *testing.T) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	for _, failure := range checkServedCSP(buildFS) {
 		t.Error(failure)
 	}
@@ -1516,10 +1513,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 }
 
 func TestServedDocuments_TierOrderAndCache(t *testing.T) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	for _, failure := range checkServedTiersAndCache(t, buildFS) {
 		t.Error(failure)
 	}

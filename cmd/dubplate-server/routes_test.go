@@ -12,6 +12,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/web"
 )
 
 // A routeClass says who may reach a route: anyone, any signed-in
@@ -91,13 +92,9 @@ func TestRouteInventory(t *testing.T) {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
 	prefix := listen.Prefix
-	buildFS, err := embeddedBuild()
-	if err != nil {
-		t.Fatalf("embeddedBuild: %v", err)
-	}
 	var registered []string
 	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger(),
-		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }, buildFS)
+		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }, web.Build)
 	if err != nil {
 		t.Fatalf("newServeShellVia: %v", err)
 	}

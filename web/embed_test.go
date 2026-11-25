@@ -21,10 +21,7 @@ const colorSchemeMeta = `<meta name="color-scheme" content="light dark" />`
 // attribute that could defer it past first paint. The rendered half (a
 // first-paint sample under each emulated preference) is 5c-iii's.
 func TestNoFlashStaticHalf(t *testing.T) {
-	buildFS, err := fs.Sub(Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := Build
 
 	for _, name := range []string{"login.html", "login/link.html"} {
 		t.Run(name, func(t *testing.T) {
@@ -131,10 +128,7 @@ func resolveStylesheetPath(docPath, href string) string {
 // combined CSS holds both the declaration [TestDaisyUIRootBackgroundRule]
 // quotes from the source package and the custom property it reads.
 func TestBuiltCSSCarriesDaisyUIRootBackgroundRule(t *testing.T) {
-	buildFS, err := fs.Sub(Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := Build
 
 	var built strings.Builder
 	for _, docName := range []string{"login.html", "login/link.html"} {
@@ -165,16 +159,13 @@ func TestBuiltCSSCarriesDaisyUIRootBackgroundRule(t *testing.T) {
 	}
 }
 
-// TestAssets_EmbedsHashedAssetDirectory proves the "all:" embed
+// TestBuild_EmbedsHashedAssetDirectory proves the "all:" embed
 // pattern is in force: [io/fs.ReadDir]'s doc states a plain "build"
 // pattern excludes files and directories beginning with "_" or ".",
 // which would silently drop every file SvelteKit writes under _app/.
 // Dropping the "all:" prefix is this task's own named mutation 1.
-func TestAssets_EmbedsHashedAssetDirectory(t *testing.T) {
-	buildFS, err := fs.Sub(Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+func TestBuild_EmbedsHashedAssetDirectory(t *testing.T) {
+	buildFS := Build
 	entries, err := fs.ReadDir(buildFS, "_app")
 	if err != nil {
 		t.Fatalf(`fs.ReadDir(buildFS, "_app"): %v (the "all:" embed pattern may be missing)`, err)
@@ -184,14 +175,11 @@ func TestAssets_EmbedsHashedAssetDirectory(t *testing.T) {
 	}
 }
 
-// TestAssets_PlaceholderCommitted proves build/placeholder.txt exists
+// TestBuild_PlaceholderCommitted proves build/placeholder.txt exists
 // even inside this test's own embedded tree, the fallback that keeps a
 // fresh checkout compiling before the first `npm run build` (R-5cii9).
-func TestAssets_PlaceholderCommitted(t *testing.T) {
-	buildFS, err := fs.Sub(Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+func TestBuild_PlaceholderCommitted(t *testing.T) {
+	buildFS := Build
 	if _, err := fs.Stat(buildFS, "placeholder.txt"); err != nil {
 		t.Fatalf("build/placeholder.txt: %v", err)
 	}
@@ -251,10 +239,7 @@ func manifestFontFiles(t *testing.T) map[string]bool {
 // placeholder-only build, or every `@font-face` rule silently
 // dropped) fails by name rather than passing on nothing.
 func TestFontFaceSrcsResolveUnderFonts(t *testing.T) {
-	buildFS, err := fs.Sub(Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := Build
 	manifest := manifestFontFiles(t)
 
 	type found struct {
@@ -262,7 +247,7 @@ func TestFontFaceSrcsResolveUnderFonts(t *testing.T) {
 		src     string
 	}
 	var faces []found
-	err = fs.WalkDir(buildFS, ".", func(p string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(buildFS, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}

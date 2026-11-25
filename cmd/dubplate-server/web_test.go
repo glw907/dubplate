@@ -347,10 +347,7 @@ func extractScriptBodies(doc []byte) []string {
 func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 	prefix := webTestPrefix(t)
 
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
 	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
 	if err != nil {
@@ -606,7 +603,7 @@ func resolveAgainstDocument(docPath, ref string) (string, error) {
 // resolves, relative to that document's own URL, to a 200 through the
 // real [serve.Shell] composition -- never a plain http.ServeMux, so the origin check and path normalization sit in the
 // path too. It runs against the real embedded bundle
-// ([newWebRoutes]/[web.Assets]), the fixture state the acceptance
+// ([newWebRoutes]/[web.Build]), the fixture state the acceptance
 // criterion names.
 func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 	const prefixValue = "/p/q"
@@ -1405,12 +1402,9 @@ func TestRoutes_EveryPageHasAUniqueTitle(t *testing.T) {
 // build the routes over the result.
 func realBuildMapFS(t *testing.T) fstest.MapFS {
 	t.Helper()
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	out := fstest.MapFS{}
-	err = fs.WalkDir(buildFS, ".", func(name string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(buildFS, ".", func(name string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}

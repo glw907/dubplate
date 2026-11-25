@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -63,18 +62,14 @@ func registerWebRoutes(routes registrar, wr webapp.Routes) {
 	}
 }
 
-// newWebRoutes builds the web app's routes from web.Assets, as
+// newWebRoutes builds the web app's routes from [web.Build], as
 // [newWebRoutesFromFS] does from a given tree. It runs before any
 // listener opens, so a bad config value or build defect stops startup
 // rather than the first request. siteName enters every document as
 // the dubplate-site-name meta; logger takes the documents' request
 // records and the record a theme-color-less branding neutral writes.
 func newWebRoutes(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger) (webapp.Routes, error) {
-	buildFS, err := embeddedBuild()
-	if err != nil {
-		return webapp.Routes{}, err
-	}
-	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, buildFS)
+	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, web.Build)
 }
 
 // webDoctorRows renders the web row: "ok" when [newWebRoutes] builds
@@ -111,17 +106,8 @@ func checkWebRoutes(environ []string, cfg *config.Config) error {
 	return err
 }
 
-// embeddedBuild is [web.Assets] rooted at its build directory.
-func embeddedBuild() (fs.FS, error) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		return nil, fmt.Errorf("web: %w", err)
-	}
-	return buildFS, nil
-}
-
 // newWebRoutesFromFS is [newWebRoutes] over buildFS, so a test can
-// build any state a bad build can be in, since [web.Assets] is fixed
+// build any state a bad build can be in, since [web.Build] is fixed
 // at compile time. It resolves the web settings with [webapp.FromEnviron]
 // and hands them to [webapp.New].
 func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger, buildFS fs.FS) (webapp.Routes, error) {

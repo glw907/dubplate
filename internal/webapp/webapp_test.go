@@ -37,10 +37,7 @@ func TestStampablePalettes(t *testing.T) {
 // its cookie rows against.
 func TestStampablePalettes_RealBundle(t *testing.T) {
 	const loginDocumentName, loginLinkDocumentName = "login.html", "login/link.html"
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	loginRaw, err := fs.ReadFile(buildFS, loginDocumentName)
 	if err != nil {
 		t.Fatalf("fs.ReadFile(%q): %v", loginDocumentName, err)

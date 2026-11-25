@@ -24,6 +24,7 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/web"
 	"github.com/spf13/cobra"
 )
 
@@ -118,11 +119,7 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // included. The boundary probe mounts like every other route, so the
 // request it counts is one the strip has already cleared.
 func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger) (*server, error) {
-	buildFS, err := embeddedBuild()
-	if err != nil {
-		return nil, err
-	}
-	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, buildFS)
+	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, web.Build)
 }
 
 // A server is what newServeShell builds: the shell, the store it holds
