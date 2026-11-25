@@ -218,13 +218,8 @@ func TestBackwardBumpKeepsTheRevocation(t *testing.T) {
 		t.Fatalf("CheckSession after the forward bump = %v, want ErrSessionRevoked", err)
 	}
 
-	notified := 0
-	store.Subscribe(func(string, time.Time) { notified++ })
 	if err := store.Bump(epochFixtureAddress, epochClock.Add(-time.Hour)); !errors.Is(err, ErrEpochBackward) {
 		t.Errorf("Bump backward = %v, want ErrEpochBackward", err)
-	}
-	if notified != 0 {
-		t.Errorf("subscriber notified %d times by a bump that moved nothing, want 0", notified)
 	}
 
 	if err := store.CheckSession(session); !errors.Is(err, ErrSessionRevoked) {
@@ -274,91 +269,6 @@ func TestConcurrentBumpsKeepTheLater(t *testing.T) {
 		if !got.Equal(later) {
 			t.Fatalf("round %d: stored epoch = %v, want the later bump %v", round, got, later)
 		}
-	}
-}
-
-// TestSubscribeNotifiesOnBump proves the notification half of the seam
-// reaches a registered subscriber.
-func TestSubscribeNotifiesOnBump(t *testing.T) {
-	stateDir := t.TempDir()
-	store := newEpochStore(t, stateDir)
-
-	var gotAddress string
-	var gotEpoch time.Time
-	calls := 0
-	store.Subscribe(func(address string, epoch time.Time) {
-		calls++
-		gotAddress = address
-		gotEpoch = epoch
-	})
-
-	if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
-		t.Fatalf("Bump: %v", err)
-	}
-
-	if calls != 1 {
-		t.Fatalf("subscriber calls = %d, want 1", calls)
-	}
-	if gotAddress != epochFixtureAddress {
-		t.Errorf("subscriber address = %q, want %q", gotAddress, epochFixtureAddress)
-	}
-	if !gotEpoch.Equal(epochClock.Truncate(time.Second)) {
-		t.Errorf("subscriber epoch = %v, want %v", gotEpoch, epochClock.Truncate(time.Second))
-	}
-}
-
-// TestBumpRecoversFromPanickingSubscriber proves the review m14 fix: a
-// subscriber that panics does not take Bump down, and the record it
-// wrote before running any subscriber is still on disk.
-func TestBumpRecoversFromPanickingSubscriber(t *testing.T) {
-	stateDir := t.TempDir()
-	store := newEpochStore(t, stateDir)
-
-	calledAfter := false
-	store.Subscribe(func(string, time.Time) { panic("subscriber exploded") })
-	store.Subscribe(func(string, time.Time) { calledAfter = true })
-
-	if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
-		t.Fatalf("Bump: %v, want nil: a panicking subscriber must not fail the bump", err)
-	}
-	if !calledAfter {
-		t.Error("the subscriber registered after the panicking one was never called")
-	}
-
-	got, ok, err := store.Read(epochFixtureAddress)
-	if err != nil {
-		t.Fatalf("Read: %v", err)
-	}
-	if !ok {
-		t.Fatal("Read: ok = false, want true: the record must still be on disk")
-	}
-	if !got.Equal(epochClock.Truncate(time.Second)) {
-		t.Errorf("Read = %v, want %v", got, epochClock.Truncate(time.Second))
-	}
-}
-
-// TestReadAuthoritativeWithoutSubscriber proves the read is the
-// authority rather than the notification: a bump with no subscriber
-// registered still lands on a fresh store's read. A publish-only event
-// could not offer this.
-func TestReadAuthoritativeWithoutSubscriber(t *testing.T) {
-	stateDir := t.TempDir()
-	store := newEpochStore(t, stateDir)
-
-	if err := store.Bump(epochFixtureAddress, epochClock); err != nil {
-		t.Fatalf("Bump: %v", err)
-	}
-
-	fresh := newEpochStore(t, stateDir)
-	got, ok, err := fresh.Read(epochFixtureAddress)
-	if err != nil {
-		t.Fatalf("Read: %v", err)
-	}
-	if !ok {
-		t.Fatalf("Read: ok = false, want true")
-	}
-	if !got.Equal(epochClock.Truncate(time.Second)) {
-		t.Errorf("Read = %v, want %v", got, epochClock.Truncate(time.Second))
 	}
 }
 

@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -66,10 +65,8 @@ const epochRecordFieldCount = 2
 type EpochStore struct {
 	leaf *Dir
 
-	// mu serializes each bump's read of the stored epoch with its
-	// write, and guards subscribers.
-	mu          sync.Mutex
-	subscribers []func(address string, epoch time.Time)
+	// mu serializes each bump's read of the stored epoch with its write.
+	mu sync.Mutex
 }
 
 // OpenEpochStore returns the revocation-epoch store under leaf.
@@ -78,48 +75,25 @@ func OpenEpochStore(leaf *Dir) *EpochStore {
 }
 
 // Bump revokes every credential for address anchored or minted at or
-// before now: it writes now as address's new epoch and notifies every
-// subscriber registered at the time of the call.
+// before now: it writes now as address's new epoch.
 //
 // The stored epoch only moves forward. A bump earlier than it writes
-// nothing, notifies no one, and returns [ErrEpochBackward], so a
-// backward clock step cannot reinstate a credential an earlier bump
-// revoked. A bump at the stored epoch's own second has nothing to move
-// and returns nil without a notification. The read of the stored epoch
-// and the write of the new one happen under one lock, so of two
-// concurrent bumps the later time is the one left stored.
-//
-// The write happens before the notification, so a subscriber that
-// receives one is guaranteed to find it on a read; a subscriber that
-// misses the notification entirely, because it was not yet registered
-// or was not running, still finds the bump on its next read, which is
-// the property a publish-only event cannot offer.
-//
-// Each subscriber runs under a recover and a deadline (review m14): a
-// panicking subscriber cannot propagate into the revocation that called
-// it, and a blocking one cannot stall Bump past subscriberDeadline. The
-// write is already durable by the time any subscriber runs, which is
-// the order that makes both safe.
+// nothing and returns [ErrEpochBackward], so a backward clock step
+// cannot reinstate a credential an earlier bump revoked. A bump at the
+// stored epoch's own second has nothing to move and returns nil. The
+// read of the stored epoch and the write of the new one happen under
+// one lock, so of two concurrent bumps the later time is the one left
+// stored.
 func (e *EpochStore) Bump(address string, now time.Time) error {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
 		return fmt.Errorf("bump epoch: %w", err)
 	}
-	epoch := now.UTC().Truncate(time.Second)
-	subscribers, err := e.advance(normalized, epoch)
-	if err != nil {
+	if err := e.advance(normalized, now.UTC().Truncate(time.Second)); err != nil {
 		return fmt.Errorf("bump epoch: %w", err)
-	}
-	for _, fn := range subscribers {
-		notifySubscriber(fn, normalized, epoch)
 	}
 	return nil
 }
-
-// subscriberDeadline bounds how long Bump waits on one subscriber
-// before moving on to the next. A subscriber that has not returned by
-// then keeps running in its own goroutine; Bump does not wait for it.
-const subscriberDeadline = 5 * time.Second
 
 // Revoke bumps address's epoch to at for a roster write. The write calls
 // it inside its transaction, and a failed bump rolls the write back. A
@@ -137,51 +111,31 @@ func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, l
 	return err
 }
 
-// notifySubscriber calls fn with address and epoch, recovering a panic
-// and giving up after subscriberDeadline rather than waiting on fn
-// forever (review m14).
-func notifySubscriber(fn func(address string, epoch time.Time), address string, epoch time.Time) {
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		defer func() { _ = recover() }()
-		fn(address, epoch)
-	}()
-	select {
-	case <-done:
-	case <-time.After(subscriberDeadline):
-	}
-}
-
 // advance writes epoch as normalized's epoch when it is later than the
-// stored one, and returns the subscribers to notify of the move. It
-// returns no subscribers when the stored epoch already equals epoch,
-// and [ErrEpochBackward] when the stored epoch is later.
-func (e *EpochStore) advance(normalized string, epoch time.Time) ([]func(address string, epoch time.Time), error) {
+// stored one. It writes nothing when the stored epoch already equals
+// epoch, and returns [ErrEpochBackward] when the stored epoch is later.
+func (e *EpochStore) advance(normalized string, epoch time.Time) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
 	stored, ok, err := e.readNormalized(normalized)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if ok && epoch.Before(stored) {
-		return nil, ErrEpochBackward
+		return ErrEpochBackward
 	}
 	if ok && epoch.Equal(stored) {
-		return nil, nil
+		return nil
 	}
 	path, err := e.leaf.EpochPath(RecordID(epochSubdir, normalized))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err := atomicfile.WriteStream(path, filePerm, func(w io.Writer) error {
+	return atomicfile.WriteStream(path, filePerm, func(w io.Writer) error {
 		_, err := w.Write(epochRecord(epoch))
 		return err
-	}); err != nil {
-		return nil, err
-	}
-	return slices.Clone(e.subscribers), nil
+	})
 }
 
 // Read returns address's current revocation epoch. ok is false when
@@ -213,21 +167,6 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 		return time.Time{}, false, fmt.Errorf("read epoch: %w", err)
 	}
 	return epoch, true, nil
-}
-
-// Subscribe registers fn to be called, with the normalized address and
-// the new epoch, on every future [EpochStore.Bump]. It is a
-// convenience: the authority is [EpochStore.Read],
-// which a subscriber that missed a notification, or never registered
-// at all, can still consult.
-//
-// fn must not block. A removal and a re-add bump from inside their
-// store write, so fn runs while the store's write lock is held and every
-// writer on the box waits on it, up to subscriberDeadline.
-func (e *EpochStore) Subscribe(fn func(address string, epoch time.Time)) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.subscribers = append(e.subscribers, fn)
 }
 
 // CheckSession refuses s when its anchor predates or equals its
