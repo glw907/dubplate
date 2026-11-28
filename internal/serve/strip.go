@@ -159,18 +159,36 @@ var identityHeaders = []string{
 // X-Client-Ip and X-Cluster-Client-Ip are dropped: they are quoted
 // constantly in client-IP-extraction libraries, but no page owned by a
 // front that sets either was found, so neither ships on recollection.
-var forwardedAddressHeaders = []string{
-	"X-Forwarded-For",
-	"X-Real-Ip",
-	"Forwarded",
-	"X-Forwarded-Host",
-	"X-Forwarded-Proto",
-	"X-Forwarded-Prefix",
-	"Cf-Connecting-Ip",
-	"True-Client-Ip",
-	"Fastly-Client-Ip",
-	"X-Azure-Clientip",
+var forwardedAddressHeaders = []forwardedHeader{
+	{name: "X-Forwarded-For"},
+	{name: "X-Real-Ip"},
+	{name: "Forwarded", refusal: "its for= parameters are not an address list, so every hop would be malformed"},
+	{name: "X-Forwarded-Host", refusal: "a forwarded header that carries the original host and no client address, so every hop would be malformed"},
+	{name: "X-Forwarded-Proto", refusal: "a forwarded header that carries the original scheme and no client address, so every hop would be malformed"},
+	{name: "X-Forwarded-Prefix", refusal: "a forwarded header that carries the original path prefix and no client address, so every hop would be malformed"},
+	{name: "Cf-Connecting-Ip"},
+	{name: "True-Client-Ip"},
+	{name: "Fastly-Client-Ip"},
+	{name: "X-Azure-Clientip"},
 }
+
+// forwardedHeader is one group 2 name in canonical form. refusal is
+// why [validateProxyHeader] refuses the name, set for a header that
+// carries no client address list, and empty for one that does.
+type forwardedHeader struct {
+	name    string
+	refusal string
+}
+
+// forwardedAddressNames is the name of every forwardedAddressHeaders
+// entry, in order.
+var forwardedAddressNames = func() []string {
+	names := make([]string, 0, len(forwardedAddressHeaders))
+	for _, h := range forwardedAddressHeaders {
+		names = append(names, h.name)
+	}
+	return names
+}()
 
 // hopByHopExempt holds the canonical header names stripConnectionListed
 // never deletes, whatever a request's Connection header lists. Cookie,
@@ -258,14 +276,14 @@ func newStrip(proxy TrustedProxyConfig) strip {
 // is not already one of them.
 func forwardedAddressSet(configured string) []string {
 	if configured == "" {
-		return forwardedAddressHeaders
+		return forwardedAddressNames
 	}
-	for _, name := range forwardedAddressHeaders {
+	for _, name := range forwardedAddressNames {
 		if sameHeaderName(name, configured) {
-			return forwardedAddressHeaders
+			return forwardedAddressNames
 		}
 	}
-	return append(slices.Clone(forwardedAddressHeaders), configured)
+	return append(slices.Clone(forwardedAddressNames), configured)
 }
 
 // wrap returns an [http.Handler] that clears the strip's three groups

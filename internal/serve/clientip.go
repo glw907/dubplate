@@ -68,16 +68,17 @@ var refusedProxyHeaders = newRefusedProxyHeaders()
 
 func newRefusedProxyHeaders() map[string]string {
 	refused := map[string]string{
-		"Forwarded":          "its for= parameters are not an address list, so every hop would be malformed",
-		"X-Forwarded-Host":   "a forwarded header that carries the original host and no client address, so every hop would be malformed",
-		"X-Forwarded-Proto":  "a forwarded header that carries the original scheme and no client address, so every hop would be malformed",
-		"X-Forwarded-Prefix": "a forwarded header that carries the original path prefix and no client address, so every hop would be malformed",
-		"Content-Type":       "the shell reads it to parse request bodies, and naming it would strip it from every untrusted peer",
-		"Host":               "an end-to-end header that carries no client address",
-		"Connection":         "a framing header that carries no client address",
-		"Content-Length":     "a framing header that carries no client address",
-		"Transfer-Encoding":  "a framing header that carries no client address",
-		"Authorization":      "an end-to-end header that carries no client address",
+		"Content-Type":      "the shell reads it to parse request bodies, and naming it would strip it from every untrusted peer",
+		"Host":              "an end-to-end header that carries no client address",
+		"Connection":        "a framing header that carries no client address",
+		"Content-Length":    "a framing header that carries no client address",
+		"Transfer-Encoding": "a framing header that carries no client address",
+		"Authorization":     "an end-to-end header that carries no client address",
+	}
+	for _, h := range forwardedAddressHeaders {
+		if h.refusal != "" {
+			refused[h.name] = h.refusal
+		}
 	}
 	for name := range hopByHopExempt {
 		refused[name] = "the shell reads it for sessions or the origin check, and naming it would strip it from every untrusted peer"
