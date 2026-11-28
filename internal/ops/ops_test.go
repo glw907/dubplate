@@ -114,9 +114,8 @@ func TestAddMemberRequest_HasNoAdminField(t *testing.T) {
 }
 
 // allowedInternalImports are the internal imports internal/ops may
-// carry: the network actor's channel type (Global constraints) and the
-// reject set, a leaf that imports nothing, whose reasons the submission
-// operations carry on the wire, and the id package, another leaf, whose
+// carry: identity for the acting [identity.Actor], reject for the
+// reasons the submission operations carry on the wire, and id for the
 // type every wire id carries.
 var allowedInternalImports = []string{
 	"github.com/glw907/dubplate/internal/id",
@@ -124,12 +123,12 @@ var allowedInternalImports = []string{
 	"github.com/glw907/dubplate/internal/reject",
 }
 
-// TestImportsStandardLibraryOnly parses every .go file this package
+// TestImportsOnlyStdlibAndLeafPackages parses every .go file this package
 // declares and fails if any import path's first segment carries a
 // dot, the shape every non-standard-library module path takes
 // (domain-qualified) and no standard-library path ever does, unless
 // the import is exactly one of [allowedInternalImports].
-func TestImportsStandardLibraryOnly(t *testing.T) {
+func TestImportsOnlyStdlibAndLeafPackages(t *testing.T) {
 	files, err := filepath.Glob("*.go")
 	if err != nil {
 		t.Fatalf("glob *.go: %v", err)

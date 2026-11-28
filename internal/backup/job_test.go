@@ -926,7 +926,7 @@ func TestBackup_OrphanTransfer(t *testing.T) {
 	configureStandin(t, standinConfig{})
 	r := newRunner(t, h, "name:dir", lib, nil)
 	_, err := r.StartBackup(deadline(t), testActor)
-	if !errors.Is(err, ops.ErrConflict) || !strings.Contains(err.Error(), "a previous run's transfer is still running") {
+	if !errors.Is(err, ops.CodeConflict) || !strings.Contains(err.Error(), "a previous run's transfer is still running") {
 		t.Fatalf("StartBackup() with the orphan alive = %v, want a conflict naming a transfer still running", err)
 	}
 
@@ -940,7 +940,7 @@ func TestBackup_OrphanTransfer(t *testing.T) {
 			wantState(t, await(t, r, jobID), ops.JobSucceeded, "")
 			return
 		}
-		if !errors.Is(err, ops.ErrConflict) || time.Now().After(end) {
+		if !errors.Is(err, ops.CodeConflict) || time.Now().After(end) {
 			t.Fatalf("StartBackup() after the orphan exited = %v, want success", err)
 		}
 		time.Sleep(50 * time.Millisecond)

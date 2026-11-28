@@ -53,12 +53,13 @@ func (s *Service) CreateSubmission(ctx context.Context, actor identity.Actor, re
 	unit, container := gate.Unit(req.VerdictUnit), gate.Container(req.Container)
 	switch {
 	case unit != gate.UnitAlbum && unit != gate.UnitTrack:
-		return ops.CreateSubmissionResponse{}, ops.NewInvalidRequestError(`verdict_unit must be "album" or "track"`)
+		return ops.CreateSubmissionResponse{}, ops.NewError(ops.CodeInvalidRequest, `verdict_unit must be "album" or "track"`)
 	case container != gate.ContainerFiles && container != gate.ContainerZip:
-		return ops.CreateSubmissionResponse{}, ops.NewInvalidRequestError(`container must be "files" or "zip"`)
+		return ops.CreateSubmissionResponse{}, ops.NewError(ops.CodeInvalidRequest, `container must be "files" or "zip"`)
 	case !validStoreURL(req.StoreURL):
-		return ops.CreateSubmissionResponse{}, ops.NewInvalidRequestError(
-			fmt.Sprintf("store_url must be an absolute https URL with a host, at most %d bytes", maxStoreURL)).WithDetail(ops.DetailStoreURL)
+		return ops.CreateSubmissionResponse{}, ops.NewError(ops.CodeInvalidRequest,
+			fmt.Sprintf("store_url must be an absolute https URL with a host, at most %d bytes", maxStoreURL)).
+			WithDetail(ops.DetailStoreURL)
 	}
 	lim, err := s.limits(ctx)
 	if err != nil {
@@ -101,9 +102,9 @@ func createError(err error) error {
 	var limit *limitRefusal
 	switch {
 	case errors.Is(err, gate.ErrMalformedManifest):
-		return ops.NewInvalidRequestError(err.Error()).WithDetail(ops.DetailManifest)
+		return ops.NewError(ops.CodeInvalidRequest, err.Error()).WithDetail(ops.DetailManifest)
 	case errors.Is(err, gate.ErrExtraInTracks):
-		return ops.NewInvalidRequestError(err.Error()).WithDetail(ops.DetailExtra)
+		return ops.NewError(ops.CodeInvalidRequest, err.Error()).WithDetail(ops.DetailExtra)
 	case errors.As(err, &manifest):
 		rejects := ops.Rejects{Submission: manifest.rejects.Submission, Files: make([]ops.FileReason, 0, len(manifest.rejects.Files))}
 		if rejects.Submission == nil {
@@ -112,14 +113,14 @@ func createError(err error) error {
 		for _, f := range manifest.rejects.Files {
 			rejects.Files = append(rejects.Files, ops.FileReason{Path: validUTF8(string(f.Path)), Reason: f.Reason})
 		}
-		return ops.NewInvalidRequestError("the manifest was refused").WithRejects(rejects)
+		return ops.NewError(ops.CodeInvalidRequest, "the manifest was refused").WithRejects(rejects)
 	case errors.As(err, &limit):
 		reason := reject.Of(limit.code)
 		rejects := ops.Rejects{Submission: []reject.Reason{reason}, Files: []ops.FileReason{}}
 		if limit.code == reject.CouldNotCheck {
-			return fmt.Errorf("%w: %w", ops.NewUnavailableError(reason.Friendly).WithRejects(rejects), limit.err)
+			return fmt.Errorf("%w: %w", ops.NewError(ops.CodeUnavailable, reason.Friendly).WithRejects(rejects), limit.err)
 		}
-		return ops.NewConflictError(reason.Friendly).WithRejects(rejects)
+		return ops.NewError(ops.CodeConflict, reason.Friendly).WithRejects(rejects)
 	}
 	return writeFault(err)
 }
@@ -129,7 +130,7 @@ func createError(err error) error {
 // internal.
 func writeFault(err error) error {
 	if errors.Is(err, store.ErrBusy) || errors.Is(err, context.DeadlineExceeded) {
-		return ops.NewUnavailableError("the server is busy; try again").WithDetail(ops.DetailBusy)
+		return ops.NewError(ops.CodeUnavailable, "the server is busy; try again").WithDetail(ops.DetailBusy)
 	}
 	return err
 }
@@ -194,20 +195,20 @@ func actionError(err error) error {
 	case errors.Is(err, errNotFound):
 		return notFound()
 	case errors.Is(err, errWrongState):
-		return ops.NewConflictError("the submission is not in a state this action applies to")
+		return ops.NewError(ops.CodeConflict, "the submission is not in a state this action applies to")
 	}
 	return writeFault(err)
 }
 
 // notFound is the one answer for an unknown id and another member's.
-func notFound() error { return ops.NewNotFoundError("no such submission") }
+func notFound() error { return ops.NewError(ops.CodeNotFound, "no such submission") }
 
 // namesSubmission refuses the zero id, which no submission holds. The
 // decoder has already refused any text that does not spell an id, and
 // it leaves an absent or null submission_id as the zero id.
 func namesSubmission(sub id.ID) error {
 	if sub.IsZero() {
-		return ops.NewInvalidRequestError("submission_id is missing or names no submission")
+		return ops.NewError(ops.CodeInvalidRequest, "submission_id is missing or names no submission")
 	}
 	return nil
 }

@@ -289,7 +289,7 @@ func (r *Runner) requestCancel(ctx context.Context, jobID id.ID) error {
 		var state string
 		err := tx.QueryRow(ctx, "SELECT state FROM jobs WHERE id = ?", jobID).Scan(&state)
 		if errors.Is(err, sql.ErrNoRows) {
-			return ops.NewNotFoundError(fmt.Sprintf("job %s", jobID))
+			return ops.NewError(ops.CodeNotFound, fmt.Sprintf("job %s", jobID))
 		}
 		if err != nil {
 			return fmt.Errorf("read job %s: %w", jobID, err)
@@ -340,7 +340,7 @@ func (r *Runner) readStatus(ctx context.Context, jobID id.ID) (ops.JobStatus, st
 	err := r.store.QueryRow(ctx, `SELECT kind, state, owner_instance, progress, failure_code, failure_message, at, started_at, updated_at, finished_at
 FROM jobs WHERE id = ?`, jobID).Scan(&st.Kind, &state, &owner, &phase, &code, &message, &queued, &started, &updated, &finished)
 	if errors.Is(err, sql.ErrNoRows) {
-		return ops.JobStatus{}, "", ops.NewNotFoundError(fmt.Sprintf("job %s", jobID))
+		return ops.JobStatus{}, "", ops.NewError(ops.CodeNotFound, fmt.Sprintf("job %s", jobID))
 	}
 	if err != nil {
 		return ops.JobStatus{}, "", fmt.Errorf("read job %s: %w", jobID, err)

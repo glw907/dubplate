@@ -39,7 +39,7 @@ func TestAddMember_RefusalsCarryTheirDetail(t *testing.T) {
 		name   string
 		req    ops.AddMemberRequest
 		code   ops.Code
-		detail string
+		detail ops.Detail
 	}{
 		{"a live member's address", ops.AddMemberRequest{Address: "Carol@Example.com", DisplayName: "C", Username: "carol2"}, ops.CodeConflict, ops.DetailDuplicateAddress},
 		{"a taken username", ops.AddMemberRequest{Address: "erin@example.com", DisplayName: "Erin", Username: "CAROL"}, ops.CodeConflict, ops.DetailDuplicateUsername},
@@ -197,7 +197,7 @@ func TestRemoveAndDemote_Outcomes(t *testing.T) {
 		write  write
 		target id.ID
 		code   ops.Code
-		detail string
+		detail ops.Detail
 	}{
 		{name: "remove an unknown id", write: remove, target: id.ID{0xee}, code: ops.CodeNotFound},
 		{name: "demote an unknown id", write: demote, target: id.ID{0xee}, code: ops.CodeNotFound},

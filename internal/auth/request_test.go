@@ -104,7 +104,7 @@ func TestVerifyRequest_RefreshesOnlySameOrigin(t *testing.T) {
 }
 
 // TestVerifyRequest_RefusalsAreNotSignedIn proves every verification
-// refusal wraps ops.ErrUnauthenticated, sets no cookie, and logs at Info a
+// refusal wraps ops.CodeUnauthenticated, sets no cookie, and logs at Info a
 // fixed reason carrying no address and no cookie value.
 func TestVerifyRequest_RefusalsAreNotSignedIn(t *testing.T) {
 	tests := []struct {
@@ -142,8 +142,8 @@ func TestVerifyRequest_RefusalsAreNotSignedIn(t *testing.T) {
 			r := tt.request(t, fx)
 			w := httptest.NewRecorder()
 			_, err := VerifyRequest(cfg, w, r)
-			if !errors.Is(err, ops.ErrUnauthenticated) {
-				t.Fatalf("VerifyRequest = %v, want an error wrapping ops.ErrUnauthenticated", err)
+			if !errors.Is(err, ops.CodeUnauthenticated) {
+				t.Fatalf("VerifyRequest = %v, want an error wrapping ops.CodeUnauthenticated", err)
 			}
 			if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 				t.Errorf("a refusal set a cookie: %q", c)
@@ -174,8 +174,8 @@ func TestVerifyRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 		}
 		w := httptest.NewRecorder()
 		_, err := VerifyRequest(fx.cfg, w, sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), "same-origin"))
-		if err == nil || errors.Is(err, ops.ErrUnauthenticated) {
-			t.Fatalf("VerifyRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
+		if err == nil || errors.Is(err, ops.CodeUnauthenticated) {
+			t.Fatalf("VerifyRequest = %v, want a server failure that is no ops.CodeUnauthenticated", err)
 		}
 		if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 			t.Errorf("a failed lookup set a cookie: %q", c)
@@ -210,8 +210,8 @@ func TestVerifyRequest_ServerFailuresAreNotRefusals(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 			_, err := VerifyRequest(cfg, w, sessionRequest(mintAt(t, currentFixture, "admin@example.com", verifierBirth), tt.site))
-			if err == nil || errors.Is(err, ops.ErrUnauthenticated) {
-				t.Fatalf("VerifyRequest = %v, want a server failure that is no ops.ErrUnauthenticated", err)
+			if err == nil || errors.Is(err, ops.CodeUnauthenticated) {
+				t.Fatalf("VerifyRequest = %v, want a server failure that is no ops.CodeUnauthenticated", err)
 			}
 			if c := w.Header().Values("Set-Cookie"); len(c) != 0 {
 				t.Errorf("a failed read set a cookie: %q", c)

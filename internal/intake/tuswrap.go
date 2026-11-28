@@ -19,7 +19,7 @@ import (
 // A Verifier admits one request to the tus mount: it reads the
 // request's session, may set a refreshed credential on w, and answers
 // the member the request acts as. A refusal wraps
-// [ops.ErrUnauthenticated], which the mount answers 401; any other
+// [ops.CodeUnauthenticated], which the mount answers 401; any other
 // verifier error is the server failing and answers 500. The member comes from here alone,
 // never from a header, a tus metadata key, or a path. A verifier logs
 // its own failures: the mount never writes an error's text.
@@ -80,7 +80,7 @@ func (m *tusMount) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	member, err := m.verify(w, r)
 	switch {
-	case errors.Is(err, ops.ErrUnauthenticated):
+	case errors.Is(err, ops.CodeUnauthenticated):
 		refuse(w, errTusUnauthenticated)
 		return
 	case err != nil:

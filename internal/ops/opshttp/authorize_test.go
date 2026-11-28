@@ -1,7 +1,6 @@
 package opshttp
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 // A seamCall is one operation with a request that reaches the fake
 // beneath it.
 type seamCall struct {
-	op  string
+	op  ops.Op
 	req any
 }
 
@@ -29,7 +28,7 @@ func (c seamCall) body(t *testing.T) string {
 	return string(data)
 }
 
-// adminCalls is one call for each of the seven admin operations.
+// adminCalls is one call for each admin operation.
 func adminCalls() []seamCall {
 	return []seamCall{
 		{ops.OpListMembers, ops.ListMembersRequest{}},
@@ -42,8 +41,7 @@ func adminCalls() []seamCall {
 	}
 }
 
-// submissionCalls is one call for each of the five submission
-// operations.
+// submissionCalls is one call for each submission operation.
 func submissionCalls() []seamCall {
 	return []seamCall{
 		{ops.OpCreateSubmission, ops.CreateSubmissionRequest{VerdictUnit: "album", Container: "files", Source: "vinyl"}},
@@ -54,18 +52,13 @@ func submissionCalls() []seamCall {
 	}
 }
 
-// operationCalls is the number of calls every seam under f has received.
-func operationCalls(f *fixture) int {
-	return len(f.admin.calls) + len(f.subs.calls)
-}
-
-// TestAdmissionDiscardsItsCallersActor posts every one of the
-// twelve operations; the seam beneath must see only the actor the
-// authorizer admitted, with its session. No request field names an
-// actor, so the handler has none to pass on but the admitted one.
+// TestAdmissionDiscardsItsCallersActor posts every operation; the
+// seam beneath must see only the actor the verifier answered, with its
+// session. No request field names an actor, so the mount has none to
+// pass on but the verified one.
 func TestAdmissionDiscardsItsCallersActor(t *testing.T) {
 	for _, tt := range slices.Concat(adminCalls(), submissionCalls()) {
-		t.Run(tt.op, func(t *testing.T) {
+		t.Run(string(tt.op), func(t *testing.T) {
 			f := newFixture(t, admitAnn())
 			if rec := f.post(tt.op, tt.body(t)); rec.Code != http.StatusOK {
 				t.Fatalf("%s answered %d, want 200; body %q", tt.op, rec.Code, rec.Body.String())
@@ -83,17 +76,18 @@ func TestAdmissionDiscardsItsCallersActor(t *testing.T) {
 					got.actor.UserID(), got.actor.Anchor(), ann.UserID, annAnchor)
 			}
 		})
+
 	}
 }
 
-// TestAdmissionMemberReachesTheSubmissions is the authorizer half
-// of the spec's member criterion: a member caller reaches the five
-// submission operations, and each admin operation answers forbidden
+// TestAdmissionMemberReachesTheSubmissions proves a member caller
+// reaches the submission operations, and each admin operation answers
+// forbidden
 // before any seam sees the call. A refused call that reached a fake
 // fails here.
 func TestAdmissionMemberReachesTheSubmissions(t *testing.T) {
 	for _, tt := range slices.Concat(adminCalls(), submissionCalls()) {
-		t.Run(tt.op, func(t *testing.T) {
+		t.Run(string(tt.op), func(t *testing.T) {
 			f := newFixture(t, grant(ann, ops.PrivilegeMember))
 			rec := f.post(tt.op, tt.body(t))
 			if slices.ContainsFunc(submissionCalls(), func(c seamCall) bool { return c.op == tt.op }) {
@@ -109,38 +103,38 @@ func TestAdmissionMemberReachesTheSubmissions(t *testing.T) {
 				t.Errorf("a refused %s reached a seam %d times", tt.op, n)
 			}
 		})
+
 	}
 }
 
 // TestAdmissionDenialIsForbidden checks the in-process shape of a
-// denial: the error matches ops.ErrForbidden and still carries the
-// authorizer's own error, on a submission operation and on an admin one.
+// denial: the error matches ops.CodeForbidden and still carries its
+// cause, on a submission operation and on an admin one.
 func TestAdmissionDenialIsForbidden(t *testing.T) {
-	errSession := errors.New("session expired")
-	for _, tt := range []seamCall{submissionCalls()[4], adminCalls()[1]} {
-		t.Run(tt.op, func(t *testing.T) {
-			deny := &fakeAuthorizer{decide: func(string) (identity.Actor, ops.Privilege, error) {
-				return identity.Actor{}, 0, errSession
-			}}
-			f := newFixture(t, deny)
-			_, err := f.h.admission.admit(context.Background(), tt.op)
-			if !errors.Is(err, ops.ErrForbidden) || !errors.Is(err, errSession) {
-				t.Errorf("%s = %v, want ops.ErrForbidden wrapping the authorizer's error", tt.op, err)
+	actor := identity.NetworkActor(ann, annAnchor, "192.0.2.1")
+	for _, tt := range []struct {
+		op       ops.Op
+		required ops.Privilege
+	}{
+		{ops.OpCancelSubmission, ops.PrivilegeMember},
+		{ops.OpAddMember, ops.PrivilegeAdmin},
+	} {
+		t.Run(string(tt.op), func(t *testing.T) {
+			err := admit(tt.op, tt.required, actor, 0)
+			if !errors.Is(err, ops.CodeForbidden) || !errors.Is(err, errPrivilegeShort) {
+				t.Errorf("%s = %v, want ops.CodeForbidden wrapping the short privilege", tt.op, err)
 			}
 			if code := ops.CodeOf(err); code != ops.CodeForbidden {
 				t.Errorf("CodeOf = %q, want forbidden", code)
-			}
-			if n := operationCalls(f); n != 0 {
-				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
 	}
 }
 
 // TestAdmissionChecksTheGrant admits a call only when the
-// privilege the authorizer granted reaches the one the operation
-// requires. Each row's authorizer admits without error, so a denial
-// can come only from the seam's own check.
+// privilege the verifier granted reaches the one the operation
+// requires. Each row's verifier admits without error, so a denial
+// can come only from the mount's own check.
 func TestAdmissionChecksTheGrant(t *testing.T) {
 	listMembers, getSubmission := adminCalls()[0], submissionCalls()[2]
 	tests := []struct {
@@ -180,18 +174,21 @@ func TestAdmissionChecksTheGrant(t *testing.T) {
 }
 
 // TestAdmissionRefusesAnOperationOffTheTable proves an operation
-// the privilege table does not hold answers not found before the
-// authorizer is asked, so a removed operation cannot be reached by name.
+// the privilege table does not hold answers not found, even to an
+// admin, so a removed operation cannot be reached by name.
 func TestAdmissionRefusesAnOperationOffTheTable(t *testing.T) {
-	for _, op := range []string{"start_backup", "job_status", "cancel_job", "catalog", "delete_everything"} {
-		t.Run(op, func(t *testing.T) {
+	for _, op := range []ops.Op{"start_backup", "job_status", "cancel_job", "catalog", "delete_everything"} {
+		t.Run(string(op), func(t *testing.T) {
 			f := newFixture(t, admitAnn())
-			_, err := f.h.admission.admit(context.Background(), op)
-			if !errors.Is(err, ops.ErrNotFound) {
-				t.Errorf("admit(%q) = %v, want ops.ErrNotFound", op, err)
+			rec := f.post(op, `{}`)
+			if rec.Code != http.StatusNotFound {
+				t.Errorf("status = %d, want 404; body %q", rec.Code, rec.Body.String())
 			}
-			if len(f.auth.calls) != 0 {
-				t.Errorf("the authorizer was asked %d times, want 0", len(f.auth.calls))
+			if code, _, _ := errorAnswer(t, rec); code != ops.CodeNotFound {
+				t.Errorf("code = %q, want %q", code, ops.CodeNotFound)
+			}
+			if n := operationCalls(f); n != 0 {
+				t.Errorf("seam calls = %d, want 0", n)
 			}
 		})
 	}

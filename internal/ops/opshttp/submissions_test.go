@@ -12,14 +12,13 @@ import (
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// TestServeHTTPRoutesSubmissionOperations posts each of the five
-// submission operations and proves the submission seam receives the
-// decoded request as the admitted actor, and that the answer is the
-// seam's response.
+// TestServeHTTPRoutesSubmissionOperations posts each submission
+// operation and proves the submission seam receives the decoded request
+// as the verified actor, and that the answer is the seam's response.
 func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 	idBody := `{"submission_id":"` + testHandle + `"}`
 	tests := []struct {
-		op      string
+		op      ops.Op
 		body    string
 		wantReq any
 		want    func(t *testing.T) any
@@ -39,7 +38,7 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 			func(*testing.T) any { return testSubmission }},
 	}
 	for _, tt := range tests {
-		t.Run(tt.op, func(t *testing.T) {
+		t.Run(string(tt.op), func(t *testing.T) {
 			f := newFixture(t, grant(ann, ops.PrivilegeMember))
 			rec := f.post(tt.op, tt.body)
 			if rec.Code != http.StatusOK {
@@ -66,6 +65,7 @@ func TestServeHTTPRoutesSubmissionOperations(t *testing.T) {
 				t.Errorf("submission seam got actor %q, want %q", call.actor, annWire)
 			}
 		})
+
 	}
 }
 
@@ -106,22 +106,22 @@ func manifestBody(n int) string {
 // 4 KiB cap.
 func TestServeHTTPSubmissionBodyCaps(t *testing.T) {
 	manifest := manifestBody(500)
-	if len(manifest) <= maxBody || len(manifest) > 8<<20 {
-		t.Fatalf("fixture manifest is %d bytes, want over %d and under 8 MiB", len(manifest), maxBody)
+	if len(manifest) <= defaultBodyCap || len(manifest) > 8<<20 {
+		t.Fatalf("fixture manifest is %d bytes, want over %d and under 8 MiB", len(manifest), defaultBodyCap)
 	}
 	tests := []struct {
 		name string
-		op   string
+		op   ops.Op
 		body string
 		want int
 	}{
 		{"500 files on create_submission", ops.OpCreateSubmission, manifest, http.StatusOK},
 		{"a body exactly 8 MiB on create_submission", ops.OpCreateSubmission, paddedObject(8 << 20), http.StatusOK},
 		{"a body one byte over 8 MiB on create_submission", ops.OpCreateSubmission, paddedObject(8<<20 + 1), http.StatusBadRequest},
-		{"a body one byte over 4 KiB on get_submission", ops.OpGetSubmission, paddedObject(maxBody + 1), http.StatusBadRequest},
-		{"a body one byte over 4 KiB on retry_submission", ops.OpRetrySubmission, paddedObject(maxBody + 1), http.StatusBadRequest},
-		{"a body one byte over 4 KiB on cancel_submission", ops.OpCancelSubmission, paddedObject(maxBody + 1), http.StatusBadRequest},
-		{"a body one byte over 4 KiB on list_submissions", ops.OpListSubmissions, paddedObject(maxBody + 1), http.StatusBadRequest},
+		{"a body one byte over 4 KiB on get_submission", ops.OpGetSubmission, paddedObject(defaultBodyCap + 1), http.StatusBadRequest},
+		{"a body one byte over 4 KiB on retry_submission", ops.OpRetrySubmission, paddedObject(defaultBodyCap + 1), http.StatusBadRequest},
+		{"a body one byte over 4 KiB on cancel_submission", ops.OpCancelSubmission, paddedObject(defaultBodyCap + 1), http.StatusBadRequest},
+		{"a body one byte over 4 KiB on list_submissions", ops.OpListSubmissions, paddedObject(defaultBodyCap + 1), http.StatusBadRequest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -143,7 +143,7 @@ func TestServeHTTPSubmissionBodyCaps(t *testing.T) {
 // error.rejects beside the code and detail, each reason as its four wire
 // strings, and that an error with no rejects writes no rejects key.
 func TestServeHTTPRejectsEnvelope(t *testing.T) {
-	refusal := ops.NewInvalidRequestError("the manifest was refused").WithRejects(ops.Rejects{
+	refusal := ops.NewError(ops.CodeInvalidRequest, "the manifest was refused").WithRejects(ops.Rejects{
 		Submission: []reject.Reason{reject.Of(reject.NoAudio)},
 		Files:      []ops.FileReason{{Path: "a/../b.flac", Reason: reject.Of(reject.UnsafePath)}},
 	})
@@ -177,7 +177,7 @@ func TestServeHTTPRejectsEnvelope(t *testing.T) {
 		t.Errorf("rejects.files = %+v, want one unsafe_path for a/../b.flac", got.Error.Rejects.Files)
 	}
 
-	f.subs.answers[ops.OpGetSubmission] = fakeAnswer{err: ops.NewNotFoundError("no such submission")}
+	f.subs.answers[ops.OpGetSubmission] = fakeAnswer{err: ops.NewError(ops.CodeNotFound, "no such submission")}
 	plain := f.post(ops.OpGetSubmission, `{"submission_id":"`+testHandle+`"}`)
 	if strings.Contains(plain.Body.String(), "rejects") {
 		t.Errorf("an error with no rejects wrote %s", plain.Body)

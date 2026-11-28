@@ -284,8 +284,8 @@ func TestWrapExitCode_Table(t *testing.T) {
 		err      error
 		wantCode int // 0 means "left unwrapped"
 	}{
-		{name: "unavailable", err: ops.NewUnavailableError("backup integration disabled"), wantCode: exitUnavailable},
-		{name: "conflict", err: ops.NewConflictError("backup job abc123 is running"), wantCode: exitTempFail},
+		{name: "unavailable", err: ops.NewError(ops.CodeUnavailable, "backup integration disabled"), wantCode: exitUnavailable},
+		{name: "conflict", err: ops.NewError(ops.CodeConflict, "backup job abc123 is running"), wantCode: exitTempFail},
 		{name: "any other error", err: errors.New("boom"), wantCode: 0},
 	}
 	for _, tt := range tests {
