@@ -114,6 +114,20 @@ func TestFromEnviron_OperatorCSSUnderStateDir(t *testing.T) {
 	}
 }
 
+// TestFromEnviron_OperatorCSSNeedsAStateDir proves an empty state
+// directory refuses the operator stylesheet rather than skipping the
+// guard that keeps the public route from serving the store.
+func TestFromEnviron_OperatorCSSNeedsAStateDir(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "operator.css")
+	if err := os.WriteFile(path, []byte("body{}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err := FromEnviron([]string{"DUBPLATE_OPERATOR_CSS_FILE=" + path}, "")
+	if err == nil || !strings.HasPrefix(err.Error(), "DUBPLATE_OPERATOR_CSS_FILE: ") {
+		t.Errorf("error = %v, want a DUBPLATE_OPERATOR_CSS_FILE refusal", err)
+	}
+}
+
 func TestRegister(t *testing.T) {
 	reg := config.NewRegistry()
 	Register(reg)
