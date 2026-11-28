@@ -45,10 +45,10 @@ func NetworkActor(login Identity, anchor time.Time, clientIP string) Actor {
 // String returns how an audit record names a. The zero Actor returns
 // the empty string.
 func (a Actor) String() string {
-	switch a.channel {
-	case ChannelCommandLine:
+	switch {
+	case a.channel == ChannelCommandLine:
 		return "local:" + a.name
-	case ChannelCookie:
+	case a.channel.network():
 		return "member:" + a.userID.String()
 	default:
 		return ""

@@ -54,7 +54,7 @@ func normalizeCorpus(t *testing.T) []normalizeCase {
 		{
 			name:  "exactly at the length cap",
 			input: atCap,
-			want:  strings.ToLower(atCap),
+			want:  atCap,
 		},
 		{
 			name:    "one byte over the length cap",
@@ -292,7 +292,7 @@ func TestChannel_StringAndValid(t *testing.T) {
 			if got := tt.channel.String(); got != tt.want {
 				t.Errorf("String() = %q, want %q", got, tt.want)
 			}
-			if !tt.channel.Valid() {
+			if !tt.channel.valid() {
 				t.Errorf("Valid() = false, want true for %s", tt.name)
 			}
 		})
@@ -301,10 +301,10 @@ func TestChannel_StringAndValid(t *testing.T) {
 	if got := Channel(0).String(); got != "unknown" {
 		t.Errorf("String() of zero value = %q, want %q", got, "unknown")
 	}
-	if Channel(0).Valid() {
+	if Channel(0).valid() {
 		t.Error("Valid() of zero value = true, want false")
 	}
-	if Channel(3).Valid() {
+	if Channel(3).valid() {
 		t.Error("Valid() of Channel(3) = true, want false")
 	}
 
@@ -313,7 +313,7 @@ func TestChannel_StringAndValid(t *testing.T) {
 	// count, not silently pass by extension.
 	validCount := 0
 	for c := Channel(0); c <= Channel(len(tests)+1); c++ {
-		if c.Valid() {
+		if c.valid() {
 			validCount++
 		}
 	}

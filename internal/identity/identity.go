@@ -147,11 +147,17 @@ func (c Channel) String() string {
 	return "unknown"
 }
 
-// Valid reports whether c is a recognized channel. The zero value is
+// valid reports whether c is a recognized channel. The zero value is
 // not one.
-func (c Channel) Valid() bool {
+func (c Channel) valid() bool {
 	_, ok := channelNames[c]
 	return ok
+}
+
+// network reports whether c is a recognized channel a request arrives
+// on, which is every one but [ChannelCommandLine].
+func (c Channel) network() bool {
+	return c.valid() && c != ChannelCommandLine
 }
 
 // A UserID is a member's durable surrogate id: the 16-byte key the
@@ -191,6 +197,5 @@ type Identity struct {
 // Valid reports whether i is a complete verified login. An identity on
 // [ChannelCommandLine] never is.
 func (i Identity) Valid() bool {
-	return i.Address != "" && !i.UserID.IsZero() && i.Username != "" &&
-		i.Channel.Valid() && i.Channel != ChannelCommandLine
+	return i.Address != "" && !i.UserID.IsZero() && i.Username != "" && i.Channel.network()
 }
