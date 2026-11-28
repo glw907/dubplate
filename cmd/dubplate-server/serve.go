@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/netip"
@@ -23,7 +22,6 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
-	"github.com/glw907/dubplate/web"
 	"github.com/spf13/cobra"
 )
 
@@ -247,7 +245,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		return nil, err
 	}
 
-	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, cfg.StateDir, shell.Logger(), webBuild)
+	webRoutes, err := newWebRoutes(environ, prefix, cfg.SiteName, cfg.StateDir, shell.Logger(), webBuild)
 	if err != nil {
 		return nil, err
 	}
@@ -289,9 +287,6 @@ type registrar interface {
 // through. Every registration goes through it, never through the shell
 // directly, so the route inventory test sees each name.
 var mountRoutes = func(s *serve.Shell) registrar { return s }
-
-// webBuild is the build tree newServeShell serves the web routes from.
-var webBuild fs.FS = web.Build
 
 // openServeStore opens the dubplate store for serve: it reads the
 // store's thresholds, decides the keep from the facts [store.Inspect]

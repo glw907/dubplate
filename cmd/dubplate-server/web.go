@@ -54,15 +54,9 @@ func registerWebRoutes(routes registrar, wr webapp.Routes) {
 	}
 }
 
-// newWebRoutes builds the web app's routes from [web.Build], as
-// [newWebRoutesFromFS] does from a given tree. It runs before any
-// listener opens, so a bad config value or build defect stops startup
-// rather than the first request. siteName enters every document as
-// the dubplate-site-name meta; logger takes the documents' request
-// records and the record a theme-color-less branding neutral writes.
-func newWebRoutes(environ []string, prefix serve.Prefix, siteName, stateDir string, logger *slog.Logger) (webapp.Routes, error) {
-	return newWebRoutesFromFS(environ, prefix, siteName, stateDir, logger, web.Build)
-}
+// webBuild is the build tree serve serves the web routes from and
+// doctor checks them against.
+var webBuild fs.FS = web.Build
 
 // webDoctorRows renders the web row: "ok" when [newWebRoutes] builds
 // the routes from the inputs serve startup passes, and "invalid: " plus
@@ -94,15 +88,17 @@ func checkWebRoutes(environ []string, cfg *config.Config) error {
 		return err
 	}
 	discard := slog.New(slog.NewTextHandler(io.Discard, nil))
-	_, err = newWebRoutes(environ, prefix, cfg.SiteName, cfg.StateDir, discard)
+	_, err = newWebRoutes(environ, prefix, cfg.SiteName, cfg.StateDir, discard, webBuild)
 	return err
 }
 
-// newWebRoutesFromFS is [newWebRoutes] over buildFS, so a test can
-// build any state a bad build can be in, since [web.Build] is fixed
-// at compile time. It resolves the web settings with [webapp.FromEnviron]
-// and hands them to [webapp.New].
-func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName, stateDir string, logger *slog.Logger, buildFS fs.FS) (webapp.Routes, error) {
+// newWebRoutes builds the web app's routes from build. It runs before
+// any listener opens, so a bad config value or build defect stops
+// startup rather than the first request. siteName enters every
+// document as the dubplate-site-name meta; logger takes the documents'
+// request records and the record a theme-color-less branding neutral
+// writes.
+func newWebRoutes(environ []string, prefix serve.Prefix, siteName, stateDir string, logger *slog.Logger, build fs.FS) (webapp.Routes, error) {
 	cfg, err := webapp.FromEnviron(environ, stateDir)
 	if err != nil {
 		return webapp.Routes{}, err
@@ -112,5 +108,5 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName, stateDi
 	cfg.SiteName = siteName
 	cfg.Logger = logger
 
-	return webapp.New(buildFS, cfg)
+	return webapp.New(build, cfg)
 }

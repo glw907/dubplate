@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/web"
 )
 
 // doctorRows runs doctor over environ against the production registry
@@ -241,7 +242,7 @@ func TestDoctorBoundaryRows_NeutralBrandingLogsNothingToStdout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	if _, err := newWebRoutes(environ, listen.Prefix, fixtureSiteName, "", slog.New(slog.NewTextHandler(&logs, nil))); err != nil {
+	if _, err := newWebRoutes(environ, listen.Prefix, fixtureSiteName, "", slog.New(slog.NewTextHandler(&logs, nil)), web.Build); err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
 	if logs.Len() == 0 {
