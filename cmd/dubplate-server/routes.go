@@ -21,33 +21,18 @@ const (
 	apiRouteName = "api"
 	tusRouteName = "tus"
 
-	// The two admin documents. The second is not "settings", a name
-	// kept for the member preferences page.
-	membersRouteName        = "members"
-	serverSettingsRouteName = "server-settings"
-
-	loginRouteName       = "login"
-	assetsRouteName      = "_app"
-	brandingRouteName    = "branding.css"
-	operatorCSSRouteName = "operator.css"
-	fontsRouteName       = "fonts"
-	faviconSVGRouteName  = "favicon.svg"
-	faviconPNGRouteName  = "favicon.png"
-	markRouteName        = "mark"
+	// The web app's routes, whose names the build fixes.
+	membersRouteName        = webapp.MembersRouteName
+	serverSettingsRouteName = webapp.ServerSettingsRouteName
+	loginRouteName          = webapp.LoginRouteName
+	assetsRouteName         = webapp.AssetsRouteName
+	brandingRouteName       = webapp.BrandingRouteName
+	operatorCSSRouteName    = webapp.OperatorCSSRouteName
+	fontsRouteName          = webapp.FontsRouteName
+	faviconSVGRouteName     = webapp.FaviconSVGRouteName
+	faviconPNGRouteName     = webapp.FaviconPNGRouteName
+	markRouteName           = webapp.MarkRouteName
 )
-
-var webRouteNames = webapp.RouteNames{
-	Login:          loginRouteName,
-	Members:        membersRouteName,
-	ServerSettings: serverSettingsRouteName,
-	Assets:         assetsRouteName,
-	Fonts:          fontsRouteName,
-	FaviconSVG:     faviconSVGRouteName,
-	FaviconPNG:     faviconPNGRouteName,
-	Mark:           markRouteName,
-	Branding:       brandingRouteName,
-	OperatorCSS:    operatorCSSRouteName,
-}
 
 type registrar interface {
 	Register(name string, h http.Handler)

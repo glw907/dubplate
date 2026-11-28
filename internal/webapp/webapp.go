@@ -18,33 +18,34 @@ import (
 	"net/http"
 )
 
-// RouteNames are the subtree names, under the owned prefix, the routes
-// [New] builds answer at. FaviconSVG, FaviconPNG, and Mark also name
-// the files and the directory the icons are read from in the build.
-type RouteNames struct {
-	Login          string
-	Members        string
-	ServerSettings string
-	Assets         string
-	Fonts          string
-	FaviconSVG     string
-	FaviconPNG     string
-	Mark           string
-	Branding       string
-	OperatorCSS    string
-}
+// The subtree names, under the owned prefix, that the routes [New]
+// builds answer at. The build fixes them: AssetsRouteName,
+// FontsRouteName, and MarkRouteName also name build directories, and
+// FaviconSVGRouteName and FaviconPNGRouteName build files, so the
+// build's relative links resolve under these names alone. The server
+// settings document is not "settings", a name kept for the member
+// preferences page.
+const (
+	LoginRouteName          = "login"
+	MembersRouteName        = "members"
+	ServerSettingsRouteName = "server-settings"
+	AssetsRouteName         = "_app"
+	FontsRouteName          = "fonts"
+	FaviconSVGRouteName     = "favicon.svg"
+	FaviconPNGRouteName     = "favicon.png"
+	MarkRouteName           = "mark"
+	BrandingRouteName       = "branding.css"
+	OperatorCSSRouteName    = "operator.css"
+)
 
 // Config is what [New] builds the routes from. [FromEnviron] resolves
 // and checks Match, Palette, Branding, BrandingNeutral, and
-// OperatorCSS; the caller sets Prefix, Names, SiteName, and Logger.
-// New checks only what it reads against the build.
+// OperatorCSS; the caller sets Prefix, SiteName, and Logger. New
+// checks only what it reads against the build.
 type Config struct {
 	// Prefix is the owned prefix every route answers under, as the
 	// shell's prefix spells it.
 	Prefix string
-
-	// Names are the routes' subtree names.
-	Names RouteNames
 
 	// SiteName enters every document as the dubplate-site-name meta.
 	SiteName string
@@ -108,7 +109,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		return Routes{}, errors.New("the embedded web build tree holds only the placeholder; run `npm run build` in web/")
 	}
 
-	docs := documents(cfg.Names)
+	docs := documents()
 	for i := range docs {
 		d := &docs[i]
 		d.raw, err = fs.ReadFile(build, d.name)
@@ -137,7 +138,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 
 	hasOperatorCSS := cfg.OperatorCSS != nil
 	var icons []icon
-	for _, f := range favicons(cfg.Names) {
+	for _, f := range favicons() {
 		icons = append(icons, icon{href: cfg.Prefix + "/" + f.name, contentType: f.contentType, sizes: f.sizes})
 	}
 	var routes Routes
@@ -146,7 +147,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		vc := variantConfig{
 			match:       cfg.Match,
 			palettes:    palettes,
-			tierHrefs:   tierHrefs(d.name, cfg.Names, hasOperatorCSS),
+			tierHrefs:   tierHrefs(d.name, hasOperatorCSS),
 			siteName:    cfg.SiteName,
 			themeColors: colors,
 			icons:       icons,
@@ -178,26 +179,26 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		*dst = exactPaths(group, notFound)
 	}
 
-	assetsFS, err := fs.Sub(build, "_app")
+	assetsFS, err := fs.Sub(build, AssetsRouteName)
 	if err != nil {
 		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
-	fontsFS, err := fs.Sub(build, "fonts")
+	fontsFS, err := fs.Sub(build, FontsRouteName)
 	if err != nil {
 		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
-	routes.Fonts, err = fontsHandler(fontsFS, cfg.Prefix+"/"+cfg.Names.Fonts)
+	routes.Fonts, err = fontsHandler(fontsFS, cfg.Prefix+"/"+FontsRouteName)
 	if err != nil {
 		return Routes{}, err
 	}
-	routes.Icons, err = iconsHandler(build, cfg.Prefix, cfg.Names)
+	routes.Icons, err = iconsHandler(build, cfg.Prefix)
 	if err != nil {
 		return Routes{}, err
 	}
-	routes.Assets = assetsHandler(assetsFS, cfg.Prefix+"/"+cfg.Names.Assets)
-	routes.Branding = stylesheetHandler(cfg.Prefix+"/"+cfg.Names.Branding, cfg.Branding)
+	routes.Assets = assetsHandler(assetsFS, cfg.Prefix+"/"+AssetsRouteName)
+	routes.Branding = stylesheetHandler(cfg.Prefix+"/"+BrandingRouteName, cfg.Branding)
 	if hasOperatorCSS {
-		routes.OperatorCSS = stylesheetHandler(cfg.Prefix+"/"+cfg.Names.OperatorCSS, cfg.OperatorCSS)
+		routes.OperatorCSS = stylesheetHandler(cfg.Prefix+"/"+OperatorCSSRouteName, cfg.OperatorCSS)
 	}
 	return routes, nil
 }

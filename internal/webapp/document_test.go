@@ -618,19 +618,7 @@ type requestLogFixture struct {
 func newRequestLogFixture(t *testing.T, logger *slog.Logger) requestLogFixture {
 	t.Helper()
 	routes, err := New(requestLogBuildFS(), Config{
-		Prefix: "/dubplate",
-		Names: RouteNames{
-			Login:          "login",
-			Members:        "members",
-			ServerSettings: "server-settings",
-			Assets:         "_app",
-			Fonts:          "fonts",
-			FaviconSVG:     "favicon.svg",
-			FaviconPNG:     "favicon.png",
-			Mark:           "mark",
-			Branding:       "branding.css",
-			OperatorCSS:    "operator.css",
-		},
+		Prefix:   "/dubplate",
 		SiteName: "S",
 		Match:    "dubplate",
 		Palette:  "system",

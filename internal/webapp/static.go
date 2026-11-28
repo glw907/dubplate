@@ -94,15 +94,15 @@ func fontsHandler(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
 // mark directory under the mark's own route. It refuses when either
 // favicon or every mark file is missing, since a document would then
 // link a file the server cannot answer.
-func iconsHandler(build fs.FS, prefix string, names RouteNames) (http.Handler, error) {
-	files, err := readStaticDir(build, names.Mark, ".svg", "image/svg+xml", prefix+"/"+names.Mark)
+func iconsHandler(build fs.FS, prefix string) (http.Handler, error) {
+	files, err := readStaticDir(build, MarkRouteName, ".svg", "image/svg+xml", prefix+"/"+MarkRouteName)
 	if err != nil {
 		return nil, fmt.Errorf("webapp: mark: %w", err)
 	}
 	if len(files) == 0 {
 		return nil, errors.New("no .svg file embedded under web/build/mark/")
 	}
-	for _, f := range favicons(names) {
+	for _, f := range favicons() {
 		data, err := fs.ReadFile(build, f.name)
 		if err != nil {
 			return nil, fmt.Errorf("webapp: favicon: %w", err)
@@ -123,10 +123,10 @@ type favicon struct {
 
 // favicons returns the favicon's forms, the files [iconsHandler] serves
 // and the icon links every document carries.
-func favicons(names RouteNames) []favicon {
+func favicons() []favicon {
 	return []favicon{
-		{name: names.FaviconSVG, contentType: "image/svg+xml"},
-		{name: names.FaviconPNG, contentType: "image/png", sizes: "32x32"},
+		{name: FaviconSVGRouteName, contentType: "image/svg+xml"},
+		{name: FaviconPNGRouteName, contentType: "image/png", sizes: "32x32"},
 	}
 }
 
