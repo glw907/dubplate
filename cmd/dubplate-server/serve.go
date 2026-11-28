@@ -247,7 +247,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		return nil, err
 	}
 
-	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger(), webBuild)
+	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, cfg.StateDir, shell.Logger(), webBuild)
 	if err != nil {
 		return nil, err
 	}
