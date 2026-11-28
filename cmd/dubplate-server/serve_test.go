@@ -1226,7 +1226,7 @@ func checkDocumentSet(buildFS fs.FS) string {
 	return ""
 }
 
-// webFSHandler builds a shell over the routes newWebRoutesFromFS builds
+// webFSHandler builds a shell over the routes newWebRoutes builds
 // from buildFS, with the members document mounted with no gate, since
 // these checks read the document rather than the gate.
 func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
@@ -1234,7 +1234,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, "", discardTestLogger(), buildFS)
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, "", discardTestLogger(), buildFS)
 	if err != nil {
 		return nil, err
 	}
