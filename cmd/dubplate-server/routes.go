@@ -8,8 +8,9 @@ import (
 	"github.com/glw907/dubplate/internal/webapp"
 )
 
-// The subtree names serve mounts under the owned prefix, beside the
-// boundary probe's [serve.ProbeRouteName].
+// The subtree names this package mounts under the owned prefix, beside
+// the boundary probe's [serve.ProbeRouteName] and the web app's names
+// in webapp.
 const (
 	requestLinkRouteName = "request-link"
 	consumeLinkRouteName = "consume-link"
@@ -20,18 +21,6 @@ const (
 	// with a JSON 404. That is also why tus cannot live under api.
 	apiRouteName = "api"
 	tusRouteName = "tus"
-
-	// The web app's routes, whose names the build fixes.
-	membersRouteName        = webapp.MembersRouteName
-	serverSettingsRouteName = webapp.ServerSettingsRouteName
-	loginRouteName          = webapp.LoginRouteName
-	assetsRouteName         = webapp.AssetsRouteName
-	brandingRouteName       = webapp.BrandingRouteName
-	operatorCSSRouteName    = webapp.OperatorCSSRouteName
-	fontsRouteName          = webapp.FontsRouteName
-	faviconSVGRouteName     = webapp.FaviconSVGRouteName
-	faviconPNGRouteName     = webapp.FaviconPNGRouteName
-	markRouteName           = webapp.MarkRouteName
 )
 
 type registrar interface {
@@ -51,15 +40,15 @@ func registerAuthRoutes(routes registrar, h auth.Handlers) {
 }
 
 func registerWebRoutes(routes registrar, wr webapp.Routes) {
-	routes.Register(loginRouteName, wr.Login)
-	routes.Register(assetsRouteName, wr.Assets)
-	routes.Register(fontsRouteName, wr.Fonts)
-	routes.Register(faviconSVGRouteName, wr.Icons)
-	routes.Register(faviconPNGRouteName, wr.Icons)
-	routes.Register(markRouteName, wr.Icons)
-	routes.Register(brandingRouteName, wr.Branding)
+	routes.Register(webapp.LoginRouteName, wr.Login)
+	routes.Register(webapp.AssetsRouteName, wr.Assets)
+	routes.Register(webapp.FontsRouteName, wr.Fonts)
+	routes.Register(webapp.FaviconSVGRouteName, wr.Icons)
+	routes.Register(webapp.FaviconPNGRouteName, wr.Icons)
+	routes.Register(webapp.MarkRouteName, wr.Icons)
+	routes.Register(webapp.BrandingRouteName, wr.Branding)
 	if wr.OperatorCSS != nil {
-		routes.Register(operatorCSSRouteName, wr.OperatorCSS)
+		routes.Register(webapp.OperatorCSSRouteName, wr.OperatorCSS)
 	}
 }
 
@@ -68,8 +57,8 @@ func registerWebRoutes(routes registrar, wr webapp.Routes) {
 // non-admin meets the gate's 404 whatever the method or path and only
 // a verified admin meets a 405.
 func registerAdminRoutes(routes registrar, wr webapp.Routes, admin auth.VerifyConfig) {
-	routes.Register(membersRouteName, auth.RequireAdmin(admin, wr.Members))
-	routes.Register(serverSettingsRouteName, auth.RequireAdmin(admin, wr.ServerSettings))
+	routes.Register(webapp.MembersRouteName, auth.RequireAdmin(admin, wr.Members))
+	routes.Register(webapp.ServerSettingsRouteName, auth.RequireAdmin(admin, wr.ServerSettings))
 }
 
 func methodOnly(method string, h http.Handler) http.Handler {

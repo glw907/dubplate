@@ -620,9 +620,9 @@ func newRequestLogFixture(t *testing.T, logger *slog.Logger) requestLogFixture {
 	routes, err := New(requestLogBuildFS(), Config{
 		Prefix:   "/dubplate",
 		SiteName: "S",
-		Match:    "dubplate",
-		Palette:  "system",
-		Branding: []byte{},
+		match:    "dubplate",
+		palette:  "system",
+		branding: []byte{},
 		Logger:   logger,
 	})
 	if err != nil {

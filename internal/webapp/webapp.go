@@ -38,9 +38,9 @@ const (
 	OperatorCSSRouteName    = "operator.css"
 )
 
-// Config is what [New] builds the routes from. [FromEnviron] resolves
-// and checks Match, Palette, Branding, BrandingNeutral, and
-// OperatorCSS; the caller sets Prefix, SiteName, and Logger. New
+// Config is what [New] builds the routes from. Only [FromEnviron]
+// sets its unexported settings, so every Config New reads carries
+// checked values; the caller sets Prefix, SiteName, and Logger. New
 // checks only what it reads against the build.
 type Config struct {
 	// Prefix is the owned prefix every route answers under, as the
@@ -50,26 +50,26 @@ type Config struct {
 	// SiteName enters every document as the dubplate-site-name meta.
 	SiteName string
 
-	// Match names the theme group, and Palette the theme a visitor
-	// without a theme cookie sees. Match+"-"+Palette must name a theme
-	// the bundle declares.
-	Match   string
-	Palette string
-
-	// Branding is the branding stylesheet rendered from
-	// DUBPLATE_BRANDING, and BrandingNeutral the value it declares for
-	// --color-neutral, "" when it declares none.
-	Branding        []byte
-	BrandingNeutral string
-
-	// OperatorCSS is the stylesheet DUBPLATE_OPERATOR_CSS_FILE names, as
-	// FromEnviron reads it, or nil when none is configured.
-	OperatorCSS []byte
-
 	// Logger takes the documents' request records and the one record
 	// written when the branding neutral leaves the documents without a
 	// theme-color meta.
 	Logger *slog.Logger
+
+	// match names the theme group, and palette the theme a visitor
+	// without a theme cookie sees. match+"-"+palette must name a theme
+	// the bundle declares.
+	match   string
+	palette string
+
+	// branding is the branding stylesheet rendered from
+	// DUBPLATE_BRANDING, and brandingNeutral the value it declares for
+	// --color-neutral, "" when it declares none.
+	branding        []byte
+	brandingNeutral string
+
+	// operatorCSS is the stylesheet DUBPLATE_OPERATOR_CSS_FILE names, as
+	// FromEnviron reads it, or nil when none is configured.
+	operatorCSS []byte
 }
 
 // Routes are the http.Handlers [New] builds, each answering under its
@@ -90,7 +90,7 @@ type Routes struct {
 
 // New reads the build tree build and returns the routes. It builds
 // each document's CSP header from the document's own CSP meta. It
-// checks cfg.Palette against the [data-theme=<name>] selectors the
+// checks cfg.palette against the [data-theme=<name>] selectors the
 // bundle declares. It rewrites each document into one variant per
 // stampable palette, with the tier links and the head metas in place.
 //
@@ -126,17 +126,17 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	if err != nil {
 		return Routes{}, err
 	}
-	composed := cfg.Match + "-" + cfg.Palette
+	composed := cfg.match + "-" + cfg.palette
 	if _, ok := themes.selectors[composed]; !ok {
-		return Routes{}, fmt.Errorf("%s: %q: no theme selector named %q in the built bundle", themePaletteThreshold.Key, cfg.Palette, composed)
+		return Routes{}, fmt.Errorf("%s: %q: no theme selector named %q in the built bundle", themePaletteThreshold.Key, cfg.palette, composed)
 	}
-	palettes := stampablePalettes(themes.selectors, cfg.Match)
-	colors, err := themeColors(themes.neutrals, cfg.Match, palettes, cfg.BrandingNeutral, cfg.Logger)
+	palettes := stampablePalettes(themes.selectors, cfg.match)
+	colors, err := themeColors(themes.neutrals, cfg.match, palettes, cfg.brandingNeutral, cfg.Logger)
 	if err != nil {
 		return Routes{}, err
 	}
 
-	hasOperatorCSS := cfg.OperatorCSS != nil
+	hasOperatorCSS := cfg.operatorCSS != nil
 	var icons []icon
 	for _, f := range favicons() {
 		icons = append(icons, icon{href: cfg.Prefix + "/" + f.name, contentType: f.contentType, sizes: f.sizes})
@@ -145,7 +145,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	groups := make(map[*http.Handler]map[string]http.Handler)
 	for _, d := range docs {
 		vc := variantConfig{
-			match:       cfg.Match,
+			match:       cfg.match,
 			palettes:    palettes,
 			tierHrefs:   tierHrefs(d.name, hasOperatorCSS),
 			siteName:    cfg.SiteName,
@@ -168,7 +168,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		}
 		groups[dst][cfg.Prefix+d.route] = documentHandler(documentConfig{
 			variants:       variants,
-			defaultPalette: cfg.Palette,
+			defaultPalette: cfg.palette,
 			cacheControl:   d.cacheControl,
 			csp:            d.csp,
 			logger:         cfg.Logger,
@@ -196,9 +196,9 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		return Routes{}, err
 	}
 	routes.Assets = assetsHandler(assetsFS, cfg.Prefix+"/"+AssetsRouteName)
-	routes.Branding = stylesheetHandler(cfg.Prefix+"/"+BrandingRouteName, cfg.Branding)
+	routes.Branding = stylesheetHandler(cfg.Prefix+"/"+BrandingRouteName, cfg.branding)
 	if hasOperatorCSS {
-		routes.OperatorCSS = stylesheetHandler(cfg.Prefix+"/"+OperatorCSSRouteName, cfg.OperatorCSS)
+		routes.OperatorCSS = stylesheetHandler(cfg.Prefix+"/"+OperatorCSSRouteName, cfg.operatorCSS)
 	}
 	return routes, nil
 }

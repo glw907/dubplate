@@ -14,11 +14,11 @@ func TestFromEnviron_Defaults(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FromEnviron(nil): %v", err)
 	}
-	if got.Match != "dubplate" || got.Palette != "system" {
-		t.Errorf("Match, Palette = %q, %q; want %q, %q", got.Match, got.Palette, "dubplate", "system")
+	if got.match != "dubplate" || got.palette != "system" {
+		t.Errorf("match, palette = %q, %q; want %q, %q", got.match, got.palette, "dubplate", "system")
 	}
-	if len(got.Branding) != 0 || got.BrandingNeutral != "" || got.OperatorCSS != nil {
-		t.Errorf("unset branding and operator CSS resolved to %q, %q, %q; want all empty", got.Branding, got.BrandingNeutral, got.OperatorCSS)
+	if len(got.branding) != 0 || got.brandingNeutral != "" || got.operatorCSS != nil {
+		t.Errorf("unset branding and operator CSS resolved to %q, %q, %q; want all empty", got.branding, got.brandingNeutral, got.operatorCSS)
 	}
 }
 
@@ -39,8 +39,8 @@ func TestFromEnviron_BrandingNeutral(t *testing.T) {
 			if err != nil {
 				t.Fatalf("FromEnviron: %v", err)
 			}
-			if got.BrandingNeutral != tt.want {
-				t.Errorf("BrandingNeutral = %q, want %q", got.BrandingNeutral, tt.want)
+			if got.brandingNeutral != tt.want {
+				t.Errorf("brandingNeutral = %q, want %q", got.brandingNeutral, tt.want)
 			}
 		})
 	}
@@ -51,8 +51,8 @@ func TestFromEnviron_BrandingStylesheet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FromEnviron: %v", err)
 	}
-	if !strings.Contains(string(got.Branding), "--color-primary: #abcdef") {
-		t.Errorf("Branding = %q, want it to carry the declaration", got.Branding)
+	if !strings.Contains(string(got.branding), "--color-primary: #abcdef") {
+		t.Errorf("branding = %q, want it to carry the declaration", got.branding)
 	}
 }
 
@@ -97,8 +97,8 @@ func TestFromEnviron_OperatorCSS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FromEnviron: %v", err)
 	}
-	if string(got.OperatorCSS) != "body{}" {
-		t.Errorf("OperatorCSS = %q, want %q", got.OperatorCSS, "body{}")
+	if string(got.operatorCSS) != "body{}" {
+		t.Errorf("operatorCSS = %q, want %q", got.operatorCSS, "body{}")
 	}
 }
 

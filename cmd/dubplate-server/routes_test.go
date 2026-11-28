@@ -12,6 +12,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/webapp"
 )
 
 // A routeClass says who may reach a route: anyone, any signed-in
@@ -43,24 +44,24 @@ type routeRow struct {
 // class (PS A2). A route the table does not name fails the test, so a
 // new route cannot ship without a ruling on who may reach it.
 var routeInventory = map[string]routeRow{
-	requestLinkRouteName: {class: routePublic},
-	consumeLinkRouteName: {class: routePublic},
-	signOutRouteName:     {class: routePublic},
-	serve.ProbeRouteName: {class: routePublic},
-	loginRouteName:       {class: routePublic},
-	assetsRouteName:      {class: routePublic},
-	fontsRouteName:       {class: routePublic},
-	faviconSVGRouteName:  {class: routePublic},
-	faviconPNGRouteName:  {class: routePublic},
-	markRouteName:        {class: routePublic},
-	brandingRouteName:    {class: routePublic},
-	operatorCSSRouteName: {class: routePublic, optional: true},
+	requestLinkRouteName:        {class: routePublic},
+	consumeLinkRouteName:        {class: routePublic},
+	signOutRouteName:            {class: routePublic},
+	serve.ProbeRouteName:        {class: routePublic},
+	webapp.LoginRouteName:       {class: routePublic},
+	webapp.AssetsRouteName:      {class: routePublic},
+	webapp.FontsRouteName:       {class: routePublic},
+	webapp.FaviconSVGRouteName:  {class: routePublic},
+	webapp.FaviconPNGRouteName:  {class: routePublic},
+	webapp.MarkRouteName:        {class: routePublic},
+	webapp.BrandingRouteName:    {class: routePublic},
+	webapp.OperatorCSSRouteName: {class: routePublic, optional: true},
 
-	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/list_submissions"},
-	tusRouteName:     {class: routeSession, method: http.MethodPost, path: "/" + tusRouteName + "/"},
-	membersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + membersRouteName},
+	apiRouteName:            {class: routeSession, method: http.MethodPost, path: "/api/v1/list_submissions"},
+	tusRouteName:            {class: routeSession, method: http.MethodPost, path: "/" + tusRouteName + "/"},
+	webapp.MembersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + webapp.MembersRouteName},
 
-	serverSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + serverSettingsRouteName},
+	webapp.ServerSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + webapp.ServerSettingsRouteName},
 }
 
 // A recordingRegistrar forwards every registration to its shell and
