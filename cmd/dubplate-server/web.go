@@ -54,7 +54,6 @@ func newWebRoutes(environ []string, prefix serve.Prefix, siteName, stateDir stri
 		return webapp.Routes{}, err
 	}
 	cfg.Prefix = prefix.String()
-	cfg.Names = webRouteNames
 	cfg.SiteName = siteName
 	cfg.Logger = logger
 

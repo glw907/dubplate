@@ -51,15 +51,15 @@ type document struct {
 // sign-in token. The members and server settings documents are
 // no-store because they answer only behind the admin gate, as the API
 // they read from does.
-func documents(names RouteNames) []document {
+func documents() []document {
 	login := func(r *Routes) *http.Handler { return &r.Login }
 	members := func(r *Routes) *http.Handler { return &r.Members }
 	serverSettings := func(r *Routes) *http.Handler { return &r.ServerSettings }
 	return []document{
-		{name: "login.html", route: "/" + names.Login, cacheControl: "no-cache", noIndex: true, dest: login},
-		{name: "login/link.html", route: "/" + names.Login + "/link", cacheControl: "no-store", noIndex: true, dest: login},
-		{name: "members.html", route: "/" + names.Members, cacheControl: "no-store", dest: members},
-		{name: "server-settings.html", route: "/" + names.ServerSettings, cacheControl: "no-store", dest: serverSettings},
+		{name: "login.html", route: "/" + LoginRouteName, cacheControl: "no-cache", noIndex: true, dest: login},
+		{name: "login/link.html", route: "/" + LoginRouteName + "/link", cacheControl: "no-store", noIndex: true, dest: login},
+		{name: "members.html", route: "/" + MembersRouteName, cacheControl: "no-store", dest: members},
+		{name: "server-settings.html", route: "/" + ServerSettingsRouteName, cacheControl: "no-store", dest: serverSettings},
 	}
 }
 
@@ -207,14 +207,14 @@ func headAnchor(name string, raw []byte) (int, error) {
 // stylesheet when one is configured. Each href is relative to the
 // document's own URL, as the build's own links are, so the same
 // document resolves them under any prefix.
-func tierHrefs(docPath string, names RouteNames, hasOperatorCSS bool) []string {
+func tierHrefs(docPath string, hasOperatorCSS bool) []string {
 	root := "./"
 	if depth := strings.Count(docPath, "/"); depth > 0 {
 		root = strings.Repeat("../", depth)
 	}
-	hrefs := []string{root + names.Branding}
+	hrefs := []string{root + BrandingRouteName}
 	if hasOperatorCSS {
-		hrefs = append(hrefs, root+names.OperatorCSS)
+		hrefs = append(hrefs, root+OperatorCSSRouteName)
 	}
 	return hrefs
 }
