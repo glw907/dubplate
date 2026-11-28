@@ -52,7 +52,7 @@ func TestDirStatus(t *testing.T) {
 				}
 				leaf := filepath.Join(stateDir, "auth")
 				chmodRestoring(t, leaf, 0o750)
-				return "leaf " + leaf + " has mode 750, want at most 700", own
+				return leaf + " has mode 750, want at most 700", own
 			},
 			wantFailed: true,
 		},
@@ -63,7 +63,7 @@ func TestDirStatus(t *testing.T) {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
 				leaf := filepath.Join(stateDir, "auth")
-				return "leaf " + leaf + " is owned by uid " + strconv.Itoa(own) + ", want uid " + strconv.Itoa(own+1), own + 1
+				return leaf + " is owned by uid " + strconv.Itoa(own) + ", want uid " + strconv.Itoa(own+1), own + 1
 			},
 			wantFailed: true,
 		},
@@ -109,7 +109,7 @@ func TestDirStatus(t *testing.T) {
 				if err := os.WriteFile(leaf, nil, 0o600); err != nil {
 					t.Fatalf("fixture state: %v", err)
 				}
-				return "leaf " + leaf + " is not a directory", own
+				return leaf + " is not a directory", own
 			},
 			wantFailed: true,
 		},

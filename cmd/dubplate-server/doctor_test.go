@@ -1438,7 +1438,7 @@ func TestDoctorCmd_AuthDirRow(t *testing.T) {
 			setup: func(t *testing.T, stateDir string) string {
 				leaf := makeAuthLeaf(t, stateDir)
 				chmodRestoring(t, leaf, 0o750)
-				return fmt.Sprintf("leaf %s has mode 750, want at most 700", leaf)
+				return fmt.Sprintf("%s has mode 750, want at most 700", leaf)
 			},
 			wantFailed: true,
 		},

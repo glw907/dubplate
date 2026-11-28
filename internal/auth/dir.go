@@ -9,22 +9,22 @@ import (
 	"strings"
 )
 
-// leafDirName is the one directory under the state directory the auth
+// dirName is the one directory under the state directory the auth
 // package writes. The nonce store and the epoch store share it, so the
 // serve unit's ReadWritePaths grant is one static path rather than one
 // per record kind.
-const leafDirName = "auth"
+const dirName = "auth"
 
 // nonceSubdir and epochSubdir are the two record subdirectories Open
-// creates beneath the leaf. They double as [recordID]'s
+// creates beneath the auth dir. They double as [recordID]'s
 // domain-separation labels.
 const (
 	nonceSubdir = "nonce"
 	epochSubdir = "epoch"
 )
 
-// dirPerm and filePerm are this leaf's directory and record-file
-// permissions: identity state is private, so the leaf states its own
+// dirPerm and filePerm are the auth dir's directory and record-file
+// permissions: identity state is private, so the package states its own
 // permission in code rather than leaving it to the unit's umask.
 const (
 	dirPerm  = 0o700
@@ -32,10 +32,10 @@ const (
 )
 
 func dirPath(stateDir string) string {
-	return filepath.Join(stateDir, leafDirName)
+	return filepath.Join(stateDir, dirName)
 }
 
-// A Dir is the auth leaf, the directory under the state directory that
+// A Dir is the auth dir: the directory under the state directory that
 // holds the auth package's durable records.
 // The nonce store and the epoch store are built on the record path Dir
 // derives, so neither can disagree about where a record lives or what
@@ -44,12 +44,12 @@ type Dir struct {
 	root string
 }
 
-// Open creates the leaf and both record subdirectories under stateDir
+// Open creates the auth dir and both record subdirectories under stateDir
 // if they do not already exist, and returns a Dir rooted there.
 //
-// It refuses to start when the leaf itself already has a mode wider
+// It refuses to start when the auth dir itself already has a mode wider
 // than dirPerm: os.MkdirAll is a no-op on an existing directory
-// whatever its mode, so a leaf created once at a wider mode, by a
+// whatever its mode, so a directory created once at a wider mode, by a
 // hand-run command or an earlier deploy, would otherwise stay wide
 // forever. Record names are digests, but a listable directory is still
 // a listing of how many links are outstanding.
@@ -62,10 +62,10 @@ func Open(stateDir string) (*Dir, error) {
 	}
 	info, err := os.Stat(s.root)
 	if err != nil {
-		return nil, fmt.Errorf("open auth dir: stat leaf: %w", err)
+		return nil, fmt.Errorf("open auth dir: stat: %w", err)
 	}
 	if mode := info.Mode().Perm(); mode&^dirPerm != 0 {
-		return nil, fmt.Errorf("open auth dir: leaf %s has mode %o, want at most %o", s.root, mode, dirPerm)
+		return nil, fmt.Errorf("open auth dir: %s has mode %o, want at most %o", s.root, mode, dirPerm)
 	}
 	return s, nil
 }
