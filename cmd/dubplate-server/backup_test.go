@@ -78,8 +78,9 @@ func TestMain(m *testing.M) {
 		os.Exit(backupStandIn(os.Args[1:]))
 	}
 	if os.Getenv(backupVerbChildEnv) != "" {
-		cmd := newBackupCmd(os.Environ(), newProductionRegistry(), os.Stdout, os.Stderr)
-		os.Exit(run(cmd))
+		root := newRootCmd(os.Environ(), newProductionRegistry())
+		root.SetArgs([]string{"backup"})
+		os.Exit(run(root))
 	}
 	if raw := os.Getenv(restoreVerbChildEnv); raw != "" {
 		os.Exit(runRestoreChild(raw))
@@ -165,8 +166,7 @@ func appendBackupStandinLine(path, line string) {
 // SignalHandling) proves the code itself; this proves the code is
 // documented.
 func TestBackupCmd_LongNamesExitCodes(t *testing.T) {
-	cmd := newBackupCmd(nil, newProductionRegistry(), io.Discard, io.Discard)
-	long := cmd.Long
+	long := newBackupCmd(nil, newProductionRegistry()).Long
 
 	tests := []struct {
 		name string
@@ -256,29 +256,29 @@ func TestReportOutcome_Table(t *testing.T) {
 			if !strings.Contains(err.Error(), reportedJobWire) {
 				t.Errorf("error %q does not name the job's handle %s", err, reportedJobWire)
 			}
-			ece, wrapped := errors.AsType[*exitCodeErr](err)
+			ee, wrapped := errors.AsType[*exitError](err)
 			if tt.wantCode == 0 {
 				if wrapped {
-					t.Errorf("reportOutcome() wrapped exit code %d, want a plain error (run's own default of 1)", ece.code)
+					t.Errorf("reportOutcome() wrapped exit code %d, want a plain error (run's own default of 1)", ee.code)
 				}
 				return
 			}
 			if !wrapped {
 				t.Fatalf("reportOutcome() = %v, want it to wrap an exit code", err)
 			}
-			if ece.code != tt.wantCode {
-				t.Errorf("exit code = %d, want %d", ece.code, tt.wantCode)
+			if ee.code != tt.wantCode {
+				t.Errorf("exit code = %d, want %d", ee.code, tt.wantCode)
 			}
 		})
 	}
 }
 
-// TestWrapExitCode_Table proves R-6bi10's exit branch on StartBackup's
+// TestWithExitStatus_Table proves R-6bi10's exit branch on StartBackup's
 // two coded refusals, and that every other error is left unwrapped for
 // run's own default of 1 (mutation: mapping every error to exit 1
 // would still pass a hand test that checks only the default case, so
 // this table asserts both coded rows fire their own code too).
-func TestWrapExitCode_Table(t *testing.T) {
+func TestWithExitStatus_Table(t *testing.T) {
 	tests := []struct {
 		name     string
 		err      error
@@ -290,22 +290,22 @@ func TestWrapExitCode_Table(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := backupExitCode(tt.err)
-			ece, wrapped := errors.AsType[*exitCodeErr](got)
+			got := withExitStatus(tt.err)
+			ee, wrapped := errors.AsType[*exitError](got)
 			if tt.wantCode == 0 {
 				if wrapped {
-					t.Errorf("backupExitCode(%v) wrapped exit code %d, want it left unwrapped", tt.err, ece.code)
+					t.Errorf("withExitStatus(%v) wrapped exit code %d, want it left unwrapped", tt.err, ee.code)
 				}
 				if !errors.Is(got, tt.err) {
-					t.Errorf("backupExitCode(%v) = %v, want it to still wrap the original error", tt.err, got)
+					t.Errorf("withExitStatus(%v) = %v, want it to still wrap the original error", tt.err, got)
 				}
 				return
 			}
 			if !wrapped {
-				t.Fatalf("backupExitCode(%v) = %v, want it to wrap an exit code", tt.err, got)
+				t.Fatalf("withExitStatus(%v) = %v, want it to wrap an exit code", tt.err, got)
 			}
-			if ece.code != tt.wantCode {
-				t.Errorf("exit code = %d, want %d", ece.code, tt.wantCode)
+			if ee.code != tt.wantCode {
+				t.Errorf("exit code = %d, want %d", ee.code, tt.wantCode)
 			}
 		})
 	}
@@ -826,19 +826,17 @@ func TestBackupCmd_AuthSettingOutOfBoundsNeverFails(t *testing.T) {
 	}
 }
 
-// backupRunFor runs the backup verb's own logic directly, exactly as
-// run(newBackupCmd(...)) does but returning the error rather than
-// printing it to the real os.Stderr, the one write run() and cobra's
-// SilenceErrors leave for it (main.go): a test that wants the error's
-// own text, rather than only run's exit status, calls this instead of
-// going through cobra.
+// backupRunFor runs the backup verb's logic directly, as run does
+// through the root command, but returns the error rather than printing
+// it: a test that wants the error's text, rather than only run's exit
+// status, calls this instead of going through cobra.
 func backupRunFor(ctx context.Context, environ []string, stdout io.Writer) (code int, err error) {
 	err = runBackup(ctx, environ, productionRegistry(), stdout, io.Discard)
 	if err == nil {
 		return 0, nil
 	}
-	if ece, ok := errors.AsType[*exitCodeErr](err); ok {
-		return ece.code, err
+	if ee, ok := errors.AsType[*exitError](err); ok {
+		return ee.code, err
 	}
 	return 1, err
 }

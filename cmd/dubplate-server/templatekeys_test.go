@@ -286,7 +286,7 @@ func renderedDoctor(t *testing.T, template string, stateDir string) (string, err
 	environ = append(environ, "DUBPLATE_SERVE_PORT="+strconv.Itoa(reservedPort()))
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	err = cmd.Execute()
 	return stdout.String(), err
 }

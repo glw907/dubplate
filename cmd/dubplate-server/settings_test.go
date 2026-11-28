@@ -34,12 +34,9 @@ const (
 // holds.
 func runSettings(t *testing.T, environ []string, args ...string) (stdout string, err error) {
 	t.Helper()
-	ov := testOperatorVerbs()
-	ov.LookupID = func(string) (*user.User, error) { return &user.User{Username: "operator"}, nil }
+	stubLookupUser(t, func(string) (*user.User, error) { return &user.User{Username: "operator"}, nil })
 	var out bytes.Buffer
-	cmd := ov.newSettingsCmd(environ, productionRegistry(), &out, io.Discard)
-	cmd.SetArgs(args)
-	err = cmd.Execute()
+	err = rootFor(environ, productionRegistry(), &out, io.Discard, append([]string{"settings"}, args...)...).Execute()
 	return out.String(), err
 }
 
