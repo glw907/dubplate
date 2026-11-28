@@ -139,22 +139,22 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 
 	hasOperatorCSS := cfg.OperatorCSS != nil
 	icons := []icon{
-		{Href: cfg.Prefix + "/" + cfg.Names.FaviconSVG, Type: "image/svg+xml"},
-		{Href: cfg.Prefix + "/" + cfg.Names.FaviconPNG, Type: "image/png", Sizes: "32x32"},
+		{href: cfg.Prefix + "/" + cfg.Names.FaviconSVG, contentType: "image/svg+xml"},
+		{href: cfg.Prefix + "/" + cfg.Names.FaviconPNG, contentType: "image/png", sizes: "32x32"},
 	}
 	handlers := make(map[string]http.Handler, len(webDocuments))
 	for i, d := range webDocuments {
 		vc := variantConfig{
-			Placeholder: themePlaceholder,
-			Match:       cfg.Match,
-			Palettes:    palettes,
-			TierHrefs:   tierHrefs(d.name, cfg.Names, hasOperatorCSS),
-			SiteName:    cfg.SiteName,
-			ThemeColors: colors,
-			Icons:       icons,
+			placeholder: themePlaceholder,
+			match:       cfg.Match,
+			palettes:    palettes,
+			tierHrefs:   tierHrefs(d.name, cfg.Names, hasOperatorCSS),
+			siteName:    cfg.SiteName,
+			themeColors: colors,
+			icons:       icons,
 		}
 		if d.noIndex {
-			vc.Robots = authRobots
+			vc.robots = authRobots
 		}
 		variants, err := buildDocumentVariants(d.name, docs[i].raw, vc)
 		if err != nil {
@@ -164,11 +164,11 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 			return Routes{}, err
 		}
 		handlers[cfg.Prefix+d.route] = newDocument(documentConfig{
-			Variants:       variants,
-			DefaultPalette: cfg.Palette,
-			CacheControl:   d.cacheControl,
-			CSP:            csps[i],
-			Logger:         cfg.Logger,
+			variants:       variants,
+			defaultPalette: cfg.Palette,
+			cacheControl:   d.cacheControl,
+			csp:            csps[i],
+			logger:         cfg.Logger,
 		})
 	}
 	notFound := documentNotFound(cfg.Logger)

@@ -66,21 +66,21 @@ func TestThemeNeutrals(t *testing.T) {
 		{
 			name: "one rule with its scheme",
 			css:  `[data-theme=dubplate-label]{color-scheme:light;--color-neutral:#1f1b16;--color-neutral-content:#fff}`,
-			want: map[string][]themeColor{"dubplate-label": {{Scheme: "light", Color: "#1f1b16"}}},
+			want: map[string][]themeColor{"dubplate-label": {{scheme: "light", color: "#1f1b16"}}},
 		},
 		{
 			name: "a media branch is read on its own selector",
 			css: `[data-theme="dubplate-system"]{color-scheme: light; --color-neutral: #1f1b16}` +
 				`@media (prefers-color-scheme:dark){[data-theme="dubplate-system"]{color-scheme:dark;--color-neutral:#110f0d}}`,
 			want: map[string][]themeColor{"dubplate-system": {
-				{Scheme: "light", Color: "#1f1b16"},
-				{Scheme: "dark", Color: "#110f0d"},
+				{scheme: "light", color: "#1f1b16"},
+				{scheme: "dark", color: "#110f0d"},
 			}},
 		},
 		{
 			name: "a rule with no color-scheme",
 			css:  `[data-theme=x]{--color-neutral:oklch(20% 0 0)}`,
-			want: map[string][]themeColor{"x": {{Color: "oklch(20% 0 0)"}}},
+			want: map[string][]themeColor{"x": {{color: "oklch(20% 0 0)"}}},
 		},
 		{
 			name: "neutral-content alone is not the neutral",

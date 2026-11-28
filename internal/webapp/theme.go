@@ -23,8 +23,8 @@ var themeColorRE = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
 // device prefers. As a theme-color meta, a color with a scheme carries
 // a prefers-color-scheme media query.
 type themeColor struct {
-	Scheme string
-	Color  string
+	scheme string
+	color  string
 }
 
 // themeColors returns each palette's theme-color metas. Each palette
@@ -56,7 +56,7 @@ func themeColors(neutrals map[string][]themeColor, match string, palettes []stri
 		return colors, nil
 	case themeColorRE.MatchString(brandNeutral):
 		for _, palette := range palettes {
-			colors[palette] = []themeColor{{Color: brandNeutral}}
+			colors[palette] = []themeColor{{color: brandNeutral}}
 		}
 		return colors, nil
 	default:
@@ -78,24 +78,24 @@ func paletteThemeColors(theme string, declared []themeColor) ([]themeColor, erro
 	}
 	byScheme := make(map[string]string, len(declared))
 	for _, tc := range declared {
-		if !themeColorRE.MatchString(tc.Color) {
+		if !themeColorRE.MatchString(tc.color) {
 			return nil, fmt.Errorf("webapp: theme %q: its --color-neutral is not a #rgb or #rrggbb color", theme)
 		}
-		if prior, ok := byScheme[tc.Scheme]; ok && prior != tc.Color {
+		if prior, ok := byScheme[tc.scheme]; ok && prior != tc.color {
 			return nil, fmt.Errorf("webapp: theme %q: it declares two --color-neutral values under one color scheme", theme)
 		}
-		byScheme[tc.Scheme] = tc.Color
+		byScheme[tc.scheme] = tc.color
 	}
 	distinct := slices.Compact(slices.Sorted(maps.Values(byScheme)))
 	if len(distinct) == 1 {
-		return []themeColor{{Color: distinct[0]}}, nil
+		return []themeColor{{color: distinct[0]}}, nil
 	}
 	light, hasLight := byScheme["light"]
 	dark, hasDark := byScheme["dark"]
 	if len(byScheme) != 2 || !hasLight || !hasDark {
 		return nil, fmt.Errorf("webapp: theme %q: its --color-neutral values differ under color schemes other than light and dark", theme)
 	}
-	return []themeColor{{Scheme: "light", Color: light}, {Scheme: "dark", Color: dark}}, nil
+	return []themeColor{{scheme: "light", color: light}, {scheme: "dark", color: dark}}, nil
 }
 
 // namedDocument pairs a document's path inside the embedded build tree
@@ -223,9 +223,9 @@ func themeNeutrals(css []byte) map[string][]themeColor {
 		if neutral == nil {
 			continue
 		}
-		tc := themeColor{Color: string(bytes.TrimSpace(neutral[1]))}
+		tc := themeColor{color: string(bytes.TrimSpace(neutral[1]))}
 		if scheme := colorSchemeDeclRE.FindSubmatch(rule[2]); scheme != nil {
-			tc.Scheme = string(bytes.TrimSpace(scheme[1]))
+			tc.scheme = string(bytes.TrimSpace(scheme[1]))
 		}
 		for name := range themeSelectors(rule[1]) {
 			neutrals[name] = append(neutrals[name], tc)
