@@ -38,14 +38,6 @@ var webRouteNames = webapp.RouteNames{
 	OperatorCSS:    operatorCSSRouteName,
 }
 
-// privateFiles names the state the operator CSS file must never be:
-// anything under the state directory. The operator route is public, so
-// a path under it would publish the store. An empty field guards
-// nothing.
-type privateFiles struct {
-	stateDir string
-}
-
 // registerWebRoutes mounts wr's public routes on routes under their
 // subtree names. It leaves members and server settings to the caller,
 // which alone holds the admin gate.
@@ -68,8 +60,8 @@ func registerWebRoutes(routes registrar, wr webapp.Routes) {
 // rather than the first request. siteName enters every document as
 // the dubplate-site-name meta; logger takes the documents' request
 // records and the record a theme-color-less branding neutral writes.
-func newWebRoutes(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger) (webapp.Routes, error) {
-	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, web.Build)
+func newWebRoutes(environ []string, prefix serve.Prefix, siteName, stateDir string, logger *slog.Logger) (webapp.Routes, error) {
+	return newWebRoutesFromFS(environ, prefix, siteName, stateDir, logger, web.Build)
 }
 
 // webDoctorRows renders the web row: "ok" when [newWebRoutes] builds
@@ -102,7 +94,7 @@ func checkWebRoutes(environ []string, cfg *config.Config) error {
 		return err
 	}
 	discard := slog.New(slog.NewTextHandler(io.Discard, nil))
-	_, err = newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, discard)
+	_, err = newWebRoutes(environ, prefix, cfg.SiteName, cfg.StateDir, discard)
 	return err
 }
 
@@ -110,8 +102,8 @@ func checkWebRoutes(environ []string, cfg *config.Config) error {
 // build any state a bad build can be in, since [web.Build] is fixed
 // at compile time. It resolves the web settings with [webapp.FromEnviron]
 // and hands them to [webapp.New].
-func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger, buildFS fs.FS) (webapp.Routes, error) {
-	cfg, err := webapp.FromEnviron(environ, private.stateDir)
+func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName, stateDir string, logger *slog.Logger, buildFS fs.FS) (webapp.Routes, error) {
+	cfg, err := webapp.FromEnviron(environ, stateDir)
 	if err != nil {
 		return webapp.Routes{}, err
 	}
