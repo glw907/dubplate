@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/netip"
 	"strings"
 	"sync"
 	"unicode"
@@ -138,12 +137,8 @@ func (s *Shell) warnForwardedFromLocalPeer(next http.Handler) http.Handler {
 }
 
 func (s *Shell) noteForwardedFromLocalPeer(r *http.Request) {
-	peer := peerIP(r)
-	addr, err := netip.ParseAddr(peer)
-	if err != nil {
-		return
-	}
-	if addr = addr.Unmap(); !addr.IsLoopback() && !addr.IsPrivate() {
+	peer, ok := peerAddr(r)
+	if !ok || !peer.IsLoopback() && !peer.IsPrivate() {
 		return
 	}
 	n := countPresent(r.Header, s.strip.forwarded)
@@ -152,7 +147,7 @@ func (s *Shell) noteForwardedFromLocalPeer(r *http.Request) {
 	}
 	s.forwardedWarning.Do(func() {
 		s.logger.Warn("serve: a loopback or private peer sent a forwarded-address header in direct mode; a front on this host or network must be configured as a trusted proxy, or every client it relays shares its address and its rate limits",
-			"peer", peer,
+			"peer", peerHost(r),
 			"forwarded_headers", n,
 		)
 	})

@@ -70,10 +70,9 @@ func newProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 // from an unknown path. The path is checked first, then the peer, then
 // the method.
 //
-// A permitted peer is one whose [peerIP], parsed and unmapped, is
-// a loopback address or one of bindAddrs, the addresses the server
-// listens on, each unmapped the same way, since net/http reports an
-// IPv4 peer of a dual-stack listener in mapped form. [ClientIP] is
+// A permitted peer is one whose [peerAddr] is a loopback address or
+// one of bindAddrs, the addresses the server listens on, each unmapped
+// the same way. [ClientIP] is
 // never consulted, so no forwarded header can make a peer local.
 //
 // A permitted peer that is also one of proxy's trusted proxies
@@ -101,15 +100,13 @@ func NewProbeRoute(prefix Prefix, bindAddrs []netip.Addr, proxy TrustedProxyConf
 			refuse.ServeHTTP(w, r)
 			return
 		}
-		peer := peerIP(r)
-		addr, err := netip.ParseAddr(peer)
-		if err != nil {
+		peer, ok := peerAddr(r)
+		if !ok {
 			refuse.ServeHTTP(w, r)
 			return
 		}
-		addr = addr.Unmap()
-		_, bound := local[addr]
-		if !addr.IsLoopback() && !bound {
+		_, bound := local[peer]
+		if !peer.IsLoopback() && !bound {
 			refuse.ServeHTTP(w, r)
 			return
 		}

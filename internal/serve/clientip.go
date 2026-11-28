@@ -13,7 +13,7 @@ import (
 // TrustedProxyConfig carries the trusted-proxy configuration: the set
 // of peer addresses permitted to report a client address, and the
 // header they report it in. The zero value is mode off, under which
-// [ClientIP] returns [peerIP] unconditionally, so RemoteAddr is
+// [ClientIP] returns [peerHost] unconditionally, so RemoteAddr is
 // the client address until an adopter configures otherwise.
 type TrustedProxyConfig struct {
 	proxies map[netip.Addr]struct{}
@@ -127,13 +127,10 @@ func (c TrustedProxyConfig) mode() proxyMode {
 	return proxyTrusted
 }
 
-// peerIP returns the TCP peer address of r: RemoteAddr with its
-// port stripped. No header, argument, or [TrustedProxyConfig] changes
-// what it returns, which is what makes it the sole input to every
-// trust decision in this package. r.RemoteAddr always carries a port
-// under net/http; a value that does not parse as host:port is
-// returned verbatim.
-func peerIP(r *http.Request) string {
+// peerHost returns the TCP peer of r as text: RemoteAddr with its
+// port stripped. r.RemoteAddr always carries a port under net/http; a
+// value that does not parse as host:port is returned verbatim.
+func peerHost(r *http.Request) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
@@ -141,13 +138,28 @@ func peerIP(r *http.Request) string {
 	return host
 }
 
+// peerAddr returns the TCP peer address of r, unmapped, and false when
+// [peerHost] is not an IP address. No header, argument, or
+// [TrustedProxyConfig] changes what it returns, which is what makes it
+// the sole input to every trust decision in this package. The address
+// is unmapped because a configured proxy and a bind address are
+// compared unmapped, and a mapped spelling ("::ffff:192.0.2.1") never
+// equals its dotted form.
+func peerAddr(r *http.Request) (netip.Addr, bool) {
+	addr, err := netip.ParseAddr(peerHost(r))
+	if err != nil {
+		return netip.Addr{}, false
+	}
+	return addr.Unmap(), true
+}
+
 // ClientIP reports the client address the shell holds accountable
-// for r. This is a separate job from [peerIP], which answers who dialed
-// the socket and never changes; with cfg's mode off the two answers are
-// the same address, and with mode on, ClientIP is the only one of the
-// two that consults cfg or a header at all.
+// for r. This is a separate job from [peerAddr], which answers who
+// dialed the socket and never changes; with cfg's mode off the two
+// answers are the same address, and with mode on, ClientIP is the only
+// one of the two that consults cfg or a header at all.
 //
-// The configured header is trusted only when peerIP(r) is one of
+// The configured header is trusted only when peerAddr(r) is one of
 // cfg's configured proxies; a header arriving from any other peer is
 // discarded unread into the return value. A multi-hop header value is
 // parsed right to left, taking the first hop, scanning from the
@@ -162,7 +174,7 @@ func peerIP(r *http.Request) string {
 // malformed. A malformed rightmost untrusted hop ends the scan, so no
 // hop left of it is ever reached. The answer is the hop's unmapped
 // address in [netip.Addr.String] form. A malformed, empty, or
-// all-proxy header falls back to peerIP rather than an empty
+// all-proxy header falls back to peerHost rather than an empty
 // string, since an empty rate-limiter key is one bucket every attacker
 // shares.
 //
@@ -173,31 +185,21 @@ func peerIP(r *http.Request) string {
 // leftmost, attacker-controlled end of the chain as though it were the
 // whole of it.
 func ClientIP(r *http.Request, cfg TrustedProxyConfig) string {
-	peer := peerIP(r)
-	if !cfg.trusts(peer) {
-		return peer
+	if peer, ok := peerAddr(r); ok && cfg.trusts(peer) {
+		if hop, ok := cfg.rightmostUntrusted(r.Header.Values(cfg.header)); ok {
+			return hop.String()
+		}
 	}
-	if hop, ok := cfg.rightmostUntrusted(r.Header.Values(cfg.header)); ok {
-		return hop.String()
-	}
-	return peer
+	return peerHost(r)
 }
 
-// trusts reports whether mode is on and peer, a [peerIP] answer,
-// is one of the configured proxies. The peer is parsed and unmapped
-// first, since net/http's RemoteAddr carries an IPv4 client of a
-// dual-stack listener in the mapped form ("::ffff:192.0.2.1") that a
-// configured dotted address never equals. A peer that does not parse
-// is never trusted.
-func (c TrustedProxyConfig) trusts(peer string) bool {
+// trusts reports whether mode is on and peer, a [peerAddr] answer, is
+// one of the configured proxies.
+func (c TrustedProxyConfig) trusts(peer netip.Addr) bool {
 	if c.header == "" {
 		return false
 	}
-	addr, err := netip.ParseAddr(peer)
-	if err != nil {
-		return false
-	}
-	_, ok := c.proxies[addr.Unmap()]
+	_, ok := c.proxies[peer]
 	return ok
 }
 
