@@ -112,41 +112,7 @@ func newServeCmd(environ []string, reg *config.Registry) *cobra.Command {
 // Every identity header is stripped from every peer, a trusted proxy
 // included. The boundary probe mounts like every other route, so the
 // request it counts is one the strip has already cleared.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger) (*server, error) {
-	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, web.Build)
-}
-
-// A server is what newServeShell builds: the shell, the store it holds
-// open, and intake, whose work runs against that store.
-type server struct {
-	shell  *serve.Shell
-	store  *store.Handle
-	intake *intake.Intake
-}
-
-// Close tears the build down in the one safe order: intake's context is
-// cancelled and its workers and sweep waited for, then its lease is
-// released, and only then is the store closed, so no verdict or cleanup
-// runs against a closing store.
-func (s *server) Close() error {
-	return errors.Join(s.intake.Close(), s.store.Close())
-}
-
-// A registrar mounts a route under a subtree name. *serve.Shell is
-// one; the route inventory's test wraps it in a second that records
-// each name before forwarding.
-type registrar interface {
-	Register(name string, h http.Handler)
-}
-
-// newServeShellVia is [newServeShell] mounting every route through
-// the registrar mount makes of the new shell, so a test sees each name
-// the build registers. Every registration must go through that
-// registrar and never through the shell directly: a route registered
-// around it escapes the route inventory test unseen. The web routes
-// come from buildFS, so a test can serve a fixture tree where the
-// embedded one holds only the placeholder.
-func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger) (_ *server, err error) {
 	proxyConfig, err := serve.ParseTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
@@ -185,7 +151,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 	shell := serve.NewShell(prefix, proxyConfig, logger)
-	routes := mount(shell)
+	routes := mountRoutes(shell)
 	if sendsHSTS(authConfig.PublicOrigin) {
 		shell.EnableHSTS()
 	}
@@ -262,7 +228,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		return nil, err
 	}
 
-	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger(), buildFS)
+	webRoutes, err := newWebRoutesFromFS(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, shell.Logger(), webBuild)
 	if err != nil {
 		return nil, err
 	}
@@ -278,6 +244,35 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	go sweepNonces(ctx, nonces, shell.Logger())
 	return &server{shell: shell, store: h, intake: in}, nil
 }
+
+// A server is what newServeShell builds: the shell, the store it holds
+// open, and intake, whose work runs against that store.
+type server struct {
+	shell  *serve.Shell
+	store  *store.Handle
+	intake *intake.Intake
+}
+
+// Close tears the build down in the one safe order: intake's context is
+// cancelled and its workers and sweep waited for, then its lease is
+// released, and only then is the store closed, so no verdict or cleanup
+// runs against a closing store.
+func (s *server) Close() error {
+	return errors.Join(s.intake.Close(), s.store.Close())
+}
+
+// A registrar mounts a route under a subtree name.
+type registrar interface {
+	Register(name string, h http.Handler)
+}
+
+// mountRoutes returns the registrar newServeShell mounts every route
+// through. Every registration goes through it, never through the shell
+// directly, so the route inventory test sees each name.
+var mountRoutes = func(s *serve.Shell) registrar { return s }
+
+// webBuild is the build tree newServeShell serves the web routes from.
+var webBuild fs.FS = web.Build
 
 // openServeStore opens the dubplate store for serve: it reads the
 // store's thresholds, decides the keep from the facts [store.Inspect]
