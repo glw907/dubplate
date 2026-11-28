@@ -153,7 +153,7 @@ func (r *Runner) startBackup(ctx context.Context, actor identity.Actor, bindFor 
 	defer func() { err = wrapCanceled(ctx, err) }()
 
 	if !r.backup.Enabled {
-		return id.ID{}, ops.NewUnavailableError(backupDisabled)
+		return id.ID{}, ops.NewError(ops.CodeUnavailable, backupDisabled)
 	}
 	bind, err := bindFor(ctx)
 	if err != nil {
@@ -239,7 +239,7 @@ func (r *Runner) track(j *job) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
-		return ops.NewUnavailableError("job runner closed")
+		return ops.NewError(ops.CodeUnavailable, "job runner closed")
 	}
 	r.jobs[j.id] = j
 	r.wg.Add(1)
@@ -278,12 +278,12 @@ func (r *Runner) conflict(ctx context.Context, kind string) error {
 WHERE kind = ? AND state IN ('queued', 'running')
 ORDER BY at DESC, id DESC LIMIT 1`, kind).Scan(&live, &state)
 	if errors.Is(err, sql.ErrNoRows) {
-		return ops.NewConflictError("a previous run's transfer is still running")
+		return ops.NewError(ops.CodeConflict, "a previous run's transfer is still running")
 	}
 	if err != nil {
 		return fmt.Errorf("start %s job: read live job: %w", kind, err)
 	}
-	return ops.NewConflictError(fmt.Sprintf("%s job %s is %s", kind, live, state))
+	return ops.NewError(ops.CodeConflict, fmt.Sprintf("%s job %s is %s", kind, live, state))
 }
 
 // JobStatus reads jobID's record. It answers not found for an id no
@@ -307,9 +307,9 @@ func (r *Runner) CancelJob(ctx context.Context, _ identity.Actor, jobID id.ID) (
 	return r.status(ctx, jobID)
 }
 
-// wrapCanceled reports err as an error matching [ops.ErrCanceled] when
+// wrapCanceled reports err as an error matching [ops.CodeCanceled] when
 // ctx's own error is context.Canceled at an operation's return, so a
-// caller whose context died sees the canceled sentinel instead
+// caller whose context died sees the canceled code instead
 // of whatever error the aborted store call produced. The returned
 // error's [*ops.Error] carries an empty Reason: the aborted call's own
 // text may name a path, and the wire projection never writes it to the
@@ -323,7 +323,7 @@ func wrapCanceled(ctx context.Context, err error) error {
 	if err == nil || ctx.Err() != context.Canceled {
 		return err
 	}
-	return fmt.Errorf("%w: %v", ops.NewCanceledError(""), err)
+	return fmt.Errorf("%w: %v", ops.NewError(ops.CodeCanceled, ""), err)
 }
 
 // CancelOwn cancels the context of jobID's job when this runner owns

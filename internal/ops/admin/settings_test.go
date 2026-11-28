@@ -215,7 +215,7 @@ func TestSettingWrites_Refusals(t *testing.T) {
 		prep   func(t *testing.T, f *fixture)
 		call   func(ctx context.Context, f *fixture) error
 		code   ops.Code
-		detail string
+		detail ops.Detail
 	}{
 		{name: "an unregistered key", call: set("DUBPLATE_NOT_A_KEY", "1"), code: ops.CodeInvalidRequest},
 		{name: "a wall key", call: set("DUBPLATE_SITE_NAME", "x"), code: ops.CodeInvalidRequest},

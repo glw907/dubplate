@@ -20,25 +20,24 @@ func chmodRestoring(t *testing.T, path string, mode os.FileMode) {
 }
 
 func TestDirStatus(t *testing.T) {
-	euid := os.Geteuid()
-	own := dirOptions{geteuid: os.Geteuid}
+	own := os.Geteuid()
 
 	tests := []struct {
 		name string
-		// setup shapes the leaf under stateDir and returns the status
-		// text the row must carry, and the options it runs with.
-		setup      func(t *testing.T, stateDir string) (want string, opts dirOptions)
+		// setup shapes the auth dir under stateDir and returns the status
+		// text the row must carry, and the euid it runs with.
+		setup      func(t *testing.T, stateDir string) (want string, euid int)
 		wantFailed bool
 	}{
 		{
-			name: "an absent leaf under a writable state directory",
-			setup: func(*testing.T, string) (string, dirOptions) {
+			name: "an absent auth dir under a writable state directory",
+			setup: func(*testing.T, string) (string, int) {
 				return "absent; serve creates it", own
 			},
 		},
 		{
-			name: "a leaf Open built",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			name: "an auth dir Open built",
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
@@ -46,32 +45,31 @@ func TestDirStatus(t *testing.T) {
 			},
 		},
 		{
-			name: "a leaf at mode 0750",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			name: "an auth dir at mode 0750",
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
-				leaf := filepath.Join(stateDir, "auth")
-				chmodRestoring(t, leaf, 0o750)
-				return "leaf " + leaf + " has mode 750, want at most 700", own
+				authDir := filepath.Join(stateDir, "auth")
+				chmodRestoring(t, authDir, 0o750)
+				return authDir + " has mode 750, want at most 700", own
 			},
 			wantFailed: true,
 		},
 		{
-			name: "a leaf another uid owns",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			name: "an auth dir another uid owns",
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
-				leaf := filepath.Join(stateDir, "auth")
-				return "leaf " + leaf + " is owned by uid " + strconv.Itoa(euid) + ", want uid " + strconv.Itoa(euid+1),
-					dirOptions{geteuid: func() int { return euid + 1 }}
+				authDir := filepath.Join(stateDir, "auth")
+				return authDir + " is owned by uid " + strconv.Itoa(own) + ", want uid " + strconv.Itoa(own+1), own + 1
 			},
 			wantFailed: true,
 		},
 		{
 			name: "a nonce subdirectory the process may not write",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
@@ -82,36 +80,36 @@ func TestDirStatus(t *testing.T) {
 			wantFailed: true,
 		},
 		{
-			name: "an absent epoch subdirectory under a leaf the process may not write",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			name: "an absent epoch subdirectory under an auth dir the process may not write",
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
-				leaf := filepath.Join(stateDir, "auth")
-				if err := os.Remove(filepath.Join(leaf, "epoch")); err != nil {
+				authDir := filepath.Join(stateDir, "auth")
+				if err := os.Remove(filepath.Join(authDir, "epoch")); err != nil {
 					t.Fatalf("fixture state: remove epoch: %v", err)
 				}
-				chmodRestoring(t, leaf, 0o500)
-				return filepath.Join(leaf, "epoch") + " is absent, and " + leaf + " is not writable: permission denied", own
+				chmodRestoring(t, authDir, 0o500)
+				return filepath.Join(authDir, "epoch") + " is absent, and " + authDir + " is not writable: permission denied", own
 			},
 			wantFailed: true,
 		},
 		{
-			name: "an absent leaf under a state directory the process may not write",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			name: "an absent auth dir under a state directory the process may not write",
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				chmodRestoring(t, stateDir, 0o500)
 				return "absent, and serve cannot create it: " + stateDir + " is not writable: permission denied", own
 			},
 			wantFailed: true,
 		},
 		{
-			name: "a leaf that is a file",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
-				leaf := filepath.Join(stateDir, "auth")
-				if err := os.WriteFile(leaf, nil, 0o600); err != nil {
+			name: "an auth dir that is a file",
+			setup: func(t *testing.T, stateDir string) (string, int) {
+				authDir := filepath.Join(stateDir, "auth")
+				if err := os.WriteFile(authDir, nil, 0o600); err != nil {
 					t.Fatalf("fixture state: %v", err)
 				}
-				return "leaf " + leaf + " is not a directory", own
+				return authDir + " is not a directory", own
 			},
 			wantFailed: true,
 		},
@@ -119,8 +117,8 @@ func TestDirStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
-			want, opts := tt.setup(t, stateDir)
-			got, failed := dirStatus(&config.Config{StateDir: stateDir}, opts)
+			want, euid := tt.setup(t, stateDir)
+			got, failed := dirStatus(&config.Config{StateDir: stateDir}, euid)
 			if got != want || failed != tt.wantFailed {
 				t.Errorf("dirStatus() = %q, %v, want %q, %v", got, failed, want, tt.wantFailed)
 			}
@@ -129,7 +127,7 @@ func TestDirStatus(t *testing.T) {
 }
 
 func TestDirStatus_NilConfigIsNotChecked(t *testing.T) {
-	got, failed := dirStatus(nil, dirOptions{geteuid: os.Geteuid})
+	got, failed := dirStatus(nil, os.Geteuid())
 	if got != "not checked" || failed {
 		t.Errorf("dirStatus(nil) = %q, %v, want %q, false", got, failed, "not checked")
 	}

@@ -3,9 +3,7 @@ package notify
 import (
 	"errors"
 	"fmt"
-	"net/mail"
 	"strconv"
-	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
 )
@@ -67,26 +65,36 @@ func validatePort(value string) error {
 	return nil
 }
 
-// validateFrom checks that value parses as a single RFC 5322 address,
-// display name allowed, with no carriage return or line feed to inject
-// a mail header. Checked at load, a typo fails doctor rather than the
-// first login's send. The returned error never repeats value.
+// validateFrom applies [New]'s From check at load, so a typo fails
+// doctor rather than the first login's send. The returned error never
+// repeats value.
 func validateFrom(value string) error {
-	if _, err := mail.ParseAddress(value); err != nil || strings.ContainsAny(value, "\r\n") {
+	if _, err := parseFrom(value); err != nil {
 		return &config.KeyError{Key: fromKey, Reason: "invalid email address"}
 	}
 	return nil
 }
 
-// ConfigFrom resolves the SMTP values of cfg's selected identity source
-// into a [Config]. [ValidateKeys] has already bounded the port at load,
-// so the parse here only turns the string into the int Config takes.
-func ConfigFrom(cfg *config.Config) (Config, error) {
+// New returns a Mailer that delivers through the SMTP server named by
+// the SMTP keys of cfg's selected identity source. It refuses a From
+// that is not one RFC 5322 mailbox free of CR and LF.
+func New(cfg *config.Config) (*Mailer, error) {
+	smtp, err := smtpConfigFrom(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return newMailer(smtp)
+}
+
+// smtpConfigFrom resolves the SMTP values of cfg's selected identity
+// source. [ValidateKeys] has already bounded the port at load, so the
+// parse here only turns the string into an int.
+func smtpConfigFrom(cfg *config.Config) (smtpConfig, error) {
 	port, err := strconv.Atoi(cfg.IdentitySourceValue(portKey))
 	if err != nil {
-		return Config{}, fmt.Errorf("%s: %w", portKey, err)
+		return smtpConfig{}, fmt.Errorf("%s: %w", portKey, err)
 	}
-	return Config{
+	return smtpConfig{
 		Host:     cfg.IdentitySourceValue(hostKey),
 		Port:     port,
 		User:     cfg.IdentitySourceValue(userKey),

@@ -3,9 +3,11 @@ package admin
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -16,30 +18,29 @@ import (
 // committed.
 const noticeWait = 10 * time.Second
 
-// notice mails every live admin that actor changed key, a sensitive
-// setting, as res reports. The caller runs it after the write commits
-// and outside its transaction, so no writer waits on the mail server.
-// Its context keeps none of ctx's cancellation or deadline and takes its
-// own: a client that disconnects after the commit does not stop the
-// send. A failure is logged and changes nothing. The write stays
-// committed, and its settings audit row is the durable record.
-func (s *Service) notice(ctx context.Context, actor identity.Actor, key string, res settings.Result) {
+// notifyAdmins mails every live admin that actor changed key, a
+// sensitive setting, as res reports. The caller runs it after the write
+// commits and outside its transaction, so no writer waits on the mail
+// server. Its context keeps none of ctx's cancellation or deadline and
+// takes its own: a client that disconnects after the commit does not
+// stop the send. Each notice is logged as sent or failed, never with
+// its recipient's address, and a failure changes nothing. The write
+// stays committed, and its settings audit row is the durable record.
+func (s *Service) notifyAdmins(ctx context.Context, actor identity.Actor, key string, res settings.Result) {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), noticeWait)
 	defer cancel()
-	log := s.cfg.Logger.With("key", key, "actor", actor.String())
+	logger := s.cfg.Logger.With("key", key, "actor", actor.String())
 
 	// The recipients are read after the commit, so an admin removed
 	// while the write waited hears nothing.
 	members, err := s.cfg.Roster.List(ctx)
 	if err != nil {
-		log.Error("sensitive-change notice not sent", "reason", err.Error())
+		logger.Error("sensitive-change notice not sent", "reason", err.Error())
 		return
 	}
 	principal := actor.String()
-	for _, m := range members {
-		if m.ID == actor.UserID() {
-			principal = m.Username
-		}
+	if i := slices.IndexFunc(members, func(m member.Member) bool { return m.ID == actor.UserID() }); i >= 0 {
+		principal = members[i].Username
 	}
 	subject, body := noticeText(principal, key, res)
 	for _, m := range members {
@@ -47,8 +48,10 @@ func (s *Service) notice(ctx context.Context, actor identity.Actor, key string, 
 			continue
 		}
 		if err := s.cfg.Send(ctx, m.Address, subject, body); err != nil {
-			log.Error("sensitive-change notice failed", "reason", err.Error())
+			logger.Error("sensitive-change notice failed", "reason", err.Error())
+			continue
 		}
+		logger.Info("sensitive-change notice sent")
 	}
 }
 

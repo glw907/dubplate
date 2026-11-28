@@ -120,16 +120,9 @@ func TestDoctorCmd(t *testing.T) {
 			reg := freshRegistry()
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
-
-			// The same statuses map doctor's own RunE built from the
-			// same Load call, so the threshold expectation below
-			// reflects a relational refusal exactly as the row under
-			// test would.
-			_, loadErr := config.Load(environ, reg)
-			statuses := rowStatuses(loadErr)
 
 			if tt.wantErr {
 				if err == nil {
@@ -184,16 +177,12 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
-			for _, th := range reg.Thresholds() {
-				want := thresholdStatus(environ, statuses, th)
-				if li >= len(lines) {
-					t.Fatalf("stdout ran out of lines before threshold row %s", th.Key)
-				}
-				wantPrefix := fmt.Sprintf("%-32s %s", th.Key, want)
-				if !strings.HasPrefix(lines[li], wantPrefix) {
-					t.Errorf("threshold row %d = %q, want prefix %q", li, lines[li], wantPrefix)
-				}
-				li++
+			// The threshold rows' statuses are pinned by the tests that
+			// register thresholds; this fixture registers none, so no
+			// threshold line sits between the integration rows and the
+			// store row.
+			if n := len(reg.Thresholds()); n != 0 {
+				t.Fatalf("fixture state: freshRegistry registers %d thresholds, and this test pins none", n)
 			}
 
 			// The store row prints unconditionally, for every state
@@ -415,7 +404,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -500,7 +489,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 			environ = append(environ, tt.extra...)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, registry(), &stdout, &stderr)
+			cmd := rootFor(environ, registry(), &stdout, &stderr, "doctor")
 			_ = cmd.Execute()
 
 			out := stdout.String()
@@ -574,7 +563,7 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := append(doctorEnviron(t), tt.env...)
 			var stdout, stderr bytes.Buffer
-			if err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute(); err == nil {
+			if err := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor").Execute(); err == nil {
 				t.Fatal("Execute() error = nil, want a refusal")
 			}
 			out := stdout.String()
@@ -662,7 +651,7 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: the previous secret is below the floor")
 	}
@@ -692,7 +681,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: both secrets are below the floor")
 	}
@@ -751,7 +740,7 @@ func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
 			reg := productionRegistry()
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			if err := cmd.Execute(); err == nil {
 				t.Fatal("Execute() error = nil, want a refusal")
 			}
@@ -784,7 +773,7 @@ func TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: both secrets are below the floor")
 	}
@@ -1014,7 +1003,7 @@ func doctorLines(t *testing.T, reg *config.Registry) []string {
 	t.Helper()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	_ = cmd.Execute()
 	return strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
 }
@@ -1028,7 +1017,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, freshRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, freshRegistry(), &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1045,7 +1034,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	// source, so this half runs against the production registry and a
 	// fully satisfied environment instead.
 	var authStdout, authStderr bytes.Buffer
-	authCmd := newDoctorCmd(doctorEnviron(t), productionRegistry(), &authStdout, &authStderr)
+	authCmd := rootFor(doctorEnviron(t), productionRegistry(), &authStdout, &authStderr, "doctor")
 	if err := authCmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1107,7 +1096,7 @@ func TestDoctorCmd_ClassRows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(tt.setup(doctorEnviron(t)), productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(tt.setup(doctorEnviron(t)), productionRegistry(), &stdout, &stderr, "doctor")
 			_ = cmd.Execute() // an unparseable flag fails Load; the table still prints
 			if !strings.Contains(stdout.String(), tt.want) {
 				t.Errorf("stdout = %q, want it to contain %q", stdout.String(), tt.want)
@@ -1143,7 +1132,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(append(slices.Clone(environ), tt.extra...), reg, &stdout, &stderr)
+			cmd := rootFor(append(slices.Clone(environ), tt.extra...), reg, &stdout, &stderr, "doctor")
 			_ = cmd.Execute()
 
 			want := fmt.Sprintf("%-32s %s\n", "backup", tt.want)
@@ -1175,7 +1164,7 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1197,7 +1186,7 @@ func TestDoctorCmd_RefusedSettingPrintsOnce(t *testing.T) {
 	)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above its ceiling")
 	}
@@ -1261,7 +1250,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()), tt.extra...)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			_ = cmd.Execute()
 
 			want := fmt.Sprintf("%-32s %s\n", "DUBPLATE_STORE_BUSY_TIMEOUT", tt.want)
@@ -1305,7 +1294,7 @@ func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			err := cmd.Execute()
 
 			if !tt.wantErr {
@@ -1348,7 +1337,7 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	_ = cmd.Execute()
 
 	after, err := os.ReadDir(stateDir)
@@ -1392,7 +1381,7 @@ func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
 			environ = append(environ, "DUBPLATE_BACKUP_GUARD_FRACTION="+tt.env)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 			err = cmd.Execute()
 			if tt.wantFail && err == nil {
 				t.Error("Execute() error = nil, want a refusal")
@@ -1405,27 +1394,28 @@ func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
 }
 
 // TestDoctorCmd_AuthDirRow proves the auth dir row reports, before
-// serve starts, each state of the auth leaf serve would refuse or
-// could not write: a leaf wider than 0700, in the words auth.Open
-// refuses it with; a leaf another uid owns; a record subdirectory the
-// process may not write; and an absent leaf whose state directory is
-// not writable either. An absent leaf under a writable state directory
-// and a well-formed leaf both pass, so the row cannot fail every case.
+// serve starts, each state of the auth dir serve would refuse or could
+// not write: an auth dir wider than 0700, in the words auth.Open
+// refuses it with; one another uid owns; a record subdirectory the
+// process may not write; and an absent auth dir whose state directory
+// is not writable either. An absent auth dir under a writable state
+// directory and a well-formed one both pass, so the row cannot fail
+// every case.
 func TestDoctorCmd_AuthDirRow(t *testing.T) {
 	tests := []struct {
 		name string
-		// setup shapes the auth leaf under stateDir and returns the
-		// status text the row must carry, with the leaf's path
+		// setup shapes the auth dir under stateDir and returns the
+		// status text the row must carry, with the auth dir's path
 		// substituted where it is named.
 		setup      func(t *testing.T, stateDir string) string
 		wantFailed bool
 	}{
 		{
-			name:  "an absent leaf under a writable state directory",
+			name:  "an absent auth dir under a writable state directory",
 			setup: func(*testing.T, string) string { return "absent; serve creates it" },
 		},
 		{
-			name: "a leaf serve built",
+			name: "an auth dir serve built",
 			setup: func(t *testing.T, stateDir string) string {
 				if _, err := auth.Open(stateDir); err != nil {
 					t.Fatalf("fixture state: auth.Open: %v", err)
@@ -1434,38 +1424,38 @@ func TestDoctorCmd_AuthDirRow(t *testing.T) {
 			},
 		},
 		{
-			name: "a leaf at mode 0750",
+			name: "an auth dir at mode 0750",
 			setup: func(t *testing.T, stateDir string) string {
-				leaf := makeAuthLeaf(t, stateDir)
-				chmodRestoring(t, leaf, 0o750)
-				return fmt.Sprintf("leaf %s has mode 750, want at most 700", leaf)
+				authDir := makeAuthDir(t, stateDir)
+				chmodRestoring(t, authDir, 0o750)
+				return fmt.Sprintf("%s has mode 750, want at most 700", authDir)
 			},
 			wantFailed: true,
 		},
 		{
 			name: "a nonce subdirectory the process may not write",
 			setup: func(t *testing.T, stateDir string) string {
-				leaf := makeAuthLeaf(t, stateDir)
-				nonce := filepath.Join(leaf, "nonce")
+				authDir := makeAuthDir(t, stateDir)
+				nonce := filepath.Join(authDir, "nonce")
 				chmodRestoring(t, nonce, 0o500)
 				return nonce + " is not writable: permission denied"
 			},
 			wantFailed: true,
 		},
 		{
-			name: "an absent epoch subdirectory under a leaf the process may not write",
+			name: "an absent epoch subdirectory under an auth dir the process may not write",
 			setup: func(t *testing.T, stateDir string) string {
-				leaf := makeAuthLeaf(t, stateDir)
-				if err := os.Remove(filepath.Join(leaf, "epoch")); err != nil {
+				authDir := makeAuthDir(t, stateDir)
+				if err := os.Remove(filepath.Join(authDir, "epoch")); err != nil {
 					t.Fatalf("fixture state: remove epoch: %v", err)
 				}
-				chmodRestoring(t, leaf, 0o500)
-				return filepath.Join(leaf, "epoch") + " is absent, and " + leaf + " is not writable: permission denied"
+				chmodRestoring(t, authDir, 0o500)
+				return filepath.Join(authDir, "epoch") + " is absent, and " + authDir + " is not writable: permission denied"
 			},
 			wantFailed: true,
 		},
 		{
-			name: "an absent leaf under a state directory the process may not write",
+			name: "an absent auth dir under a state directory the process may not write",
 			setup: func(t *testing.T, stateDir string) string {
 				chmodRestoring(t, stateDir, 0o500)
 				return "absent, and serve cannot create it: " + stateDir + " is not writable: permission denied"
@@ -1496,17 +1486,17 @@ func TestDoctorCmd_AuthDirRow(t *testing.T) {
 
 // TestDoctorCmd_AuthDirRowSpeaksServesRefusal proves the mode
 // failure reads in serve's own words: the row's text is the tail of
-// the error auth.Open returns for the same leaf, so an operator who
+// the error auth.Open returns for the same auth dir, so an operator who
 // sees one recognizes the other.
 func TestDoctorCmd_AuthDirRowSpeaksServesRefusal(t *testing.T) {
 	environ := doctorEnviron(t)
 	stateDir := environValue(environ, "DUBPLATE_STATE_DIR")
-	leaf := makeAuthLeaf(t, stateDir)
-	chmodRestoring(t, leaf, 0o750)
+	authDir := makeAuthDir(t, stateDir)
+	chmodRestoring(t, authDir, 0o750)
 
 	_, openErr := auth.Open(stateDir)
 	if openErr == nil {
-		t.Fatal("fixture state: auth.Open accepted a 0750 leaf")
+		t.Fatal("fixture state: auth.Open accepted a 0750 auth dir")
 	}
 	rows, _, _ := doctorRows(t, environ)
 	row := rows[authDirDoctorRow]
@@ -1515,15 +1505,15 @@ func TestDoctorCmd_AuthDirRowSpeaksServesRefusal(t *testing.T) {
 	}
 }
 
-// makeAuthLeaf builds the auth leaf and its two record subdirectories
+// makeAuthDir builds the auth dir and its two record subdirectories
 // under stateDir through auth.Open, the way serve builds them, and
-// returns the leaf's path.
-func makeAuthLeaf(t *testing.T, stateDir string) string {
+// returns the auth dir's path.
+func makeAuthDir(t *testing.T, stateDir string) string {
 	t.Helper()
 	if _, err := auth.Open(stateDir); err != nil {
 		t.Fatalf("fixture state: auth.Open: %v", err)
 	}
-	return auth.DirPath(stateDir)
+	return filepath.Join(stateDir, "auth")
 }
 
 // chmodRestoring sets path's mode and restores 0700 at cleanup, so
@@ -1668,7 +1658,7 @@ func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 	seedDoctorAdmin(t, environ)
 
 	var stdout, stderr bytes.Buffer
-	if err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute(); err != nil {
+	if err := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor").Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stdout %q", err, stdout.String())
 	}
 	for _, w := range want {
@@ -1760,7 +1750,7 @@ func TestDoctorCmd_AdminEmailRow(t *testing.T) {
 		environ := withEnv(doctorEnviron(t), "DUBPLATE_ADMIN_EMAIL=plain@example.test")
 		roster(t, environValue(environ, "DUBPLATE_STATE_DIR"))
 		var stdout, stderr bytes.Buffer
-		cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+		cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v, want nil: a warning never fails doctor", err)
 		}

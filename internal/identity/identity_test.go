@@ -27,17 +27,17 @@ func normalizeCorpus(t *testing.T) []normalizeCase {
 	// The boundary fixtures pad the local part with "é" (a 2-byte,
 	// 1-rune UTF-8 character) so a byte-length cap and a rune-count
 	// cap disagree: 121 of them plus "@example.com" (12 ASCII bytes)
-	// lands exactly at MaxAddressLength (254) in bytes but at 133
+	// lands exactly at maxAddressLength (254) in bytes but at 133
 	// runes; one more byte (an ASCII letter appended to the local
 	// part) crosses the byte cap while staying at 134 runes, well
 	// under a rune-based cap of 254.
 	atCap := strings.Repeat("é", 121) + "@example.com"
 	overCap := strings.Repeat("é", 121) + "x@example.com"
-	if len(atCap) != MaxAddressLength {
-		t.Fatalf("fixture atCap is %d bytes, want exactly MaxAddressLength (%d)", len(atCap), MaxAddressLength)
+	if len(atCap) != maxAddressLength {
+		t.Fatalf("fixture atCap is %d bytes, want exactly maxAddressLength (%d)", len(atCap), maxAddressLength)
 	}
-	if len(overCap) != MaxAddressLength+1 {
-		t.Fatalf("fixture overCap is %d bytes, want exactly MaxAddressLength+1 (%d)", len(overCap), MaxAddressLength+1)
+	if len(overCap) != maxAddressLength+1 {
+		t.Fatalf("fixture overCap is %d bytes, want exactly maxAddressLength+1 (%d)", len(overCap), maxAddressLength+1)
 	}
 
 	return []normalizeCase{
@@ -54,7 +54,7 @@ func normalizeCorpus(t *testing.T) []normalizeCase {
 		{
 			name:  "exactly at the length cap",
 			input: atCap,
-			want:  strings.ToLower(atCap),
+			want:  atCap,
 		},
 		{
 			name:    "one byte over the length cap",
@@ -146,8 +146,8 @@ func TestNormalizeAddress(t *testing.T) {
 				if err == nil {
 					t.Fatalf("NormalizeAddress(%q) = %q, want error", tt.input, got)
 				}
-				if !errors.Is(err, ErrInvalidAddress) {
-					t.Errorf("NormalizeAddress(%q) error = %v, want wrapping ErrInvalidAddress", tt.input, err)
+				if !errors.Is(err, errInvalidAddress) {
+					t.Errorf("NormalizeAddress(%q) error = %v, want wrapping errInvalidAddress", tt.input, err)
 				}
 				if !strings.Contains(err.Error(), tt.reason) {
 					t.Errorf("NormalizeAddress(%q) error = %v, want it to name %q", tt.input, err, tt.reason)
@@ -199,18 +199,11 @@ func TestNormalizeAddressIsAFixedPoint(t *testing.T) {
 type defaultIgnorableRow struct {
 	name string
 	r    rune
-	// preExisting notes that the rune was already refused by the
-	// unconditional Cf rule IsInvisibleRune carried before the
-	// derived-set refusal existed: the row proves no regression rather
-	// than the derived set's own reach.
-	preExisting bool
 }
 
-// defaultIgnorableRows is the derivation's four named examples (the
-// Hangul fillers), CGJ and VS16 (two further examples the derivation's
-// own review probed), the three Cf runes already refused before the
-// derived-set refusal existed, and U+2800, refused by name rather than
-// by the derived formula.
+// defaultIgnorableRows is the four Hangul fillers, CGJ, VS16, three Cf
+// runes, and U+2800, which is refused by name rather than by the
+// derived formula.
 func defaultIgnorableRows() []defaultIgnorableRow {
 	return []defaultIgnorableRow{
 		{name: "Hangul filler U+115F", r: 'ᅟ'},
@@ -219,9 +212,9 @@ func defaultIgnorableRows() []defaultIgnorableRow {
 		{name: "halfwidth Hangul filler U+FFA0", r: 'ﾠ'},
 		{name: "combining grapheme joiner U+034F", r: '͏'},
 		{name: "variation selector 16 U+FE0F", r: '️'},
-		{name: "zero width space U+200B", r: '​', preExisting: true},
-		{name: "soft hyphen U+00AD", r: '­', preExisting: true},
-		{name: "tag digit one U+E0001", r: '\U000E0001', preExisting: true},
+		{name: "zero width space U+200B", r: '​'},
+		{name: "soft hyphen U+00AD", r: '­'},
+		{name: "tag digit one U+E0001", r: '\U000E0001'},
 		{name: "braille pattern blank U+2800", r: '⠀'},
 	}
 }
@@ -229,12 +222,7 @@ func defaultIgnorableRows() []defaultIgnorableRow {
 // TestNormalizeAddress_DefaultIgnorableRefused proves that each of the
 // ten code points, embedded in an otherwise valid quoted local part, is
 // refused, while the same address without the code point is accepted,
-// so the refusal is the code point's and not the quoting. The three
-// preExisting rows were already refused by the unconditional Cf rule
-// IsInvisibleRune carried before the derived-set refusal existed and
-// are labelled regressions rather than proofs of the derived set's own
-// reach; the other seven pass only once isDefaultIgnorableCodePoint or
-// the U+2800 rule exists.
+// so the refusal is the code point's and not the quoting.
 func TestNormalizeAddress_DefaultIgnorableRefused(t *testing.T) {
 	for _, tt := range defaultIgnorableRows() {
 		t.Run(tt.name, func(t *testing.T) {
@@ -248,8 +236,8 @@ func TestNormalizeAddress_DefaultIgnorableRefused(t *testing.T) {
 			if err == nil {
 				t.Fatalf("NormalizeAddress(%q) = nil error, want a refusal", carrying)
 			}
-			if !errors.Is(err, ErrInvalidAddress) {
-				t.Errorf("NormalizeAddress(%q) error = %v, want it to wrap ErrInvalidAddress", carrying, err)
+			if !errors.Is(err, errInvalidAddress) {
+				t.Errorf("NormalizeAddress(%q) error = %v, want it to wrap errInvalidAddress", carrying, err)
 			}
 			want := fmt.Sprintf("U+%04X", tt.r)
 			if !strings.Contains(err.Error(), want) {
@@ -266,7 +254,7 @@ func TestNormalizeAddress_DefaultIgnorableRefused(t *testing.T) {
 // toolchain's own tables: unicode.Version names the Unicode version the
 // formula was measured against, and the derived set's size (4174) is
 // DerivedCoreProperties.txt's own "Total code points: 4174" for
-// Default_Ignorable_Code_Point (Unicode 17.0.0, read 2026-09-24). A
+// Default_Ignorable_Code_Point (Unicode 17.0.0). A
 // toolchain move to a later Unicode version fails the version row
 // rather than silently rederiving against a table nobody reread, and
 // an over-refusing formula (for example, dropping the
@@ -304,7 +292,7 @@ func TestChannel_StringAndValid(t *testing.T) {
 			if got := tt.channel.String(); got != tt.want {
 				t.Errorf("String() = %q, want %q", got, tt.want)
 			}
-			if !tt.channel.Valid() {
+			if !tt.channel.valid() {
 				t.Errorf("Valid() = false, want true for %s", tt.name)
 			}
 		})
@@ -313,10 +301,10 @@ func TestChannel_StringAndValid(t *testing.T) {
 	if got := Channel(0).String(); got != "unknown" {
 		t.Errorf("String() of zero value = %q, want %q", got, "unknown")
 	}
-	if Channel(0).Valid() {
+	if Channel(0).valid() {
 		t.Error("Valid() of zero value = true, want false")
 	}
-	if Channel(3).Valid() {
+	if Channel(3).valid() {
 		t.Error("Valid() of Channel(3) = true, want false")
 	}
 
@@ -325,7 +313,7 @@ func TestChannel_StringAndValid(t *testing.T) {
 	// count, not silently pass by extension.
 	validCount := 0
 	for c := Channel(0); c <= Channel(len(tests)+1); c++ {
-		if c.Valid() {
+		if c.valid() {
 			validCount++
 		}
 	}
@@ -348,12 +336,10 @@ func TestIdentity_Valid(t *testing.T) {
 		{
 			name: "fully populated",
 			id: Identity{
-				Address:     "alice@example.com",
-				UserID:      UserID{0x01},
-				Principal:   "alice",
-				DisplayName: "Alice",
-				Source:      "magic-link",
-				Channel:     ChannelCookie,
+				Address:  "alice@example.com",
+				UserID:   UserID{0x01},
+				Username: "alice",
+				Channel:  ChannelCookie,
 			},
 			want: true,
 		},
@@ -363,50 +349,36 @@ func TestIdentity_Valid(t *testing.T) {
 			// the store is no login.
 			name: "zero UserID",
 			id: Identity{
-				Address:   "alice@example.com",
-				Principal: "alice",
-				Source:    "magic-link",
-				Channel:   ChannelCookie,
+				Address:  "alice@example.com",
+				Username: "alice",
+				Channel:  ChannelCookie,
 			},
 			want: false,
 		},
 		{
 			name: "missing address",
 			id: Identity{
-				UserID:    UserID{0x01},
-				Principal: "alice",
-				Source:    "magic-link",
-				Channel:   ChannelCookie,
+				UserID:   UserID{0x01},
+				Username: "alice",
+				Channel:  ChannelCookie,
 			},
 			want: false,
 		},
 		{
-			name: "missing principal",
+			name: "missing username",
 			id: Identity{
 				Address: "alice@example.com",
 				UserID:  UserID{0x01},
-				Source:  "magic-link",
 				Channel: ChannelCookie,
-			},
-			want: false,
-		},
-		{
-			name: "missing source",
-			id: Identity{
-				Address:   "alice@example.com",
-				UserID:    UserID{0x01},
-				Principal: "alice",
-				Channel:   ChannelCookie,
 			},
 			want: false,
 		},
 		{
 			name: "invalid channel",
 			id: Identity{
-				Address:   "alice@example.com",
-				UserID:    UserID{0x01},
-				Principal: "alice",
-				Source:    "magic-link",
+				Address:  "alice@example.com",
+				UserID:   UserID{0x01},
+				Username: "alice",
 			},
 			want: false,
 		},
@@ -416,24 +388,20 @@ func TestIdentity_Valid(t *testing.T) {
 			// rescue it.
 			name: "command-line channel",
 			id: Identity{
-				Address:     "alice@example.com",
-				UserID:      UserID{0x01},
-				Principal:   "alice",
-				DisplayName: "Alice",
-				Source:      "magic-link",
-				Channel:     ChannelCommandLine,
+				Address:  "alice@example.com",
+				UserID:   UserID{0x01},
+				Username: "alice",
+				Channel:  ChannelCommandLine,
 			},
 			want: false,
 		},
 		{
 			name: "an unrecognized channel past the last constant",
 			id: Identity{
-				Address:     "alice@example.com",
-				UserID:      UserID{0x01},
-				Principal:   "alice",
-				DisplayName: "Alice",
-				Source:      "magic-link",
-				Channel:     Channel(3),
+				Address:  "alice@example.com",
+				UserID:   UserID{0x01},
+				Username: "alice",
+				Channel:  Channel(3),
 			},
 			want: false,
 		},
@@ -444,52 +412,6 @@ func TestIdentity_Valid(t *testing.T) {
 				t.Errorf("Valid() = %v, want %v", got, tt.want)
 			}
 		})
-	}
-}
-
-// TestIdentity_PrincipalDistinctFromAddress proves the two fields do
-// not collapse to one another: Principal carries a username, which
-// differs from the login address.
-func TestIdentity_PrincipalDistinctFromAddress(t *testing.T) {
-	id := Identity{
-		Address:   "alice@example.com",
-		Principal: "member-0001",
-		Source:    "magic-link",
-		Channel:   ChannelCookie,
-	}
-	if id.Principal == id.Address {
-		t.Fatalf("Principal (%q) and Address (%q) must be independent fields", id.Principal, id.Address)
-	}
-	if id.Address != "alice@example.com" {
-		t.Errorf("Address = %q, want %q", id.Address, "alice@example.com")
-	}
-	if id.Principal != "member-0001" {
-		t.Errorf("Principal = %q, want %q", id.Principal, "member-0001")
-	}
-}
-
-// TestIdentity_AddressMatchesNormalizer proves a constructed
-// Identity's Address field carries exactly what NormalizeAddress
-// returns for the same input, so the two paths cannot drift apart.
-func TestIdentity_AddressMatchesNormalizer(t *testing.T) {
-	const input = "Bob@Example.COM"
-
-	want, err := NormalizeAddress(input)
-	if err != nil {
-		t.Fatalf("NormalizeAddress(%q) unexpected error: %v", input, err)
-	}
-	if want != "bob@example.com" {
-		t.Fatalf("NormalizeAddress(%q) = %q, want %q", input, want, "bob@example.com")
-	}
-
-	id := Identity{
-		Address:   want,
-		Principal: "bob",
-		Source:    "magic-link",
-		Channel:   ChannelCookie,
-	}
-	if id.Address != want {
-		t.Errorf("Identity.Address = %q, want normalizer output %q", id.Address, want)
 	}
 }
 
@@ -511,8 +433,8 @@ func TestNormalizeAddress_ErrorNeverQuotesValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NormalizeAddress(tt.input)
-			if !errors.Is(err, ErrInvalidAddress) {
-				t.Fatalf("NormalizeAddress(%q) error = %v, want it to wrap ErrInvalidAddress", tt.input, err)
+			if !errors.Is(err, errInvalidAddress) {
+				t.Fatalf("NormalizeAddress(%q) error = %v, want it to wrap errInvalidAddress", tt.input, err)
 			}
 			if strings.Contains(err.Error(), "secret") {
 				t.Errorf("NormalizeAddress(%q) error = %q, want no part of the value in it", tt.input, err.Error())

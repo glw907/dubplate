@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -18,30 +16,6 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/store"
 )
-
-// TestNormalizeMemberAddress_SingleResolutionPoint proves R1's single
-// resolution point by grep: normalizeMemberAddress is the only
-// function in this file that resolves a roster member's address. A
-// write's actor is named by id, so no other function has an address to
-// resolve. Named mutation 5 (add a second member-address derivation
-// outside normalizeMemberAddress) fails this test.
-func TestNormalizeMemberAddress_SingleResolutionPoint(t *testing.T) {
-	source, err := os.ReadFile("roster.go")
-	if err != nil {
-		t.Fatalf("read roster.go: %v", err)
-	}
-	calls := regexp.MustCompile(`identity\.NormalizeAddress\(`)
-	body := regexp.MustCompile(`(?s)func normalizeMemberAddress\(.*?\n}`).Find(source)
-	if body == nil {
-		t.Fatal("roster.go has no func normalizeMemberAddress")
-	}
-	if n := len(calls.FindAllIndex(body, -1)); n != 1 {
-		t.Errorf("normalizeMemberAddress calls identity.NormalizeAddress %d times, want exactly 1", n)
-	}
-	if total := len(calls.FindAllIndex(source, -1)); total != 1 {
-		t.Errorf("roster.go calls identity.NormalizeAddress %d times, want exactly 1 (normalizeMemberAddress)", total)
-	}
-}
 
 // TestValidateWriteCandidate_UsernameShape proves the write
 // path's narrower shape check: an alphanumeric first character, then
@@ -176,7 +150,7 @@ func newRosterOver(t *testing.T, rows ...userRow) (*Roster, *store.Handle) {
 		}
 	}
 	insertUsers(t, h, rows...)
-	return NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow)), h
+	return NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow), slog.New(slog.DiscardHandler)), h
 }
 
 // TestRoster_LookupErrorNamesNoAddress proves a Lookup refusal for an
@@ -252,11 +226,8 @@ func TestValidateWriteCandidate_Fields(t *testing.T) {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("validateWriteCandidate() error = %v, want it to wrap %v", err, tt.wantErr)
 				}
-				// An address refusal carries the normalizer's
-				// sentinel too, so the roster and the config wall
-				// refuse one address for one reason.
-				if tt.wantErr == ErrInvalidMemberAddress && !errors.Is(err, identity.ErrInvalidAddress) {
-					t.Errorf("validateWriteCandidate() error = %v, want it to wrap identity.ErrInvalidAddress", err)
+				if tt.wantErr == ErrInvalidMemberAddress && !strings.Contains(err.Error(), "invalid address") {
+					t.Errorf("validateWriteCandidate() error = %v, want it to carry the normalizer's reason", err)
 				}
 				return
 			}
@@ -304,7 +275,7 @@ func TestAddMember_ActorAndChannelRefusals(t *testing.T) {
 			roster, h := newRosterOver(t, liveAdmin)
 			before := dumpUsers(t, h)
 
-			_, err := roster.AddMember(writeCtx(t), candidate, tt.by, slog.New(slog.DiscardHandler))
+			_, err := roster.AddMember(writeCtx(t), candidate, tt.by)
 			if !errors.Is(err, errInvalidActor) {
 				t.Errorf("AddMember() error = %v, want it to wrap errInvalidActor", err)
 			}
@@ -328,7 +299,7 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 	before := dumpUsers(t, h)
 
 	candidate := Member{Address: "\"a\u200dlice\"@example.com", DisplayName: "Alice", Username: "alice-2"}
-	_, err := roster.AddMember(writeCtx(t), candidate, adminActor, slog.New(slog.DiscardHandler))
+	_, err := roster.AddMember(writeCtx(t), candidate, adminActor)
 	if !errors.Is(err, errRosterRecordInvalid) {
 		t.Errorf("AddMember(zero-width address variant) error = %v, want it to wrap errRosterRecordInvalid", err)
 	}
@@ -347,12 +318,11 @@ func TestAddMember_ZeroWidthAddressVariantRefused(t *testing.T) {
 // AddMember on both channels, proved once each, so the refusal below is
 // the code point's.
 func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
-	logger := slog.New(slog.DiscardHandler)
 	actors := []identity.Actor{adminActor, operator}
 	for i, by := range actors {
 		roster, _ := newRosterOver(t, liveAdmin)
 		plain := Member{Address: fmt.Sprintf("plain%d@example.com", i), DisplayName: "A", Username: fmt.Sprintf("plain%d", i)}
-		if _, err := roster.AddMember(writeCtx(t), plain, by, logger); err != nil {
+		if _, err := roster.AddMember(writeCtx(t), plain, by); err != nil {
 			t.Fatalf("AddMember(plain fixture, %s) = %v, want nil", by.Channel(), err)
 		}
 	}
@@ -364,7 +334,7 @@ func TestAddMember_DefaultIgnorableAddressRefused(t *testing.T) {
 				before := dumpUsers(t, h)
 
 				candidate := Member{Address: defaultIgnorableAddress(tt.r), DisplayName: "A", Username: "a"}
-				_, err := roster.AddMember(writeCtx(t), candidate, by, logger)
+				_, err := roster.AddMember(writeCtx(t), candidate, by)
 				if err == nil {
 					t.Fatalf("AddMember() error = nil, want a refusal")
 				}
@@ -424,9 +394,10 @@ func TestAddMember_AuditRecord(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			roster, _ := newRosterOver(t, liveAdmin)
+			_, h := newRosterOver(t, liveAdmin)
 			var logBuf bytes.Buffer
-			if _, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
+			roster := NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow), slog.New(slog.NewJSONHandler(&logBuf, nil)))
+			if _, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by); err != nil {
 				t.Fatalf("AddMember: %v", err)
 			}
 			assertAuditRecord(t, logBuf.Bytes(), "roster member added", tt.want)
@@ -468,7 +439,7 @@ func addConcurrently(t *testing.T, roster *Roster, candidates []Member) []error 
 		wg.Add(1)
 		go func(i int, candidate Member) {
 			defer wg.Done()
-			_, errs[i] = roster.AddMember(writeCtx(t), candidate, operator, slog.New(slog.DiscardHandler))
+			_, errs[i] = roster.AddMember(writeCtx(t), candidate, operator)
 		}(i, candidate)
 	}
 	wg.Wait()
@@ -727,8 +698,8 @@ var operator = identity.LocalActor("operator")
 // builds, writing from clientIP.
 func memberActor(id identity.UserID, clientIP string) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
-		Address: "member@example.invalid", UserID: id, Principal: "member",
-		Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: "member@example.invalid", UserID: id, Username: "member",
+		Channel: identity.ChannelCookie,
 	}, rosterNow, clientIP)
 }
 
@@ -793,7 +764,7 @@ func TestUsersRoster_Lookup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := newUsersStore(t)
 			insertUsers(t, h, tt.rows...)
-			got, err := NewRoster(h, nil, nil).Lookup(t.Context(), tt.address)
+			got, err := NewRoster(h, nil, nil, nil).Lookup(t.Context(), tt.address)
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("Lookup(%q) error = %v, want %v", tt.address, err, tt.wantErr)
@@ -815,7 +786,7 @@ func TestUsersRoster_Lookup(t *testing.T) {
 	t.Run("the store closed", func(t *testing.T) {
 		h := newUsersStore(t)
 		insertUsers(t, h, alice)
-		roster := NewRoster(h, nil, nil)
+		roster := NewRoster(h, nil, nil, nil)
 		if err := h.Close(); err != nil {
 			t.Fatalf("close store: %v", err)
 		}
@@ -828,11 +799,11 @@ func TestUsersRoster_Lookup(t *testing.T) {
 	t.Run("a stored id that is not 16 bytes", func(t *testing.T) {
 		h := newUsersStore(t)
 		insertShortIDUser(t, h, "short@example.com")
-		got, err := NewRoster(h, nil, nil).Lookup(t.Context(), "short@example.com")
+		got, err := NewRoster(h, nil, nil, nil).Lookup(t.Context(), "short@example.com")
 		if err == nil || errors.Is(err, ErrMemberNotFound) {
 			t.Fatalf("Lookup of a short-id row = %+v, %v; want an error that is not ErrMemberNotFound", got, err)
 		}
-		if !strings.Contains(err.Error(), "3 bytes") {
+		if !strings.Contains(err.Error(), "length 3") {
 			t.Errorf("Lookup error = %q, want it to name the 3-byte id", err)
 		}
 	})
@@ -843,7 +814,7 @@ func TestUsersRoster_Lookup(t *testing.T) {
 // in.
 func TestUsersRoster_List(t *testing.T) {
 	t.Run("an empty table", func(t *testing.T) {
-		got, err := NewRoster(newUsersStore(t), nil, nil).List(t.Context())
+		got, err := NewRoster(newUsersStore(t), nil, nil, nil).List(t.Context())
 		if err != nil {
 			t.Fatalf("List: %v", err)
 		}
@@ -859,7 +830,7 @@ func TestUsersRoster_List(t *testing.T) {
 			userRow{id: goneID, address: "gone@example.com", displayName: "Gone", username: "gone", tombstoned: true, createdAt: 50},
 			userRow{id: adminID, address: "first@example.com", displayName: "First", username: "first", admin: true, createdAt: 100},
 		)
-		got, err := NewRoster(h, nil, nil).List(t.Context())
+		got, err := NewRoster(h, nil, nil, nil).List(t.Context())
 		if err != nil {
 			t.Fatalf("List: %v", err)
 		}
@@ -878,7 +849,7 @@ func TestUsersRoster_List(t *testing.T) {
 			userRow{id: identity.UserID{0x02}, address: "two@example.com", displayName: "Two", username: "two", admin: true, createdAt: 100},
 			userRow{id: identity.UserID{0x01}, address: "one@example.com", displayName: "One", username: "one", createdAt: 100},
 		)
-		got, err := NewRoster(h, nil, nil).List(t.Context())
+		got, err := NewRoster(h, nil, nil, nil).List(t.Context())
 		if err != nil {
 			t.Fatalf("List: %v", err)
 		}
@@ -892,7 +863,7 @@ func TestUsersRoster_List(t *testing.T) {
 	t.Run("the store closed", func(t *testing.T) {
 		h := newUsersStore(t)
 		insertUsers(t, h, liveAdmin)
-		roster := NewRoster(h, nil, nil)
+		roster := NewRoster(h, nil, nil, nil)
 		if err := h.Close(); err != nil {
 			t.Fatalf("close store: %v", err)
 		}
@@ -906,11 +877,11 @@ func TestUsersRoster_List(t *testing.T) {
 		h := newUsersStore(t)
 		insertUsers(t, h, liveAdmin)
 		insertShortIDUser(t, h, "short@example.com")
-		got, err := NewRoster(h, nil, nil).List(t.Context())
+		got, err := NewRoster(h, nil, nil, nil).List(t.Context())
 		if err == nil || got != nil {
 			t.Fatalf("List with a short-id row = %+v, %v; want nil and an error", got, err)
 		}
-		if !strings.Contains(err.Error(), "3 bytes") {
+		if !strings.Contains(err.Error(), "length 3") {
 			t.Errorf("List error = %q, want it to name the 3-byte id", err)
 		}
 	})
@@ -1091,8 +1062,8 @@ func TestUsersRoster_AddMember(t *testing.T) {
 			before := dumpUsers(t, h)
 
 			var logBuf bytes.Buffer
-			roster := NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow))
-			_, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil)))
+			roster := NewRoster(h, newRecordingRevoker(), fixedNow(rosterNow), slog.New(slog.NewJSONHandler(&logBuf, nil)))
+			_, err := roster.AddMember(writeCtx(t), tt.candidate, tt.by)
 			if tt.wantErr != nil {
 				if logBuf.Len() != 0 {
 					t.Errorf("a refused add logged an audit record: %q", logBuf.String())
@@ -1121,23 +1092,25 @@ func TestUsersRoster_AddMember(t *testing.T) {
 
 // rosterFixture is a revoking roster over a fresh store, with the
 // pieces a write test reads back: the store's handle and directory, the
-// revoker the roster calls, and the clock the roster reads.
+// revoker the roster calls, the clock the roster reads, and the JSON
+// audit records the roster logs.
 type rosterFixture struct {
 	roster   *Roster
 	h        *store.Handle
 	storeDir string
 	revoker  *recordingRevoker
 	clock    *testClock
+	log      *bytes.Buffer
 }
 
 // newRosterFixture returns a rosterFixture whose store holds rows and
 // whose clock reads rosterNow.
 func newRosterFixture(t *testing.T, rows ...userRow) rosterFixture {
 	t.Helper()
-	fx := rosterFixture{storeDir: t.TempDir(), revoker: newRecordingRevoker(), clock: &testClock{at: rosterNow}}
+	fx := rosterFixture{storeDir: t.TempDir(), revoker: newRecordingRevoker(), clock: &testClock{at: rosterNow}, log: new(bytes.Buffer)}
 	fx.h = newUsersStoreAt(t, fx.storeDir)
 	insertUsers(t, fx.h, rows...)
-	fx.roster = NewRoster(fx.h, fx.revoker, fx.clock.now)
+	fx.roster = NewRoster(fx.h, fx.revoker, fx.clock.now, slog.New(slog.NewJSONHandler(fx.log, nil)))
 	return fx
 }
 
@@ -1166,7 +1139,7 @@ func newRecordingRevoker() *recordingRevoker {
 	return &recordingRevoker{at: map[string]time.Time{}}
 }
 
-func (r *recordingRevoker) Revoke(_ context.Context, address string, at time.Time, _ *slog.Logger) error {
+func (r *recordingRevoker) Revoke(_ context.Context, address string, at time.Time) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.failing {
@@ -1304,7 +1277,7 @@ func TestRemoveMember_Checklist(t *testing.T) {
 	insertMemberRecords(t, fx.h, aliceID)
 
 	removedAt := rosterNow
-	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor, slog.New(slog.DiscardHandler)); err != nil {
+	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor); err != nil {
 		t.Fatalf("RemoveMember: %v", err)
 	}
 
@@ -1325,7 +1298,7 @@ func TestRemoveMember_Checklist(t *testing.T) {
 	readdedAt := rosterNow.Add(time.Hour)
 	fx.clock.set(readdedAt)
 	readd := Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
-	if _, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler)); err != nil {
+	if _, err := fx.roster.AddMember(writeCtx(t), readd, adminActor); err != nil {
 		t.Fatalf("re-add: %v", err)
 	}
 	if u := readUser(t, fx.h, "alice@example.com"); !bytes.Equal(u.id, aliceID[:]) || u.tombstoned {
@@ -1345,8 +1318,7 @@ func TestRemoveMember_BumpFailureRollsBack(t *testing.T) {
 	before := dumpUsers(t, fx.h)
 	fx.revoker.fail()
 
-	var logBuf bytes.Buffer
-	err := fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor, slog.New(slog.NewJSONHandler(&logBuf, nil)))
+	err := fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor)
 	if !errors.Is(err, errFixtureRevoke) {
 		t.Fatalf("RemoveMember with a failing revocation = %v, want the revoker's error", err)
 	}
@@ -1356,8 +1328,8 @@ func TestRemoveMember_BumpFailureRollsBack(t *testing.T) {
 	if got, want := memberRecords(t, fx.h, aliceID), [3]int{1, 1, 1}; got != want {
 		t.Errorf("preferences, overrides, quota after a failed removal = %v, want %v", got, want)
 	}
-	if logBuf.Len() != 0 {
-		t.Errorf("a failed removal logged %q, want no audit record", logBuf.String())
+	if fx.log.Len() != 0 {
+		t.Errorf("a failed removal logged %q, want no audit record", fx.log.String())
 	}
 }
 
@@ -1370,7 +1342,7 @@ func TestAddMember_ReactivationBumpFailureRollsBack(t *testing.T) {
 	fx.revoker.fail()
 
 	readd := Member{Address: "gone@example.com", DisplayName: "Gone", Username: "gone"}
-	_, err := fx.roster.AddMember(writeCtx(t), readd, adminActor, slog.New(slog.DiscardHandler))
+	_, err := fx.roster.AddMember(writeCtx(t), readd, adminActor)
 	if !errors.Is(err, errFixtureRevoke) {
 		t.Fatalf("re-add with a failing revocation = %v, want the revoker's error", err)
 	}
@@ -1389,10 +1361,10 @@ func TestRemoveDemote_NotFound(t *testing.T) {
 		write func(r *Roster, id identity.UserID) error
 	}{
 		{"remove", func(r *Roster, id identity.UserID) error {
-			return r.RemoveMember(writeCtx(t), id, adminActor, slog.New(slog.DiscardHandler))
+			return r.RemoveMember(writeCtx(t), id, adminActor)
 		}},
 		{"demote", func(r *Roster, id identity.UserID) error {
-			return r.DemoteMember(writeCtx(t), id, adminActor, slog.New(slog.DiscardHandler))
+			return r.DemoteMember(writeCtx(t), id, adminActor)
 		}},
 	}
 	targets := []struct {
@@ -1429,14 +1401,13 @@ func TestDemoteMember(t *testing.T) {
 
 	t.Run("an admin beside another", func(t *testing.T) {
 		fx := newRosterFixture(t, liveAdmin, second)
-		var logBuf bytes.Buffer
-		if err := fx.roster.DemoteMember(writeCtx(t), formerID, adminActor, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
+		if err := fx.roster.DemoteMember(writeCtx(t), formerID, adminActor); err != nil {
 			t.Fatalf("DemoteMember: %v", err)
 		}
 		if u := readUser(t, fx.h, "second@example.com"); u.admin != 0 || u.tombstoned {
 			t.Errorf("demoted row = %+v, want admin 0 and live", u)
 		}
-		assertAuditRecord(t, logBuf.Bytes(), "roster member demoted", map[string]any{
+		assertAuditRecord(t, fx.log.Bytes(), "roster member demoted", map[string]any{
 			"actor": adminWire, "channel": "cookie", "address": "second@example.com", "client_ip": "198.51.100.7",
 		})
 		if _, ok := fx.revokedAt("second@example.com"); ok {
@@ -1447,22 +1418,21 @@ func TestDemoteMember(t *testing.T) {
 	t.Run("a non-admin", func(t *testing.T) {
 		fx := newRosterFixture(t, liveAdmin, aliceRow)
 		before := dumpUsers(t, fx.h)
-		var logBuf bytes.Buffer
-		if err := fx.roster.DemoteMember(writeCtx(t), aliceID, adminActor, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
+		if err := fx.roster.DemoteMember(writeCtx(t), aliceID, adminActor); err != nil {
 			t.Fatalf("DemoteMember(non-admin) = %v, want nil", err)
 		}
 		if after := dumpUsers(t, fx.h); after != before {
 			t.Errorf("demoting a non-admin changed the users table:\nbefore %s\nafter  %s", before, after)
 		}
-		if logBuf.Len() != 0 {
-			t.Errorf("demoting a non-admin logged %q, want nothing", logBuf.String())
+		if fx.log.Len() != 0 {
+			t.Errorf("demoting a non-admin logged %q, want nothing", fx.log.String())
 		}
 	})
 
 	t.Run("the last admin, by the command line", func(t *testing.T) {
 		fx := newRosterFixture(t, liveAdmin, aliceRow)
 		before := dumpUsers(t, fx.h)
-		if err := fx.roster.DemoteMember(writeCtx(t), adminID, operator, slog.New(slog.DiscardHandler)); !errors.Is(err, ErrNoAdmin) {
+		if err := fx.roster.DemoteMember(writeCtx(t), adminID, operator); !errors.Is(err, ErrNoAdmin) {
 			t.Fatalf("DemoteMember(last admin) = %v, want ErrNoAdmin", err)
 		}
 		if after := dumpUsers(t, fx.h); after != before {
@@ -1489,11 +1459,10 @@ func TestRemoveMember_AuditRecord(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fx := newRosterFixture(t, liveAdmin, aliceRow)
-			var logBuf bytes.Buffer
-			if err := fx.roster.RemoveMember(writeCtx(t), aliceID, tt.by, slog.New(slog.NewJSONHandler(&logBuf, nil))); err != nil {
+			if err := fx.roster.RemoveMember(writeCtx(t), aliceID, tt.by); err != nil {
 				t.Fatalf("RemoveMember: %v", err)
 			}
-			assertAuditRecord(t, logBuf.Bytes(), "roster member removed", tt.want)
+			assertAuditRecord(t, fx.log.Bytes(), "roster member removed", tt.want)
 		})
 	}
 }
@@ -1504,7 +1473,7 @@ func TestRemoveMember_AuditRecord(t *testing.T) {
 func TestRemoveMember_SoleAdminSelfRemovalRefused(t *testing.T) {
 	fx := newRosterFixture(t, liveAdmin, aliceRow)
 	before := dumpUsers(t, fx.h)
-	if err := fx.roster.RemoveMember(writeCtx(t), adminID, adminActor, slog.New(slog.DiscardHandler)); !errors.Is(err, ErrNoAdmin) {
+	if err := fx.roster.RemoveMember(writeCtx(t), adminID, adminActor); !errors.Is(err, ErrNoAdmin) {
 		t.Fatalf("sole admin's self-removal = %v, want ErrNoAdmin", err)
 	}
 	if after := dumpUsers(t, fx.h); after != before {
@@ -1522,7 +1491,7 @@ func TestRemoveMember_SelfWithAnotherAdmin(t *testing.T) {
 	second := userRow{id: formerID, address: "second@example.com", displayName: "Second", username: "second", admin: true, createdAt: 120}
 	fx := newRosterFixture(t, liveAdmin, second)
 
-	if err := fx.roster.RemoveMember(writeCtx(t), adminID, adminActor, slog.New(slog.DiscardHandler)); err != nil {
+	if err := fx.roster.RemoveMember(writeCtx(t), adminID, adminActor); err != nil {
 		t.Fatalf("self-removal beside another admin: %v", err)
 	}
 	if at, ok := fx.revokedAt("admin@example.com"); !ok || !at.Equal(rosterNow) {
@@ -1546,7 +1515,7 @@ func TestDemoteMember_ConcurrentLastAdmins(t *testing.T) {
 	other := fx.secondHandle(t)
 
 	err := whileHeld(t, other, `UPDATE users SET admin = 0 WHERE id = ?`, []any{adminID[:]}, func() error {
-		return fx.roster.DemoteMember(writeCtx(t), aliceID, memberActor(aliceID, "198.51.100.7"), slog.New(slog.DiscardHandler))
+		return fx.roster.DemoteMember(writeCtx(t), aliceID, memberActor(aliceID, "198.51.100.7"))
 	})
 	if !errors.Is(err, ErrNoAdmin) {
 		t.Errorf("the second demotion = %v, want ErrNoAdmin", err)
@@ -1569,7 +1538,7 @@ func TestRemoveMember_ActorDemotedInFlight(t *testing.T) {
 	other := fx.secondHandle(t)
 
 	err := whileHeld(t, other, `UPDATE users SET admin = 0 WHERE id = ?`, []any{adminID[:]}, func() error {
-		return fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor, slog.New(slog.DiscardHandler))
+		return fx.roster.RemoveMember(writeCtx(t), aliceID, adminActor)
 	})
 	if !errors.Is(err, ErrActorNotAdmin) {
 		t.Fatalf("removal by an actor demoted in flight = %v, want ErrActorNotAdmin", err)
@@ -1595,13 +1564,13 @@ func TestRosterWrites_ActorDemotedBefore(t *testing.T) {
 		write func(r *Roster) error
 	}{
 		{"remove", func(r *Roster) error {
-			return r.RemoveMember(writeCtx(t), aliceID, adminActor, slog.New(slog.DiscardHandler))
+			return r.RemoveMember(writeCtx(t), aliceID, adminActor)
 		}},
 		{"demote", func(r *Roster) error {
-			return r.DemoteMember(writeCtx(t), formerID, adminActor, slog.New(slog.DiscardHandler))
+			return r.DemoteMember(writeCtx(t), formerID, adminActor)
 		}},
 		{"add", func(r *Roster) error {
-			_, err := r.AddMember(writeCtx(t), Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"}, adminActor, slog.New(slog.DiscardHandler))
+			_, err := r.AddMember(writeCtx(t), Member{Address: "new@example.com", DisplayName: "New", Username: "newbie"}, adminActor)
 			return err
 		}},
 	}
@@ -1663,5 +1632,153 @@ func TestCheckAdmin(t *testing.T) {
 				t.Errorf("CheckAdmin(%s) = %v, want %v", tt.name, got, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestEarliestAdmin(t *testing.T) {
+	first := identity.UserID{0x20}
+	second := identity.UserID{0x10}
+	tiedLow := identity.UserID{0x01}
+	tiedHigh := identity.UserID{0x02}
+
+	tests := []struct {
+		name   string
+		rows   []userRow
+		want   identity.UserID
+		wantOK bool
+	}{
+		{
+			name: "the first-created of two admins, whatever the ids",
+			rows: []userRow{
+				{id: second, address: "b@example.com", displayName: "B", username: "b", admin: true, createdAt: 200},
+				{id: first, address: "a@example.com", displayName: "A", username: "a", admin: true, createdAt: 100},
+			},
+			want:   first,
+			wantOK: true,
+		},
+		{
+			name: "a tombstoned earliest admin is skipped",
+			rows: []userRow{
+				{id: first, address: "a@example.com", displayName: "A", username: "a", admin: true, tombstoned: true, createdAt: 100},
+				{id: second, address: "b@example.com", displayName: "B", username: "b", admin: true, createdAt: 200},
+			},
+			want:   second,
+			wantOK: true,
+		},
+		{
+			name: "a member who is not an admin is skipped",
+			rows: []userRow{
+				{id: first, address: "a@example.com", displayName: "A", username: "a", createdAt: 100},
+				{id: second, address: "b@example.com", displayName: "B", username: "b", admin: true, createdAt: 200},
+			},
+			want:   second,
+			wantOK: true,
+		},
+		{
+			name: "two admins created at one instant answer the lower id",
+			rows: []userRow{
+				{id: tiedHigh, address: "h@example.com", displayName: "H", username: "h", admin: true, createdAt: 100},
+				{id: tiedLow, address: "l@example.com", displayName: "L", username: "l", admin: true, createdAt: 100},
+			},
+			want:   tiedLow,
+			wantOK: true,
+		},
+		{
+			name: "no live admin answers false",
+			rows: []userRow{
+				{id: first, address: "a@example.com", displayName: "A", username: "a", admin: true, tombstoned: true, createdAt: 100},
+				{id: second, address: "b@example.com", displayName: "B", username: "b", createdAt: 200},
+			},
+		},
+		{name: "an empty roster answers false"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newUsersStore(t)
+			insertUsers(t, h, tt.rows...)
+			var got identity.UserID
+			var ok bool
+			err := h.Update(writeCtx(t), func(ctx context.Context, tx *store.Tx) error {
+				var err error
+				got, ok, err = EarliestAdmin(ctx, tx)
+				return err
+			})
+			if err != nil {
+				t.Fatalf("EarliestAdmin: %v", err)
+			}
+			if ok != tt.wantOK || got != tt.want {
+				t.Errorf("EarliestAdmin = (%x, %v), want (%x, %v)", got[:], ok, tt.want[:], tt.wantOK)
+			}
+		})
+	}
+}
+
+func TestLiveMembers(t *testing.T) {
+	tests := []struct {
+		name string
+		rows []userRow
+		want int
+	}{
+		{name: "an empty roster counts none"},
+		{
+			name: "a tombstoned member is not counted",
+			rows: []userRow{
+				{id: identity.UserID{0x01}, address: "a@example.com", displayName: "A", username: "a", createdAt: 100},
+				{id: identity.UserID{0x02}, address: "b@example.com", displayName: "B", username: "b", tombstoned: true, createdAt: 100},
+				{id: identity.UserID{0x03}, address: "c@example.com", displayName: "C", username: "c", admin: true, createdAt: 100},
+			},
+			want: 2,
+		},
+		{
+			name: "only tombstoned members count none",
+			rows: []userRow{
+				{id: identity.UserID{0x01}, address: "a@example.com", displayName: "A", username: "a", tombstoned: true, createdAt: 100},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newUsersStore(t)
+			insertUsers(t, h, tt.rows...)
+			got, err := Live(t.Context(), h)
+			if err != nil {
+				t.Fatalf("Live: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("Live = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestReadErrorsAreBare holds the contract the two callers rely on: a read
+// that fails returns the driver's error unprefixed, so reconcile and
+// RouteCollection print the one prefix their operators already read.
+func TestReadErrorsAreBare(t *testing.T) {
+	ctx := writeCtx(t)
+
+	closed := newUsersStore(t)
+	if err := closed.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	if _, err := Live(ctx, closed); err == nil || strings.HasPrefix(err.Error(), "member:") {
+		t.Errorf("Live on a closed store = %v, want a bare driver error", err)
+	}
+
+	// The drop fails the read inside a live transaction; the failed Update
+	// rolls it back.
+	h := newUsersStore(t)
+	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
+		if _, err := tx.Exec(ctx, `DROP TABLE users`); err != nil {
+			t.Fatalf("drop users: %v", err)
+		}
+		_, _, err := EarliestAdmin(ctx, tx)
+		if err == nil || strings.HasPrefix(err.Error(), "member:") {
+			t.Errorf("EarliestAdmin with no users table = %v, want a bare driver error", err)
+		}
+		return err
+	})
+	if err == nil {
+		t.Error("Update returned nil, want the read's error")
 	}
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/internal/webapp"
 )
 
 // A routeClass says who may reach a route: anyone, any signed-in
@@ -43,24 +44,24 @@ type routeRow struct {
 // class (PS A2). A route the table does not name fails the test, so a
 // new route cannot ship without a ruling on who may reach it.
 var routeInventory = map[string]routeRow{
-	requestLinkRouteName: {class: routePublic},
-	consumeLinkRouteName: {class: routePublic},
-	signOutRouteName:     {class: routePublic},
-	serve.ProbeRouteName: {class: routePublic},
-	loginRouteName:       {class: routePublic},
-	assetsRouteName:      {class: routePublic},
-	fontsRouteName:       {class: routePublic},
-	faviconSVGRouteName:  {class: routePublic},
-	faviconPNGRouteName:  {class: routePublic},
-	markRouteName:        {class: routePublic},
-	brandingRouteName:    {class: routePublic},
-	operatorCSSRouteName: {class: routePublic, optional: true},
+	requestLinkRouteName:        {class: routePublic},
+	consumeLinkRouteName:        {class: routePublic},
+	signOutRouteName:            {class: routePublic},
+	serve.ProbeRouteName:        {class: routePublic},
+	webapp.LoginRouteName:       {class: routePublic},
+	webapp.AssetsRouteName:      {class: routePublic},
+	webapp.FontsRouteName:       {class: routePublic},
+	webapp.FaviconSVGRouteName:  {class: routePublic},
+	webapp.FaviconPNGRouteName:  {class: routePublic},
+	webapp.MarkRouteName:        {class: routePublic},
+	webapp.BrandingRouteName:    {class: routePublic},
+	webapp.OperatorCSSRouteName: {class: routePublic, optional: true},
 
-	apiRouteName:     {class: routeSession, method: http.MethodPost, path: "/api/v1/list_submissions"},
-	tusRouteName:     {class: routeSession, method: http.MethodPost, path: "/" + tusRouteName + "/"},
-	membersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + membersRouteName},
+	apiRouteName:            {class: routeSession, method: http.MethodPost, path: "/api/v1/list_submissions"},
+	tusRouteName:            {class: routeSession, method: http.MethodPost, path: "/" + tusRouteName + "/"},
+	webapp.MembersRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + webapp.MembersRouteName},
 
-	serverSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + serverSettingsRouteName},
+	webapp.ServerSettingsRouteName: {class: routeAdmin, method: http.MethodGet, path: "/" + webapp.ServerSettingsRouteName},
 }
 
 // A recordingRegistrar forwards every registration to its shell and
@@ -86,19 +87,18 @@ func TestRouteInventory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	buildFS, err := embeddedBuild()
-	if err != nil {
-		t.Fatalf("embeddedBuild: %v", err)
-	}
+	prefix := listen.Prefix
 	var registered []string
-	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
-		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }, buildFS)
+	orig := mountRoutes
+	mountRoutes = func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }
+	t.Cleanup(func() { mountRoutes = orig })
+	srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger())
 	if err != nil {
-		t.Fatalf("newServeShellVia: %v", err)
+		t.Fatalf("newServeShell: %v", err)
 	}
 	t.Cleanup(func() {
 		if err := srv.Close(); err != nil {

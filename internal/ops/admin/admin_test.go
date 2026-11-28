@@ -190,19 +190,21 @@ func newFixtureWith(t *testing.T, opts fixtureOptions) *fixture {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	epoch := auth.OpenEpochStore(authDir)
 	logs := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(&lockedWriter{w: logs}, nil))
+	epoch := auth.NewEpochStore(authDir, logger)
 	mail := &mailbox{}
 	seam := New(Config{
 		Store:    h,
 		Registry: opts.reg,
 		Environ:  opts.env,
-		Roster:   member.NewRoster(h, epoch, func() time.Time { return testNow }),
-		Window:   opts.window,
+		Roster:   member.NewRoster(h, epoch, func() time.Time { return testNow }, logger),
+		Settings: settings.NewAccessor(h, opts.reg),
 		Send:     mail.send,
 		Now:      func() time.Time { return testNow },
-		Logger:   slog.New(slog.NewTextHandler(&lockedWriter{w: logs}, nil)),
+		Logger:   logger,
 	})
+	seam.window = opts.window
 	return &fixture{seam: seam, h: h, dir: dir, reg: opts.reg, mail: mail, logs: logs, epoch: epoch}
 }
 
@@ -223,8 +225,7 @@ func (l *lockedWriter) Write(p []byte) (int, error) {
 // anchor.
 func actor(m fixtureMember, anchor time.Time) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
-		Address: m.address, UserID: m.id, Principal: m.username, DisplayName: m.display,
-		Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: m.address, UserID: m.id, Username: m.username, Channel: identity.ChannelCookie,
 	}, anchor, "192.0.2.1")
 }
 
@@ -372,7 +373,7 @@ func userState(t *testing.T, h *store.Handle, m fixtureMember) (admin, tombstone
 
 // wantCode fails t unless err carries code and, when detail is set,
 // that detail.
-func wantCode(t *testing.T, err error, code ops.Code, detail string) {
+func wantCode(t *testing.T, err error, code ops.Code, detail ops.Detail) {
 	t.Helper()
 	if err == nil {
 		t.Fatalf("err = nil, want code %s", code)

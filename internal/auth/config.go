@@ -71,32 +71,28 @@ var magicLinkIdentitySource = config.IdentitySource{
 	Validate: validateMagicLinkSource,
 }
 
-// secretLengthFloor is the minimum accepted byte length of a magic-link
-// or session secret, HMAC-SHA256's own recommended key length: RFC 2104
-// section 3 (https://www.rfc-editor.org/rfc/rfc2104#section-3, read
-// 2026-09-12) recommends a key at least as long as the hash's output,
-// 32 bytes for SHA-256. The count is of raw bytes with no
-// transformation, so an adopter pasting a base64 rendering of 32 random
-// bytes passes with room to spare.
+// secretLengthFloor is the minimum byte length of a magic-link or
+// session secret: RFC 2104 section 3 recommends an HMAC key at least as
+// long as the hash's output, 32 bytes for SHA-256. It counts raw bytes,
+// so a base64 rendering of 32 random bytes passes with room to spare.
 const secretLengthFloor = 32
 
-// MagicLinkExpiryCeiling bounds how long a mailed link can stay
-// redeemable. The threat model's mail-scanner residual is bounded by
-// "single use, a 15-minute default expiry"; an hour is generous
-// headroom above the default without admitting a link that survives a
-// whole day in a mail provider's link-scanner cache or a browser's
-// history (review m5). It is [magicLinkExpirySetting]'s registered
-// ceiling, and the nonce store's mtime fallback keeps a record past it
-// rather than past the value in force, since only the ceiling outlives
-// every token a changed expiry could have minted.
-const MagicLinkExpiryCeiling = time.Hour
+// magicLinkExpiryCeiling bounds how long a mailed link can stay
+// redeemable: generous headroom above the 15-minute default, short of a
+// link surviving a day in a mail scanner's cache or a browser's history.
+// It is [magicLinkExpirySetting]'s registered ceiling.
+const magicLinkExpiryCeiling = time.Hour
+
+// SessionAbsoluteCapKey names the session absolute cap, which the
+// admin gate's reauthentication window must stay below.
+const SessionAbsoluteCapKey = "DUBPLATE_SESSION_ABSOLUTE_CAP"
 
 // magicLinkExpirySetting, sessionLifetimeSetting,
-// SessionAbsoluteCapSetting, and nonceRetentionSetting are the four
+// sessionAbsoluteCapSetting, and nonceRetentionSetting are the four
 // auth durations.
 //
 // Every duration takes a positive floor, since zero or a negative
-// duration cannot mean "never" or "immediately" here (review m5). The
+// duration cannot mean "never" or "immediately" here. The
 // link expiry's floor is a minute instead of a second: a link that
 // expires inside a minute leaves no time for the mail to arrive, and
 // the mailed copy would read "0 minutes". The absolute cap's ceiling,
@@ -117,7 +113,7 @@ var (
 		Doc:         "a Go duration string, for example 15m",
 		Apply:       config.ApplyNextOperation,
 		Floor:       "1m",
-		Ceiling:     MagicLinkExpiryCeiling.String(),
+		Ceiling:     magicLinkExpiryCeiling.String(),
 		Description: "how long a mailed sign-in link stays redeemable",
 		Sensitivity: config.Sensitive,
 	}
@@ -132,8 +128,8 @@ var (
 		Description: "how long a session stays valid before the member signs in again, unless it is refreshed",
 		Sensitivity: config.Sensitive,
 	}
-	SessionAbsoluteCapSetting = config.Setting{
-		Key:         "DUBPLATE_SESSION_ABSOLUTE_CAP",
+	sessionAbsoluteCapSetting = config.Setting{
+		Key:         SessionAbsoluteCapKey,
 		Kind:        config.KindDuration,
 		Default:     "4320h",
 		Doc:         "a Go duration string, for example 4320h (180 days)",
@@ -156,13 +152,11 @@ var (
 	}
 )
 
-// Fork 3's four rate limits (R28) each take a floor of one, since zero
-// is ambiguous between "unlimited" and "blocked outright", and a
-// ceiling of ten times the default: generous headroom for a larger
-// group without admitting a rate that defeats R28's own reasoning, as
-// a per-address or per-client limiter set high enough stops bounding
-// anything an enumerator does. The limiter is built once, so each
-// applies at the next start.
+// The four rate limits each take a floor of one, since zero is
+// ambiguous between "unlimited" and "blocked outright", and a ceiling
+// of ten times the default: headroom for a larger group without a
+// limit so high it stops bounding anything an enumerator does. The
+// limiter is built once, so each applies at the next start.
 var (
 	linkRequestsPerAddressSetting = config.Setting{
 		Key:         "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR",
@@ -210,19 +204,16 @@ var (
 	}
 )
 
-// RequestBodyCapCeiling is the auth request body cap's ceiling.
+// requestBodyCapCeiling is the auth request body cap's ceiling.
 // Sign-out bounds its body with it directly, so the one auth endpoint
 // no limiter charges reads no setting.
-const RequestBodyCapCeiling = 65536
+const requestBodyCapCeiling = 65536
 
-// authRequestBodyCapSetting is the auth request body cap security
-// constraint 3 requires. Its floor, 512 bytes, comfortably fits an RFC
-// 5321 address (254 bytes at most) plus its form-encoded field name;
-// its ceiling, 64KiB, is generous headroom that still keeps the
-// amplification bound (M5) meaningful, because a cap large enough to
-// admit an arbitrary upload defeats the reason the cap exists. Its
-// 4096-byte default fits the login form's one mailed-address field
-// with room to spare.
+// authRequestBodyCapSetting bounds an auth request's body. Its floor,
+// 512 bytes, fits an RFC 5321 address (254 bytes at most) plus its
+// form-encoded field name; its ceiling, 64KiB, still keeps the
+// amplification bound meaningful, because a cap large enough to admit
+// an arbitrary upload defeats the reason the cap exists.
 var authRequestBodyCapSetting = config.Setting{
 	Key:         "DUBPLATE_AUTH_REQUEST_BODY_CAP",
 	Kind:        config.KindInt,
@@ -230,7 +221,7 @@ var authRequestBodyCapSetting = config.Setting{
 	Doc:         "a positive integer of bytes, for example 4096",
 	Apply:       config.ApplyNextOperation,
 	Floor:       "512",
-	Ceiling:     strconv.Itoa(RequestBodyCapCeiling),
+	Ceiling:     strconv.Itoa(requestBodyCapCeiling),
 	Description: "the largest sign-in request body the server reads, in bytes",
 	Sensitivity: config.NotSensitive,
 }
@@ -263,8 +254,8 @@ var (
 	}
 	sessionLifetimeWithinCap = config.CorrelatedRule{
 		Name:  "session lifetime within the absolute cap",
-		Keys:  []string{sessionLifetimeSetting.Key, SessionAbsoluteCapSetting.Key},
-		Check: durationAtLeast(SessionAbsoluteCapSetting.Key, sessionLifetimeSetting.Key),
+		Keys:  []string{sessionLifetimeSetting.Key, sessionAbsoluteCapSetting.Key},
+		Check: durationAtLeast(sessionAbsoluteCapSetting.Key, sessionLifetimeSetting.Key),
 	}
 )
 
@@ -313,7 +304,7 @@ func Register(reg *config.Registry) {
 	for _, s := range []config.Setting{
 		magicLinkExpirySetting,
 		sessionLifetimeSetting,
-		SessionAbsoluteCapSetting,
+		sessionAbsoluteCapSetting,
 		nonceRetentionSetting,
 		linkRequestsPerAddressSetting,
 		linkRequestsPerClientSetting,
@@ -360,34 +351,16 @@ func validateMagicLinkSource(values map[string]string, _ []string) error {
 }
 
 // validatePublicURL checks value against the conditions a configured
-// public origin must meet (review m7): it parses; it carries no
-// userinfo, no query string, no fragment, and no path other than empty
-// or "/", because any of the four would ride into every link [LinkURL]
-// builds and make an attacker-chosen string part of its visible prefix
-// or suffix (review m4): the owned serve prefix is what sets where
-// dubplate lives, so the public URL carries none of its own; it
-// carries a non-empty host, because net/url
-// accepts a bare hostname with a nil error and an empty Host, and a URL
-// with no host builds a path-only link that defeats security review
-// finding 7; and its scheme is https unless its host is loopback, the
-// carve-out the W3C Secure Contexts definition of a potentially
-// trustworthy origin extends to the whole loopback set
-// (https://w3c.github.io/webappsec-secure-contexts/#is-origin-trustworthy,
-// read 2026-09-12), not the name localhost alone (review m6, ruled,
-// conductor 2026-09-12). The comparison reads the parsed hostname
-// rather than the host, since url.Parse("http://localhost:8080").Host
-// is "localhost:8080" and only Hostname() is "localhost".
+// public origin must meet: it parses; it carries no userinfo, query
+// string, fragment, or path other than empty or "/", any of which would
+// ride into every link [linkURL] builds; it has a host, since a
+// path-only link would land wherever the mail client chose; and its
+// scheme is https unless its host is loopback, the whole loopback set
+// the W3C Secure Contexts definition treats as potentially trustworthy.
 //
-// No returned error quotes value or any part of it: every message names
-// the key and the defect alone. url.Parse's own error is never wrapped,
-// even its inner reason, because a raw value carrying userinfo with a
-// "/", "?" or "#" inside the password makes url.Parse cut the authority
-// there and misread "user:pass" as "host:port", so its error quotes the
-// password up to that character
-// (net/url/url.go, fmt.Sprintf("%s %q: %s", e.Op, e.URL, e.Err), read
-// 2026-09-23). value is checked for "@" before it is parsed at all, so
-// a value net/url would misparse this way is still caught as userinfo
-// rather than reaching url.Parse's error path.
+// No returned error quotes value. It is checked for "@" before it is
+// parsed, because url.Parse misreads a password containing "/", "?", or
+// "#" as host:port and quotes it in its error.
 func validatePublicURL(value string) error {
 	if strings.Contains(value, "@") {
 		return &config.KeyError{Key: publicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}
@@ -487,6 +460,9 @@ var errSourceNotSelected = errors.New("the magic-link identity source is not sel
 // setting at every call, so a stored change applies to the next request
 // that reads it.
 type Config struct {
+	// LinkSecret and PreviousLinkSecret sign and verify magic links,
+	// and the session pair signs and verifies session cookies. Either
+	// previous secret may be empty.
 	LinkSecret            []byte
 	PreviousLinkSecret    []byte
 	SessionSecret         []byte
@@ -496,14 +472,26 @@ type Config struct {
 	// origin every sign-in link is built from.
 	PublicOrigin string
 
-	LinkExpiry         settings.Reader[time.Duration]
-	SessionLifetime    settings.Reader[time.Duration]
+	LinkExpiry      settings.Reader[time.Duration]
+	SessionLifetime settings.Reader[time.Duration]
+
+	// SessionAbsoluteCap bounds how long a session can survive however
+	// many times it is refreshed. A minted session's expiry is clamped
+	// to it as a refresh's is.
 	SessionAbsoluteCap settings.Reader[time.Duration]
-	NonceRetention     settings.Reader[time.Duration]
-	BodyCap            settings.Reader[int64]
+
+	NonceRetention settings.Reader[time.Duration]
+
+	// BodyCap bounds every auth request body but sign-out's, before any
+	// parser reads it. Sign-out bounds its body at the cap's registered
+	// ceiling: no limiter charges a sign-out, so reading a setting there
+	// would let any client spend a store read on every request.
+	BodyCap settings.Reader[int64]
 
 	// GenericAnswer reports whether an unknown address gets the same
-	// answer a known one does.
+	// answer a known one does, sent before any mail is. When false, an
+	// unknown address is told so and handed the roster's admin contact,
+	// and a known address whose mail fails is told its request failed.
 	GenericAnswer settings.Reader[bool]
 }
 
@@ -523,9 +511,35 @@ func ConfigFrom(cfg *config.Config, acc *settings.Accessor) (Config, error) {
 		PublicOrigin:          cfg.IdentitySourceValue(publicURLKey),
 		LinkExpiry:            acc.DurationReader(magicLinkExpirySetting),
 		SessionLifetime:       acc.DurationReader(sessionLifetimeSetting),
-		SessionAbsoluteCap:    acc.DurationReader(SessionAbsoluteCapSetting),
+		SessionAbsoluteCap:    acc.DurationReader(sessionAbsoluteCapSetting),
 		NonceRetention:        acc.DurationReader(nonceRetentionSetting),
 		BodyCap:               bodyCap(acc),
 		GenericAnswer:         genericAnswer(acc),
 	}, nil
+}
+
+// errSettingUnreadable marks a failed read of a setting's value in
+// force. A handler answers it as a server error, never as a refusal of
+// what the request carried, and never falls back to a default.
+var errSettingUnreadable = errors.New("auth setting unreadable")
+
+// settingFailureReason is the log reason for err, a failed setting
+// read: a fixed phrase naming the key err's [settings.ReadError]
+// carries, or "unnamed" when it carries none. A handler logs this and
+// never err's text, which may carry whatever the read met.
+func settingFailureReason(err error) string {
+	key := "unnamed"
+	if re, ok := errors.AsType[*settings.ReadError](err); ok {
+		key = re.Key
+	}
+	return "setting unreadable: " + key
+}
+
+// readSetting calls s, wrapping a failure in errSettingUnreadable.
+func readSetting[T any](ctx context.Context, s settings.Reader[T]) (T, error) {
+	v, err := s(ctx)
+	if err != nil {
+		return v, fmt.Errorf("%w: %w", errSettingUnreadable, err)
+	}
+	return v, nil
 }

@@ -18,7 +18,7 @@ import (
 // a large file refuses startup rather than loading it into memory.
 const operatorCSSMaxBytes = 256 << 10
 
-// ReadOperatorCSS reads the operator's stylesheet at path. The route
+// readOperatorCSS reads the operator's stylesheet at path. The route
 // that serves it is public, so the file's class is checked before its
 // bytes are kept: a wrong path would otherwise publish whatever the
 // service user can read, an environment file included.
@@ -26,7 +26,8 @@ const operatorCSSMaxBytes = 256 << 10
 // The path must end in ".css", and so must the path it resolves to
 // once every symbolic link in it is followed, which is the path
 // opened: a link named x.css cannot stand in for another file. The
-// resolved path must not lie under stateDir, unless stateDir is "".
+// resolved path must not lie under stateDir, and an empty stateDir
+// refuses the file.
 // The file is opened once, with O_NOFOLLOW so a link swapped in for
 // the file itself after resolution is refused, and with O_NONBLOCK so
 // a FIFO cannot hang startup; the class check reads the open
@@ -37,7 +38,7 @@ const operatorCSSMaxBytes = 256 << 10
 // The content must be UTF-8 text holding no NUL byte and no more than
 // 256 KiB. A returned error names the rule or the reason and never
 // carries the path or any byte of the file.
-func ReadOperatorCSS(path, stateDir string) ([]byte, error) {
+func readOperatorCSS(path, stateDir string) ([]byte, error) {
 	if !strings.HasSuffix(path, ".css") {
 		return nil, errors.New(`the path must end in ".css"`)
 	}
@@ -48,14 +49,15 @@ func ReadOperatorCSS(path, stateDir string) ([]byte, error) {
 	if !strings.HasSuffix(resolved, ".css") {
 		return nil, errors.New(`the path must resolve to a file ending in ".css"`)
 	}
-	if stateDir != "" {
-		resolvedStateDir, err := resolvePath(stateDir)
-		if err != nil {
-			return nil, fmt.Errorf("cannot resolve the state directory: %w", withoutPath(err))
-		}
-		if rel, err := filepath.Rel(resolvedStateDir, resolved); err == nil && filepath.IsLocal(rel) {
-			return nil, errors.New("the file is under the state directory")
-		}
+	if stateDir == "" {
+		return nil, errors.New("no state directory to check the path against")
+	}
+	resolvedStateDir, err := resolvePath(stateDir)
+	if err != nil {
+		return nil, fmt.Errorf("cannot resolve the state directory: %w", withoutPath(err))
+	}
+	if rel, err := filepath.Rel(resolvedStateDir, resolved); err == nil && filepath.IsLocal(rel) {
+		return nil, errors.New("the file is under the state directory")
 	}
 
 	f, err := os.OpenFile(resolved, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK|syscall.O_CLOEXEC, 0)

@@ -175,7 +175,7 @@ func TestParseTrustedProxy(t *testing.T) {
 		{
 			name: "a valid set, a mapped entry unmapped, a duplicate collapsed",
 			set:  map[string]string{flag: "true", addrs: "192.0.2.10, ::ffff:198.51.100.7,192.0.2.10", header: "Cf-Connecting-Ip"},
-			wantConfig: NewTrustedProxyConfig(
+			wantConfig: newTrustedProxyConfig(
 				[]netip.Addr{netip.MustParseAddr("192.0.2.10"), netip.MustParseAddr("198.51.100.7")},
 				"Cf-Connecting-Ip",
 			),
@@ -283,18 +283,18 @@ func TestParseConfig(t *testing.T) {
 		{
 			name:    "invalid prefix",
 			environ: []string{"DUBPLATE_SERVE_PREFIX=no-leading-separator"},
-			wantErr: ErrInvalidPrefix,
+			wantErr: errInvalidPrefix,
 		},
 		{
 			name:    "unparseable bind list",
 			environ: []string{"DUBPLATE_SERVE_BIND_ADDRS=not-an-address"},
-			wantErr: ErrInvalidBindAddr,
+			wantErr: errInvalidBindAddr,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			prefix, addrs, port, err := ParseConfig(tt.environ)
+			got, err := ParseConfig(tt.environ)
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("ParseConfig() error = %v, want it to wrap %v", err, tt.wantErr)
@@ -304,14 +304,149 @@ func TestParseConfig(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseConfig() error = %v, want nil", err)
 			}
-			if !slices.Equal(addrs, tt.wantAddrs) {
+			if addrs := addrTexts(got.BindAddrs); !slices.Equal(addrs, tt.wantAddrs) {
 				t.Errorf("addrs = %v, want %v", addrs, tt.wantAddrs)
 			}
-			if port != tt.wantPort {
-				t.Errorf("port = %d, want %d", port, tt.wantPort)
+			if got.Port != tt.wantPort {
+				t.Errorf("port = %d, want %d", got.Port, tt.wantPort)
 			}
-			if prefix.String() != tt.wantPrefix {
-				t.Errorf("prefix = %q, want %q", prefix.String(), tt.wantPrefix)
+			if got.Prefix.String() != tt.wantPrefix {
+				t.Errorf("prefix = %q, want %q", got.Prefix.String(), tt.wantPrefix)
+			}
+		})
+	}
+}
+
+// TestParsePrefix proves the prefix reader ignores the other two serve
+// keys: a bind list ParseConfig refuses leaves the prefix readable.
+func TestParsePrefix(t *testing.T) {
+	tests := []struct {
+		name    string
+		environ []string
+		want    string
+		wantErr error
+	}{
+		{name: "the default", want: "/dubplate"},
+		{name: "configured", environ: []string{"DUBPLATE_SERVE_PREFIX=/library"}, want: "/library"},
+		{
+			name:    "a refused bind list does not reach it",
+			environ: []string{"DUBPLATE_SERVE_PREFIX=/library", "DUBPLATE_SERVE_BIND_ADDRS=not-an-address", "DUBPLATE_SERVE_PORT=nope"},
+			want:    "/library",
+		},
+		{name: "invalid", environ: []string{"DUBPLATE_SERVE_PREFIX=library"}, wantErr: errInvalidPrefix},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParsePrefix(tt.environ)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("ParsePrefix() error = %v, want it to wrap %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ParsePrefix() error = %v, want nil", err)
+			}
+			if got.String() != tt.want {
+				t.Errorf("ParsePrefix() = %q, want %q", got.String(), tt.want)
+			}
+		})
+	}
+}
+
+// addrTexts returns each of addrs in its printed form, so a test
+// compares parsed addresses against literals.
+func addrTexts(addrs []netip.Addr) []string {
+	texts := make([]string, 0, len(addrs))
+	for _, a := range addrs {
+		texts = append(texts, a.String())
+	}
+	return texts
+}
+
+func TestParseBindAddrs(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "single address",
+			raw:  "127.0.0.1",
+			want: []string{"127.0.0.1"},
+		},
+		{
+			name: "several addresses",
+			raw:  "127.0.0.1,::1",
+			want: []string{"127.0.0.1", "::1"},
+		},
+		{
+			name: "whitespace around a separator",
+			raw:  "127.0.0.1 , ::1",
+			want: []string{"127.0.0.1", "::1"},
+		},
+		{
+			name: "an IPv6 address in its long form",
+			raw:  "0:0:0:0:0:0:0:1",
+			want: []string{"::1"},
+		},
+		{
+			name:    "empty entry",
+			raw:     "127.0.0.1,,::1",
+			wantErr: true,
+		},
+		{
+			name:    "unparseable entry",
+			raw:     "127.0.0.1,not-an-address",
+			wantErr: true,
+		},
+		{
+			name:    "an address carrying a zone",
+			raw:     "fe80::1%eth0",
+			wantErr: true,
+		},
+		// The wildcard rows: each parses as an IP address, so nothing
+		// but the unspecified check refuses it.
+		{
+			name:    "the IPv4 wildcard alone",
+			raw:     "0.0.0.0",
+			wantErr: true,
+		},
+		{
+			name:    "the IPv6 wildcard alone",
+			raw:     "::",
+			wantErr: true,
+		},
+		{
+			name:    "the IPv4 wildcard beside a real address",
+			raw:     "127.0.0.1,0.0.0.0",
+			wantErr: true,
+		},
+		{
+			name:    "the IPv4-mapped IPv6 wildcard",
+			raw:     "::ffff:0.0.0.0",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseBindAddrs(tt.raw)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("parseBindAddrs(%q) error = nil, want error", tt.raw)
+				}
+				if !errors.Is(err, errInvalidBindAddr) {
+					t.Errorf("parseBindAddrs(%q) error = %v, want it to wrap errInvalidBindAddr", tt.raw, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("parseBindAddrs(%q) error = %v, want nil", tt.raw, err)
+			}
+			if texts := addrTexts(got); !slices.Equal(texts, tt.want) {
+				t.Errorf("parseBindAddrs(%q) = %v, want %v", tt.raw, texts, tt.want)
 			}
 		})
 	}

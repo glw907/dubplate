@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -50,7 +51,7 @@ const renderedInstallHint = "npx --prefix web playwright install chromium"
 // raised from the 15m default (DUBPLATE_MAGIC_LINK_EXPIRY)
 // so the capture matrix's own minted links, spent well after the run
 // starts, stay valid for renderedScriptTimeout's own length: it stays
-// under auth.MagicLinkExpiryCeiling (one hour).
+// under the magic-link expiry ceiling (one hour).
 const renderedMagicLinkExpiry = 25 * time.Minute
 
 // The fixture's four rate limits, set through their configuration keys.
@@ -602,7 +603,7 @@ func checkRateBudget(t *testing.T, environ []string) {
 }
 
 // mintRenderedLink mints one magic link for address against environ's
-// own link secret and expiry (`auth.MintLink`, `auth.LinkURL`), so the
+// own link secret and expiry (`auth.MintLink`), so the
 // rendered leg's ordering and `signed_in` rows spend real, single-use
 // links rather than a value neither `auth.VerifyLink` nor the roster
 // would accept.
@@ -617,7 +618,7 @@ func mintRenderedLink(t *testing.T, environ []string, address string) string {
 
 // mintLinkFor mints one magic link for address against environ's own
 // link secret and the expiry the shell's seed left in force
-// (`auth.MintLink`, `auth.LinkURL`): the shared mechanism behind both
+// (`auth.MintLink`): the shared mechanism behind both
 // [mintRenderedLink] and [mintServer].
 func mintLinkFor(ctx context.Context, environ []string, address string) (string, error) {
 	var expiry time.Duration
@@ -634,11 +635,11 @@ func mintLinkFor(ctx context.Context, environ []string, address string) (string,
 	if err != nil {
 		return "", fmt.Errorf("auth.MintLink: %w", err)
 	}
-	link, err := auth.LinkURL(environValue(environ, "DUBPLATE_PUBLIC_URL"), renderedPrefix, token)
+	link, err := url.JoinPath(environValue(environ, "DUBPLATE_PUBLIC_URL"), renderedPrefix, "login/link")
 	if err != nil {
-		return "", fmt.Errorf("auth.LinkURL: %w", err)
+		return "", fmt.Errorf("join the link path: %w", err)
 	}
-	return link, nil
+	return link + "?t=" + url.QueryEscape(token), nil
 }
 
 // mintRequest is the capture matrix's own request shape to [mintServer]:

@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
@@ -273,11 +273,11 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(t.Context(), store, orFixed(opts.retentionReader, fixtureRetention), fixtureLinkExpiryCeiling, handlerNow)
+	nonces, _, err := OpenNonceStore(t.Context(), store, orFixed(opts.retentionReader, fixtureRetention), handlerNow)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
-	epoch := OpenEpochStore(store)
+	epoch := NewEpochStore(store, discardLogger())
 	roster, users := newRosterOver(t, slices.Clone(handlerRoster)...)
 
 	limits := opts.limits
@@ -300,6 +300,15 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	}
 
 	h := NewHandlers(HandlersConfig{
+		LinkSecret:         []byte(currentFixture),
+		PreviousLinkSecret: []byte(previousFixture),
+		SessionSecret:      []byte(sessionFixture),
+		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
+		SessionLifetime:    orFixed(opts.lifetimeReader, verifierLifetime),
+		SessionAbsoluteCap: orFixed(opts.capReader, verifierCap),
+		PublicOrigin:       handlerOrigin,
+		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
+		GenericAnswer:      orFixed(opts.genericReader, opts.generic),
 		Roster:             roster,
 		Nonces:             nonces,
 		Epoch:              epoch,
@@ -308,17 +317,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		ClientIP:           func(r *http.Request) string { return serve.ClientIP(r, opts.proxy) },
 		Now:                func() time.Time { return handlerNow },
 		Logger:             slog.New(slog.NewJSONHandler(logs, nil)),
-		LinkSecret:         []byte(currentFixture),
-		PreviousLinkSecret: []byte(previousFixture),
-		SessionSecret:      []byte(sessionFixture),
-		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
-		SessionLifetime:    orFixed(opts.lifetimeReader, verifierLifetime),
-		SessionAbsoluteCap: orFixed(opts.capReader, verifierCap),
-		PublicOrigin:       handlerOrigin,
 		Prefix:             handlerPrefix,
-		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
-		BodyCapCeiling:     bodyCap,
-		GenericAnswer:      orFixed(opts.genericReader, opts.generic),
 	})
 	return handlerFixture{handlers: h, stateDir: stateDir, users: users, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
 }
@@ -467,7 +466,7 @@ func TestConsumeLink_Refusals(t *testing.T) {
 			name: "link minted before the epoch",
 			setup: func(t *testing.T, fx handlerFixture) string {
 				token := mintFixtureLink(t, currentFixture, "member@example.com", handlerNow.Add(-time.Minute))
-				if err := fx.epoch.Bump("member@example.com", handlerNow); err != nil {
+				if err := fx.epoch.bump("member@example.com", handlerNow); err != nil {
 					t.Fatalf("Bump: %v", err)
 				}
 				return token
@@ -479,7 +478,7 @@ func TestConsumeLink_Refusals(t *testing.T) {
 				if os.Geteuid() == 0 {
 					t.Skip("running as root: permission bits do not block reads")
 				}
-				dir := filepath.Join(DirPath(fx.stateDir), epochSubdir)
+				dir := filepath.Join(dirPath(fx.stateDir), epochSubdir)
 				if err := os.Chmod(dir, 0o000); err != nil {
 					t.Fatalf("Chmod: %v", err)
 				}
@@ -575,20 +574,25 @@ func TestConsumeLink_LimiterPrecedesMAC(t *testing.T) {
 // TestOversizeBodyRefusedBeforeParse posts a body one byte over the cap
 // to each endpoint. Each body is a well-formed form whose parse would
 // succeed and whose handling would act: send mail, mint a session, or
-// clear the cookie. The control half serves the same body under a cap
-// that admits it and sees that action, so the refusal is the cap's.
+// clear the cookie. The control half serves the same form padded to the
+// cap exactly and sees that action, so the refusal is the cap's.
+// Sign-out's cap is the setting's registered ceiling, 64KiB, written as
+// a literal so a changed ceiling fails its row.
 func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 	const bodyCap = 512
-	pad := func(body string) string {
-		return body + "&pad=" + strings.Repeat("x", bodyCap+1-len(body)-len("&pad="))
+	const signOutCap = 65536
+	pad := func(body string, n int) string {
+		return body + "&pad=" + strings.Repeat("x", n-len(body)-len("&pad="))
 	}
 	tests := []struct {
 		name  string
+		cap   int
 		serve func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder
 		acted func(t *testing.T, fx handlerFixture, w *httptest.ResponseRecorder) bool
 	}{
 		{
 			name: "request link",
+			cap:  bodyCap,
 			serve: func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder {
 				return serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, body(requestLinkBody("member@example.com"))))
 			},
@@ -598,6 +602,7 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 		},
 		{
 			name: "consume link",
+			cap:  bodyCap,
 			serve: func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder {
 				token := mintFixtureLink(t, currentFixture, "member@example.com", handlerNow)
 				return serveOne(fx.handlers.ConsumeLink, post("/login/link", peerIPPort, body(consumeBody(token))))
@@ -608,6 +613,7 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 		},
 		{
 			name: "sign out",
+			cap:  signOutCap,
 			serve: func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder {
 				return serveOne(fx.handlers.SignOut, post("/logout", peerIPPort, body("signout=1")))
 			},
@@ -618,14 +624,17 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fx := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap})
-			w := tt.serve(t, fx, func(b string) string {
-				padded := pad(b)
-				if len(padded) != bodyCap+1 {
-					t.Fatalf("padded body is %d bytes, want %d", len(padded), bodyCap+1)
+			padTo := func(n int) func(string) string {
+				return func(b string) string {
+					padded := pad(b, n)
+					if len(padded) != n {
+						t.Fatalf("padded body is %d bytes, want %d", len(padded), n)
+					}
+					return padded
 				}
-				return padded
-			})
+			}
+			fx := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap})
+			w := tt.serve(t, fx, padTo(tt.cap+1))
 			if w.Code != http.StatusRequestEntityTooLarge {
 				t.Errorf("status = %d, want 413", w.Code)
 			}
@@ -633,10 +642,10 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 				t.Errorf("an oversized body was acted on")
 			}
 
-			control := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap + 1})
-			w = tt.serve(t, control, pad)
+			control := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap})
+			w = tt.serve(t, control, padTo(tt.cap))
 			if w.Code != http.StatusOK || !tt.acted(t, control, w) {
-				t.Errorf("control: status %d, acted %v; want the same body acted on under a cap that admits it", w.Code, tt.acted(t, control, w))
+				t.Errorf("control: status %d, acted %v; want a body at the cap acted on", w.Code, tt.acted(t, control, w))
 			}
 		})
 	}
@@ -675,6 +684,25 @@ func TestRequestLink_GenericAnswersAlike(t *testing.T) {
 				t.Errorf("mail sent %d times, want 1 (the unknown address sends none)", got)
 			}
 		})
+	}
+}
+
+// TestRequestLink_RefusalLogsTheNormalizerReason proves a refused
+// address logs the rule it broke, by code point, and never the address.
+func TestRequestLink_RefusalLogsTheNormalizerReason(t *testing.T) {
+	fx := newHandlerFixture(t, fixtureOptions{})
+	const address = "\"me\U0000200Bmber\"@example.com"
+	w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(address)))
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+	rec := fx.logs.waitFor(t, "auth link request refused")
+	const want = "invalid address: carries a control character or invisible character (U+200B)"
+	if got := rec["reason"]; got != want {
+		t.Errorf("reason = %q, want %q", got, want)
+	}
+	if strings.Contains(fx.logs.text(), "mber") {
+		t.Errorf("a log record carries the address:\n%s", fx.logs.text())
 	}
 }
 
@@ -783,9 +811,9 @@ func TestRequestLink_MailCopy(t *testing.T) {
 	}
 
 	token := tokenFromMail(t, m)
-	link, err := LinkURL(handlerOrigin, handlerPrefix, token)
+	link, err := linkURL(handlerOrigin, handlerPrefix, token)
 	if err != nil {
-		t.Fatalf("LinkURL: %v", err)
+		t.Fatalf("linkURL: %v", err)
 	}
 	stripped := strings.Replace(m.body, link, "", 1)
 	for _, forbidden := range []string{"member@example.com", "admin@example.com", "music.example.com"} {
@@ -920,7 +948,24 @@ func TestRequestLink_ClientIPIsTheShells(t *testing.T) {
 	const perClient = 3
 	limits := generousLimits
 	limits.LinkRequestsPerClient = perClient
-	proxy := serve.NewTrustedProxyConfig([]netip.Addr{netip.MustParseAddr("203.0.113.1")}, "X-Forwarded-For")
+	reg := config.NewRegistry()
+	serve.RegisterTrustedProxy(reg)
+	cfg, err := config.Load([]string{
+		"DUBPLATE_LIBRARY_ROOT=/srv/music/library",
+		"DUBPLATE_STATE_DIR=/var/lib/dubplate",
+		"DUBPLATE_SITE_NAME=Test Family",
+		"DUBPLATE_ADMIN_EMAIL=admin@example.org",
+		"DUBPLATE_TRUSTED_PROXY_ENABLED=true",
+		"DUBPLATE_TRUSTED_PROXY_ADDRS=203.0.113.1",
+		"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
+	}, reg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	proxy, err := serve.ParseTrustedProxy(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		name        string
@@ -1203,7 +1248,7 @@ func TestRequestLink_GenericOverLimitAnswersAsUnknown(t *testing.T) {
 // TestRequestLink_ClientChargedBeforeBodyParses holds n1: the
 // per-client limit is charged before the body is even read, so a body
 // that fails to parse still costs the client a request, matching
-// consumeLink's own AllowConsumption-before-readForm order. The body
+// consumeLink's own allowConsumption-before-readForm order. The body
 // carries an invalid percent-escape ("%zz"), which r.ParseForm
 // refuses, so readForm answers malformed.
 func TestRequestLink_ClientChargedBeforeBodyParses(t *testing.T) {
@@ -1298,29 +1343,6 @@ func wantSettingRecord(t *testing.T, rec map[string]any) {
 	}
 	if bytes.ContainsRune(line, '@') {
 		t.Errorf("log record %s carries an '@' from the reader's error", line)
-	}
-}
-
-// TestSettingFailureReason proves a failed setting read's log reason
-// is a fixed phrase naming the key a [settings.ReadError] carries, however
-// deeply wrapped, and never any error's own text.
-func TestSettingFailureReason(t *testing.T) {
-	keyed := &settings.ReadError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("near a@b.example")}
-	tests := []struct {
-		name string
-		err  error
-		want string
-	}{
-		{"a setting error", keyed, "setting unreadable: DUBPLATE_FIXTURE_KEY"},
-		{"a wrapped setting error", fmt.Errorf("verify identity: %w: %w", errSettingUnreadable, keyed), "setting unreadable: DUBPLATE_FIXTURE_KEY"},
-		{"an error naming no key", fmt.Errorf("%w: near a@b.example", errSettingUnreadable), "setting unreadable: unnamed"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := settingFailureReason(tt.err); got != tt.want {
-				t.Errorf("settingFailureReason() = %q, want %q", got, tt.want)
-			}
-		})
 	}
 }
 

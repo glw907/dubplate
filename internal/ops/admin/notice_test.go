@@ -97,7 +97,8 @@ func TestNotice_NonSensitiveOrUnwrittenChangeMailsNoOne(t *testing.T) {
 }
 
 // TestNotice_FailedSendLeavesTheWrite proves a notice that fails is
-// logged and the sensitive write stays committed.
+// logged as failed, never as sent, and the sensitive write stays
+// committed.
 func TestNotice_FailedSendLeavesTheWrite(t *testing.T) {
 	f := newFixture(t)
 	f.mail.err = errors.New("smtp: connection refused")
@@ -110,6 +111,39 @@ func TestNotice_FailedSendLeavesTheWrite(t *testing.T) {
 	logs := f.logs.String()
 	if !strings.Contains(logs, "notice") || !strings.Contains(logs, "connection refused") || !strings.Contains(logs, keyLifetime) {
 		t.Errorf("log = %q, want the failed notice logged with the key and its cause", logs)
+	}
+	if strings.Contains(logs, "notice sent") {
+		t.Errorf("log = %q, want no sent record for a notice that failed", logs)
+	}
+	if strings.Contains(logs, "@") {
+		t.Errorf("log = %q, want no recipient address in a failed notice's record", logs)
+	}
+}
+
+// TestNotice_SentNoticeIsLogged proves each notice that goes out leaves
+// one log record naming the key and the actor, and no record carries a
+// recipient's address.
+func TestNotice_SentNoticeIsLogged(t *testing.T) {
+	f := newFixture(t)
+	if _, err := f.seam.SetSetting(writeCtx(t), actor(alice, fresh), ops.SetSettingRequest{Key: keyLifetime, Value: "3h"}); err != nil {
+		t.Fatal(err)
+	}
+	var sent []string
+	for line := range strings.Lines(f.logs.String()) {
+		if strings.Contains(line, `msg="sensitive-change notice sent"`) {
+			sent = append(sent, line)
+		}
+	}
+	if len(sent) != len(liveAdmins) {
+		t.Fatalf("%d sent records, want one per live admin (%d); log = %q", len(sent), len(liveAdmins), f.logs.String())
+	}
+	for _, line := range sent {
+		if !strings.Contains(line, "key="+keyLifetime) || !strings.Contains(line, "actor=") {
+			t.Errorf("sent record %q, want it to name the key and the actor", line)
+		}
+	}
+	if strings.Contains(f.logs.String(), "@") {
+		t.Errorf("log = %q, want no recipient address in it", f.logs.String())
 	}
 }
 

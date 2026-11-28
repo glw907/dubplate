@@ -32,6 +32,7 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
 )
 
@@ -43,7 +44,7 @@ func discardTestLogger() *slog.Logger {
 
 // serveAuthEnviron returns authEnviron with DUBPLATE_STATE_DIR pointed
 // at a fresh t.TempDir(): authEnviron's own fixed path is not one a
-// test process may create the auth leaf's directories under. It points
+// test process may create the auth dir's directories under. It points
 // the library root and staging at two directories it creates under one
 // t.TempDir(), so they share a filesystem and a mount.
 func serveAuthEnviron(t *testing.T) []string {
@@ -100,11 +101,11 @@ func buildServeShellContext(t *testing.T, ctx context.Context, environ []string,
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
+	srv, err := newServeShell(ctx, environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 // validates the wall and resolves configuration, refusing before ever
 // calling serve.Run: an unsatisfied owned wall, an invalid prefix, or
 // an unparseable bind list each surfaces through RunE with the
-// underlying sentinel intact, and no case opens a listener, since all
+// underlying refusal intact, and no case opens a listener, since all
 // three refusals precede resolution's own return.
 //
 // Each case runs under an already-canceled context so a regression
@@ -175,38 +176,38 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 // gate's own timeout.
 func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 	tests := []struct {
-		name    string
-		environ []string
-		wantErr error
+		name     string
+		environ  []string
+		wantText string
 	}{
 		{
-			name:    "unsatisfied owned wall",
-			environ: dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
-			wantErr: config.ErrMissing,
+			name:     "unsatisfied owned wall",
+			environ:  dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
+			wantText: "required setting unset",
 		},
 		{
-			name:    "invalid prefix",
-			environ: append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
-			wantErr: serve.ErrInvalidPrefix,
+			name:     "invalid prefix",
+			environ:  append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
+			wantText: "invalid serve prefix",
 		},
 		{
-			name:    "unparseable bind list",
-			environ: append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
-			wantErr: serve.ErrInvalidBindAddr,
+			name:     "unparseable bind list",
+			environ:  append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
+			wantText: "invalid bind address",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newServeCmd(tt.environ, productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(tt.environ, productionRegistry(), &stdout, &stderr, "serve")
 
 			ctx, cancel := context.WithCancel(t.Context())
 			cancel()
 
 			err := cmd.ExecuteContext(ctx)
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Execute() error = %v, want it to wrap %v", err, tt.wantErr)
+			if err == nil || !strings.Contains(err.Error(), tt.wantText) {
+				t.Fatalf("Execute() error = %v, want it to carry %q", err, tt.wantText)
 			}
 		})
 	}
@@ -218,15 +219,14 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // cobra dispatches, and root.Find alone would not tell the two apart
 // from a verb reachable only because some other command re-added it.
 //
-// The second half proves the wiring carries the production registry
-// and the process environment rather than a construction that only
-// looks right: dispatching "serve" through the root command with an
-// invalid prefix in the environment refuses with the resolution
-// sentinel, which can only happen if the added command resolved
-// configuration. No listener opens, since resolution fails first.
+// The second half proves the wiring carries the root's environment and
+// registry: dispatching "serve" through the root command with an
+// invalid prefix in the environment refuses with the prefix refusal,
+// which can only happen if the added command resolved configuration.
+// No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	var serveCmd, doctorCmd bool
-	for _, child := range newRootCmd().Commands() {
+	for _, child := range newRootCmd(nil, productionRegistry()).Commands() {
 		switch child.Use {
 		case "serve":
 			serveCmd = true
@@ -241,30 +241,12 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 		t.Fatal("newRootCmd().Commands() carries no doctor verb; the AddCommand block this test reads against has moved")
 	}
 
-	// newRootCmd reads os.Environ() at construction, so the process
-	// environment is this half's input. A developer's shell carries
-	// DUBPLATE_* names of its own, and the wall would refuse them
-	// before resolution ever ran; clearing each to the empty string is
-	// what the wall reads as unset (config.wall.get's own convention).
-	for _, kv := range os.Environ() {
-		if name, _, ok := strings.Cut(kv, "="); ok && strings.HasPrefix(name, "DUBPLATE_") {
-			t.Setenv(name, "")
-		}
-	}
-	for _, kv := range authEnviron(t) {
-		name, value, _ := strings.Cut(kv, "=")
-		t.Setenv(name, value)
-	}
-	t.Setenv("DUBPLATE_SERVE_PREFIX", "no-leading-separator")
-
-	root := newRootCmd()
-	root.SetArgs([]string{"serve"})
+	environ := append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator")
 	var stdout, stderr bytes.Buffer
-	root.SetOut(&stdout)
-	root.SetErr(&stderr)
+	root := rootFor(environ, productionRegistry(), &stdout, &stderr, "serve")
 
-	if err := root.Execute(); !errors.Is(err, serve.ErrInvalidPrefix) {
-		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want it to wrap %v", err, serve.ErrInvalidPrefix)
+	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "invalid serve prefix") {
+		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want the prefix refusal", err)
 	}
 }
 
@@ -316,10 +298,11 @@ func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	handler := shell.Handler()
 
 	for _, tt := range []struct {
@@ -445,15 +428,15 @@ func TestNewServeShell_StateChangingRequestIsDenied(t *testing.T) {
 		{"boundary probe", under(serve.ProbeRouteName)},
 		{"api operation", under(apiRouteName) + "/v1/list_submissions"},
 		{"api deeper path", under(apiRouteName) + "/v2/x"},
-		{"members", under(membersRouteName)},
-		{"login", under(loginRouteName)},
-		{"assets", under(assetsRouteName) + "/app.js"},
-		{"fonts", under(fontsRouteName) + "/f.woff2"},
-		{"favicon.svg", under(faviconSVGRouteName)},
-		{"favicon.png", under(faviconPNGRouteName)},
-		{"mark", under(markRouteName)},
-		{"branding.css", under(brandingRouteName)},
-		{"operator.css", under(operatorCSSRouteName)},
+		{"members", under(webapp.MembersRouteName)},
+		{"login", under(webapp.LoginRouteName)},
+		{"assets", under(webapp.AssetsRouteName) + "/app.js"},
+		{"fonts", under(webapp.FontsRouteName) + "/f.woff2"},
+		{"favicon.svg", under(webapp.FaviconSVGRouteName)},
+		{"favicon.png", under(webapp.FaviconPNGRouteName)},
+		{"mark", under(webapp.MarkRouteName)},
+		{"branding.css", under(webapp.BrandingRouteName)},
+		{"operator.css", under(webapp.OperatorCSSRouteName)},
 	}
 	shell, err := buildServeShell(t, serveAuthEnviron(t))
 	if err != nil {
@@ -482,7 +465,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, auth.MagicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, time.Now())
 	if err != nil {
 		t.Fatalf("auth.OpenNonceStore: %v", err)
 	}
@@ -508,8 +491,8 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 }
 
 // TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree holds
-// security review finding 2, R-5c9's routing test: a link minted
-// through the real handler config, the prefix and the public origin
+// security review finding 2, R-5c9's routing test: the link a member
+// is mailed, built from the prefix and the public origin
 // [newServeShell] itself resolves, lands on a path the owned prefix
 // owns and a registered "login" subtree answers. It runs for both
 // public-URL forms, a bare origin and one carrying a trailing
@@ -526,38 +509,26 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 
 	for i, origin := range origins {
 		t.Run(origin, func(t *testing.T) {
-			environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_PUBLIC_URL", origin)
+			environ := replaceKey(rosterAPIEnviron(t), "DUBPLATE_PUBLIC_URL", origin)
 
 			cfg, err := config.Load(environ, productionRegistry())
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
-			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
+			prefix := listen.Prefix
+			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
 			t.Cleanup(func() { _ = srv.Close() })
 			shell := srv.shell
-			handlersConfig := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())), nil, nil, nil, nil, nil, nil, nil)
-			if handlersConfig.Prefix != prefix.String() {
-				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
-			}
-			if handlersConfig.BodyCapCeiling != 65536 {
-				t.Errorf("authHandlersConfig BodyCapCeiling = %d, want the registered ceiling 65536", handlersConfig.BodyCapCeiling)
-			}
+			handlersConfig := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())))
 
-			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
-			if err != nil {
-				t.Fatalf("auth.LinkURL: %v", err)
-			}
-			u, err := url.Parse(link)
-			if err != nil {
-				t.Fatalf("parse minted link: %v", err)
-			}
+			_, u := requestedLink(t, handlersConfig, srv.store, rosterMemberAddress)
 			if !strings.HasPrefix(u.Path, prefix.String()+"/") {
 				t.Fatalf("minted link path %q is not owned by the prefix %q", u.Path, prefix.String())
 			}
@@ -579,6 +550,40 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 	if gotPaths[0] != gotPaths[1] {
 		t.Errorf("minted link path = %q for %q and %q for %q, want the same path for both origin forms", gotPaths[0], origins[0], gotPaths[1], origins[1])
 	}
+}
+
+// handlersConfigFor is the part of the handler config serve fills from
+// ac and prefix.
+func handlersConfigFor(prefix serve.Prefix, ac auth.Config) auth.HandlersConfig {
+	return auth.HandlersConfig{Config: ac, Prefix: prefix.String()}
+}
+
+// requestedLink posts a link request for address to the handlers hc
+// configures, with h's roster and a sender that captures the mail, and
+// returns the one mail's body and the https link it carries.
+func requestedLink(t *testing.T, hc auth.HandlersConfig, h *store.Handle, address string) (string, *url.URL) {
+	t.Helper()
+	var mailed []string
+	hc.Roster = member.NewRoster(h, nil, nil, nil)
+	hc.Limiter = auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10})
+	hc.ClientIP = func(*http.Request) string { return "192.0.2.50" }
+	hc.Now = time.Now
+	hc.Logger = discardTestLogger()
+	hc.Send = func(_ context.Context, _, _, body string) error {
+		mailed = append(mailed, body)
+		return nil
+	}
+	rec := authRoutePOST(auth.NewHandlers(hc).RequestLink, "/request-link", "address="+url.QueryEscape(address))
+	if rec.Code != http.StatusOK || len(mailed) != 1 {
+		t.Fatalf("request = %d %s with %d mails, want 200 and one mail", rec.Code, rec.Body.String(), len(mailed))
+	}
+	for field := range strings.FieldsSeq(mailed[0]) {
+		if u, err := url.Parse(field); err == nil && u.Scheme == "https" {
+			return mailed[0], u
+		}
+	}
+	t.Fatalf("mail body %q carries no https link", mailed[0])
+	return "", nil
 }
 
 // rosterAdminAddress and rosterMemberAddress are the two fixture
@@ -675,7 +680,7 @@ func mintServeSession(t *testing.T, environ []string, address string, issued tim
 		if lifetime, err = acc.Duration(t.Context(), registeredSetting("DUBPLATE_SESSION_LIFETIME")); err != nil {
 			return err
 		}
-		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), registeredSetting(auth.SessionAbsoluteCapKey))
 		return err
 	})
 	if err != nil {
@@ -778,10 +783,11 @@ func TestNewServeShell_APIPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	before := userAddresses(t, stateDir)
@@ -806,8 +812,7 @@ const validAddMember = `{"address":"new@example.com","display_name":"New Member"
 // captureDefaultLogger swaps slog.Default() for a logger writing JSON
 // lines to the returned buffer, restoring the prior default when t
 // ends. [newServeShell] builds every shell through [serve.NewShell]
-// with a nil logger, which falls back to slog.Default
-// (internal/serve/serve.go:43-48), so this is the seam this package has
+// with a nil logger, which falls back to slog.Default, so this is the seam this package has
 // to read a shell's own log line without widening newServeShell's own
 // signature.
 func captureDefaultLogger(t *testing.T) *bytes.Buffer {
@@ -836,10 +841,11 @@ func TestNewServeShell_APISameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	req := jsonRequest(http.MethodPost, prefix.String()+"/api/v1/add_member", session, "same-origin", validAddMember)
@@ -887,10 +893,11 @@ func TestNewServeShell_RosterRouteIsGone(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	admin := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 	handler := shell.Handler()
 
@@ -931,10 +938,11 @@ func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	apiBody := `{"address":"api-added@example.com","display_name":"API Added","username":"apiadded"}`
@@ -1003,10 +1011,11 @@ func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	handler := shell.Handler()
 
 	plainBody := "address=" + url.QueryEscape(`"ab"@example.com`)
@@ -1079,17 +1088,17 @@ func TestSendsHSTS(t *testing.T) {
 func firstImmutableAsset(t *testing.T) string {
 	t.Helper()
 	var found string
-	err := fs.WalkDir(web.Assets, "build/_app/immutable", func(p string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(web.Build, "_app/immutable", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if found == "" && !d.IsDir() {
-			found = strings.TrimPrefix(p, "build/_app/")
+			found = strings.TrimPrefix(p, "_app/")
 		}
 		return nil
 	})
 	if err != nil || found == "" {
-		t.Fatalf("no file under build/_app/immutable (err %v); run `npm run build` in web/", err)
+		t.Fatalf("no file under _app/immutable (err %v); run `npm run build` in web/", err)
 	}
 	return found
 }
@@ -1226,22 +1235,22 @@ func checkDocumentSet(buildFS fs.FS) string {
 	return ""
 }
 
-// webFSHandler builds a shell over the routes newWebRoutesFromFS builds
+// webFSHandler builds a shell over the routes newWebRoutes builds
 // from buildFS, with the members document mounted with no gate, since
 // these checks read the document rather than the gate.
-func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
-	prefix, err := serve.NewPrefix("/dubplate")
+func webFSHandler(environ []string, stateDir string, buildFS fs.FS) (http.Handler, error) {
+	prefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=/dubplate"})
 	if err != nil {
 		return nil, err
 	}
-	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, stateDir, discardTestLogger(), buildFS)
 	if err != nil {
 		return nil, err
 	}
-	shell := serve.NewShell(prefix, serve.NewStrip(serve.TrustedProxyConfig{}), discardTestLogger())
+	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, discardTestLogger())
 	registerWebRoutes(shell, routes)
-	shell.Register(membersRouteName, routes.Members)
-	shell.Register(serverSettingsRouteName, routes.ServerSettings)
+	shell.Register(webapp.MembersRouteName, routes.Members)
+	shell.Register(webapp.ServerSettingsRouteName, routes.ServerSettings)
 	return shell.Handler(), nil
 }
 
@@ -1308,7 +1317,7 @@ func checkServedCSP(buildFS fs.FS) []string {
 	if failure := checkDocumentSet(buildFS); failure != "" {
 		return []string{failure}
 	}
-	handler, err := webFSHandler(nil, buildFS)
+	handler, err := webFSHandler(nil, "", buildFS)
 	if err != nil {
 		return []string{"build the routes: " + err.Error()}
 	}
@@ -1389,10 +1398,7 @@ func placeholderOnlyBuild() fstest.MapFS {
 }
 
 func TestServedDocuments_CSPCoversEveryInlineScript(t *testing.T) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	for _, failure := range checkServedCSP(buildFS) {
 		t.Error(failure)
 	}
@@ -1430,7 +1436,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 		return []string{failure}
 	}
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	handler, err := webFSHandler(environ, buildFS)
+	handler, err := webFSHandler(environ, t.TempDir(), buildFS)
 	if err != nil {
 		return []string{"build the routes: " + err.Error()}
 	}
@@ -1455,10 +1461,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 			failures = append(failures, fmt.Sprintf("%s: status %d, want 200", name, rec.Code))
 			continue
 		}
-		var hrefs []string
-		for _, m := range stylesheetLinkRE.FindAllSubmatch(rec.Body.Bytes(), -1) {
-			hrefs = append(hrefs, string(m[1]))
-		}
+		hrefs := stylesheetHrefs(rec.Body.Bytes())
 		root := "./"
 		if strings.Contains(name, "/") {
 			root = "../"
@@ -1513,10 +1516,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 }
 
 func TestServedDocuments_TierOrderAndCache(t *testing.T) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	for _, failure := range checkServedTiersAndCache(t, buildFS) {
 		t.Error(failure)
 	}
@@ -1603,9 +1603,9 @@ func TestNewServeShell_MembersRoute(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_MintedLinkNeverLogsItsToken proves a link built
-// through auth.LinkURL answers the login/link document with no-store,
-// which binds the link's path to the document route, and that across
+// TestNewServeShell_MintedLinkNeverLogsItsToken proves a link carrying
+// its token as t answers the login/link document with no-store, and
+// that across
 // that request, a trailing-slash GET, a POST, and a request
 // normalization refuses, each carrying the token in its query, no
 // record the shell's logger receives contains the token.
@@ -1622,31 +1622,19 @@ func TestNewServeShell_MintedLinkNeverLogsItsToken(t *testing.T) {
 	}
 	handler := shell.Handler()
 
-	link, err := auth.LinkURL(environValue(environ, "DUBPLATE_PUBLIC_URL"), "/dubplate", token)
-	if err != nil {
-		t.Fatalf("auth.LinkURL: %v", err)
-	}
-	u, err := url.Parse(link)
-	if err != nil {
-		t.Fatalf("parse minted link: %v", err)
-	}
-	if u.Query().Get("t") != token {
-		t.Fatalf("minted link %q does not carry the token as t", link)
-	}
-
 	plain := httptest.NewRecorder()
 	handler.ServeHTTP(plain, httptest.NewRequest(http.MethodGet, "/dubplate/login/link", nil))
 	login := httptest.NewRecorder()
 	handler.ServeHTTP(login, httptest.NewRequest(http.MethodGet, "/dubplate/login", nil))
 
-	query := "?" + u.RawQuery
+	query := "?t=" + token
 	tests := []struct {
 		name   string
 		method string
 		target string
 		status int
 	}{
-		{name: "the minted link", method: http.MethodGet, target: u.Path + query, status: http.StatusOK},
+		{name: "the minted link", method: http.MethodGet, target: "/dubplate/login/link" + query, status: http.StatusOK},
 		{name: "trailing slash", method: http.MethodGet, target: "/dubplate/login/link/" + query, status: http.StatusNotFound},
 		{name: "POST", method: http.MethodPost, target: "/dubplate/login/link" + query, status: http.StatusMethodNotAllowed},
 		{name: "refused by normalization", method: http.MethodGet, target: "/dubplate/login/./link" + query, status: http.StatusBadRequest},
@@ -1753,10 +1741,11 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell() error = %v, want nil", err)
 			}
-			prefix, _, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 			}
+			prefix := listen.Prefix
 			publicURL := environValue(environ, "DUBPLATE_PUBLIC_URL")
 			handler := shell.Handler()
 
@@ -1789,10 +1778,11 @@ func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 
 	var reached bool
 	var got http.Header
@@ -1901,12 +1891,12 @@ func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serv
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
-	return srv, prefix, cfg, err
+	srv, err := newServeShell(ctx, environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, discardTestLogger())
+	return srv, listen.Prefix, cfg, err
 }
 
 // writeAdminRows writes each of values as an admin-sourced settings row
@@ -2020,28 +2010,12 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 	writeAdminRows(t, h, rowB)
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
-		var mailed []string
-		hc := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())), member.NewRoster(h, nil, nil), nil, nil,
-			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
-			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
-		hc.Send = func(_ context.Context, _, _, body string) error {
-			mailed = append(mailed, body)
-			return nil
+		hc := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())))
+		body, link := requestedLink(t, hc, h, rosterMemberAddress)
+		if !strings.Contains(body, "expires in 40 minutes") {
+			t.Errorf("mail body %q, want B's 40 minutes", body)
 		}
-		rec := authRoutePOST(auth.NewHandlers(hc).RequestLink, "/request-link", "address="+url.QueryEscape(rosterMemberAddress))
-		if rec.Code != http.StatusOK || len(mailed) != 1 {
-			t.Fatalf("request = %d %s with %d mails, want 200 and one mail", rec.Code, rec.Body.String(), len(mailed))
-		}
-		if !strings.Contains(mailed[0], "expires in 40 minutes") {
-			t.Errorf("mail body %q, want B's 40 minutes", mailed[0])
-		}
-		var token string
-		for field := range strings.FieldsSeq(mailed[0]) {
-			if u, err := url.Parse(field); err == nil && u.Scheme == "https" {
-				token = u.Query().Get("t")
-			}
-		}
-		tok, err := auth.VerifyLink([]byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET")), nil, token, time.Now())
+		tok, err := auth.VerifyLink([]byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET")), nil, link.Query().Get("t"), time.Now())
 		if err != nil {
 			t.Fatalf("VerifyLink: %v", err)
 		}
@@ -2158,7 +2132,7 @@ func TestNewServeShell_AdminRowRaisesTheCapThroughARefresh(t *testing.T) {
 	var absoluteCap time.Duration
 	err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), registeredSetting(auth.SessionAbsoluteCapKey))
 		return err
 	})
 	if err != nil {
@@ -2190,10 +2164,11 @@ func TestNewServeShell_RequestReadsTheSeededAnswer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell: %v", err)
 			}
-			prefix, _, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
+			prefix := listen.Prefix
 			rec := authRoutePOST(shell.Handler(), prefix.String()+"/"+requestLinkRouteName, "address=stranger%40example.com")
 			var got struct {
 				Outcome string `json:"outcome"`
@@ -2220,7 +2195,7 @@ func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
 	if _, err := auth.Open(stateDir); err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	record := filepath.Join(auth.DirPath(stateDir), "nonce", "truncated")
+	record := filepath.Join(stateDir, "auth", "nonce", "truncated")
 	if err := os.WriteFile(record, nil, 0o600); err != nil {
 		t.Fatalf("plant the truncated record: %v", err)
 	}
@@ -2233,7 +2208,7 @@ func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
 		t.Fatalf("buildServeShell: %v", err)
 	}
 	if _, err := os.Stat(record); err != nil {
-		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", auth.MagicLinkExpiryCeiling, err)
+		t.Errorf("the opening sweep removed a record younger than the one-hour expiry ceiling: %v", err)
 	}
 }
 
@@ -2282,11 +2257,12 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
-			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
+			prefix := listen.Prefix
+			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, listen.BindAddrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}

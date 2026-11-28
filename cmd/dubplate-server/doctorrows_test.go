@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/glw907/dubplate/internal/serve"
+	"github.com/glw907/dubplate/web"
 )
 
 // doctorRows runs doctor over environ against the production registry
@@ -23,7 +24,7 @@ import (
 func doctorRows(t *testing.T, environ []string) (rows map[string]string, lines int, err error) {
 	t.Helper()
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	cmd.SetOut(&stdout)
 	err = cmd.Execute()
 	rows = make(map[string]string)
@@ -237,11 +238,11 @@ func TestDoctorBoundaryRows_NeutralBrandingLogsNothingToStdout(t *testing.T) {
 	environ := withEnv(doctorEnviron(t), branding)
 
 	var logs bytes.Buffer
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	if _, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, slog.New(slog.NewTextHandler(&logs, nil))); err != nil {
+	if _, err := newWebRoutes(environ, listen.Prefix, fixtureSiteName, "", slog.New(slog.NewTextHandler(&logs, nil)), web.Build); err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
 	if logs.Len() == 0 {
@@ -306,16 +307,18 @@ func startServeOnHeldPort(t *testing.T, extra ...string) []string {
 		_ = l.Close()
 		t.Fatalf("loadConfig: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		_ = l.Close()
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger(),
-		func(s *serve.Shell) registrar { return s }, newFixtureBuildFS(1, 1))
+	orig := webBuild
+	webBuild = newFixtureBuildFS(1, 1)
+	t.Cleanup(func() { webBuild = orig })
+	srv, err := newServeShell(t.Context(), environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, discardTestLogger())
 	if err != nil {
 		_ = l.Close()
-		t.Fatalf("newServeShellVia: %v", err)
+		t.Fatalf("newServeShell: %v", err)
 	}
 	t.Cleanup(func() {
 		if err := srv.Close(); err != nil {

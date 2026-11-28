@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"time"
 
@@ -13,27 +14,31 @@ import (
 	"github.com/glw907/dubplate/internal/store"
 )
 
-// The homes a [ops.SettingEntry] names: the store's settings table,
-// which an admin edits, or the server's environment, which only an
-// operator with box access changes.
-const (
-	homeStore       = "store"
-	homeEnvironment = "environment"
-)
+// wireApply is m's wire form. It panics on a mode no case names, which
+// the registry never admits, so a new mode cannot cross the wire empty.
+func wireApply(m config.ApplyMode) string {
+	switch m {
+	case config.ApplyImmediately:
+		return ops.ApplyImmediately
+	case config.ApplyNextOperation:
+		return ops.ApplyNextOperation
+	case config.ApplyRestart:
+		return ops.ApplyRestart
+	}
+	panic(fmt.Sprintf("admin: apply mode %v has no wire form", m))
+}
 
-// applyNames and sensitivityNames are the wire forms of the registry's
-// apply modes and sensitivities.
-var (
-	applyNames = map[config.ApplyMode]string{
-		config.ApplyImmediately:   "immediately",
-		config.ApplyNextOperation: "next_operation",
-		config.ApplyRestart:       "restart",
+// wireSensitivity is s's wire form. It panics on a sensitivity no case
+// names, which the registry never admits.
+func wireSensitivity(s config.Sensitivity) string {
+	switch s {
+	case config.NotSensitive:
+		return ops.NotSensitive
+	case config.Sensitive:
+		return ops.Sensitive
 	}
-	sensitivityNames = map[config.Sensitivity]string{
-		config.NotSensitive: "not_sensitive",
-		config.Sensitive:    "sensitive",
-	}
-)
+	panic(fmt.Sprintf("admin: sensitivity %v has no wire form", s))
+}
 
 // ListSettings answers every registered key: the store-homed settings
 // first, each with the value in force, its source, and the seed it
@@ -52,8 +57,8 @@ func (s *Service) ListSettings(ctx context.Context, _ identity.Actor, _ ops.List
 	var entries []ops.SettingEntry
 	for i, setting := range reg.Settings() {
 		entry := ops.SettingEntry{
-			Key: setting.Key, Home: homeStore, Description: setting.Description,
-			Apply: applyNames[setting.Apply], Sensitivity: sensitivityNames[setting.Sensitivity],
+			Key: setting.Key, Home: ops.HomeStore, Description: setting.Description,
+			Apply: wireApply(setting.Apply), Sensitivity: wireSensitivity(setting.Sensitivity),
 			Value: &setting.Default, Source: new(settings.SourceDefault),
 		}
 		outcome := eval.Outcomes[i]
@@ -69,38 +74,41 @@ func (s *Service) ListSettings(ctx context.Context, _ identity.Actor, _ ops.List
 		entries = append(entries, entry)
 	}
 
+	// seen holds each environment key already listed: two identity
+	// sources may declare the same key, while the registry admits every
+	// other key to one list once.
 	seen := make(map[string]bool)
-	environment := func(key, description string, sensitivity config.Sensitivity) {
+	addEnvKey := func(key, description string, sensitivity config.Sensitivity) {
 		if seen[key] {
 			return
 		}
 		seen[key] = true
 		entries = append(entries, ops.SettingEntry{
-			Key: key, Home: homeEnvironment, Description: description,
-			Apply: applyNames[config.ApplyRestart], Sensitivity: sensitivityNames[sensitivity],
+			Key: key, Home: ops.HomeEnvironment, Description: description,
+			Apply: wireApply(config.ApplyRestart), Sensitivity: wireSensitivity(sensitivity),
 		})
 	}
 	for _, row := range reg.OwnedWall() {
-		environment(row.Key, row.Description, row.Sensitivity)
+		addEnvKey(row.Key, row.Description, row.Sensitivity)
 	}
 	for _, src := range reg.IdentitySources() {
 		for _, k := range slices.Concat(src.Required, src.Optional) {
-			environment(k.Key, k.Description, k.Sensitivity)
+			addEnvKey(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, class := range reg.IntegrationClasses() {
 		for _, k := range slices.Concat([]config.KeyDecl{class.Flag}, class.Required) {
-			environment(k.Key, k.Description, k.Sensitivity)
+			addEnvKey(k.Key, k.Description, k.Sensitivity)
 		}
 	}
 	for _, th := range reg.Thresholds() {
-		environment(th.Key, th.Description, th.Sensitivity)
+		addEnvKey(th.Key, th.Description, th.Sensitivity)
 	}
 	return ops.ListSettingsResponse{Settings: entries}, nil
 }
 
 // SetSetting writes the admin's value for a store-homed key. A
-// sensitive key is gated and, once written, noticed.
+// sensitive key is gated and, once written, notified to every admin.
 func (s *Service) SetSetting(ctx context.Context, actor identity.Actor, req ops.SetSettingRequest) (ops.SetSettingResponse, error) {
 	res, err := s.writeSetting(ctx, actor, req.Key, func(ctx context.Context, by identity.Actor, guard settings.Guard, now time.Time) (settings.Result, error) {
 		return settings.Set(ctx, s.cfg.Store, s.cfg.Registry, s.cfg.Environ, by, guard, req.Key, req.Value, now)
@@ -108,11 +116,11 @@ func (s *Service) SetSetting(ctx context.Context, actor identity.Actor, req ops.
 	if err != nil {
 		return ops.SetSettingResponse{}, err
 	}
-	return ops.SetSettingResponse{Key: req.Key, Apply: applyNames[res.Apply], Source: res.Source}, nil
+	return ops.SetSettingResponse{Key: req.Key, Apply: wireApply(res.Apply), Source: res.Source}, nil
 }
 
 // ResetSetting removes the admin's value for a store-homed key. A
-// sensitive key is gated and, once reset, noticed.
+// sensitive key is gated and, once reset, notified to every admin.
 func (s *Service) ResetSetting(ctx context.Context, actor identity.Actor, req ops.ResetSettingRequest) (ops.ResetSettingResponse, error) {
 	res, err := s.writeSetting(ctx, actor, req.Key, func(ctx context.Context, by identity.Actor, guard settings.Guard, now time.Time) (settings.Result, error) {
 		return settings.Reset(ctx, s.cfg.Store, s.cfg.Registry, s.cfg.Environ, by, guard, req.Key, now)
@@ -120,18 +128,19 @@ func (s *Service) ResetSetting(ctx context.Context, actor identity.Actor, req op
 	if err != nil {
 		return ops.ResetSettingResponse{}, err
 	}
-	return ops.ResetSettingResponse{Key: req.Key, Apply: applyNames[res.Apply], Source: res.Source}, nil
+	return ops.ResetSettingResponse{Key: req.Key, Apply: wireApply(res.Apply), Source: res.Source}, nil
 }
 
 // writeSetting runs one settings write for actor on key: the gate when
-// key is sensitive, then write under writeWait with actor as the author
-// and actor's in-write admin check as the guard, then the notice once
-// a sensitive write has committed. A key the registry does not hold
-// carries no sensitivity, so it reaches write ungated and is refused there.
+// key is sensitive, then write, bounded, with actor as the author and
+// actor's in-write admin check as the guard, then the mail to every
+// admin once a sensitive write has committed. A key the registry does
+// not hold carries no sensitivity, so it reaches write ungated and is
+// refused there.
 func (s *Service) writeSetting(ctx context.Context, actor identity.Actor, key string,
 	write func(context.Context, identity.Actor, settings.Guard, time.Time) (settings.Result, error),
 ) (settings.Result, error) {
-	if s.settings[key].Sensitivity == config.Sensitive {
+	if s.sensitivity[key] == config.Sensitive {
 		if err := s.requireFresh(ctx, actor); err != nil {
 			return settings.Result{}, err
 		}
@@ -139,14 +148,15 @@ func (s *Service) writeSetting(ctx context.Context, actor identity.Actor, key st
 	guard := func(ctx context.Context, tx *store.Tx) error {
 		return member.CheckAdmin(ctx, tx, actor.UserID())
 	}
-	writeCtx, cancel := context.WithTimeout(ctx, writeWait)
-	defer cancel()
-	res, err := write(writeCtx, actor, guard, s.cfg.Now())
-	if err != nil {
-		return settings.Result{}, refusal(err)
+	var res settings.Result
+	if err := bounded(ctx, func(ctx context.Context) (err error) {
+		res, err = write(ctx, actor, guard, s.cfg.Now())
+		return err
+	}); err != nil {
+		return settings.Result{}, err
 	}
 	if res.Written && res.Sensitive {
-		s.notice(ctx, actor, key, res)
+		s.notifyAdmins(ctx, actor, key, res)
 	}
 	return res, nil
 }

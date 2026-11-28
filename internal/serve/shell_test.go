@@ -13,17 +13,16 @@ import (
 	"testing"
 )
 
-// newTestShell builds a [Shell] over testPrefix (prefix_test.go) and a
-// [Strip] with no trusted-proxy configuration, which this file's order
-// and extension-point assertions do not exercise.
+// newTestShell builds a [Shell] over testPrefix (prefix_test.go) with no
+// trusted-proxy configuration, which this file's order and
+// extension-point assertions do not exercise.
 func newTestShell(t *testing.T) *Shell {
 	t.Helper()
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
-	strip := NewStrip(TrustedProxyConfig{})
-	return NewShell(prefix, strip, nil)
+	return NewShell(prefix, TrustedProxyConfig{}, nil)
 }
 
 // callRecorder records whether a handler ran.
@@ -70,9 +69,8 @@ func (h *capturingHandler) snapshot() []map[string]any {
 	return append([]map[string]any(nil), h.records...)
 }
 
-// TestOrderStripBeforeOwnedSubtree is the first order assertion
-// (spec:938-944), moved to serve.go's owned-prefix half: a request
-// bearing every spelling in the strip set reaches a handler registered
+// TestOrderStripBeforeOwnedSubtree proves the strip runs before
+// subtree dispatch: a request bearing every spelling in the strip set reaches a handler registered
 // under the owned prefix with none of them.
 func TestOrderStripBeforeOwnedSubtree(t *testing.T) {
 	shell := newTestShell(t)
@@ -98,7 +96,7 @@ func TestOrderStripBeforeOwnedSubtree(t *testing.T) {
 
 // TestOrderRawVsDecodedRefusedBeforeAnyHandler is the second order
 // assertion: a request whose escaped and decoded paths disagree is
-// refused with 400, and no registered handler is invoked. Normalize
+// refused with 400, and no registered handler is invoked. normalize
 // wraps the whole routing decision, so both rows matter: a mismatch
 // under the owned prefix, where the registered subtree would otherwise
 // see it, and one outside it, where only the root 404 would answer. The
@@ -143,12 +141,11 @@ func TestOrderRawVsDecodedRefusedBeforeAnyHandler(t *testing.T) {
 // chain's construction.
 func TestRefusalLogsIdentityAlreadyGone(t *testing.T) {
 	handler := &capturingHandler{}
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
-	strip := NewStrip(TrustedProxyConfig{})
-	shell := NewShell(prefix, strip, slog.New(handler))
+	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(handler))
 
 	var owned recorder
 	shell.Register("echo", recordingHandler(&owned))
@@ -363,13 +360,12 @@ func TestRegisterAfterHandlerPanics(t *testing.T) {
 func TestRefusalRecordOnlyForTheShellsOwnRefusals(t *testing.T) {
 	newShellWithLog := func(t *testing.T) (*Shell, *capturingHandler) {
 		t.Helper()
-		prefix, err := NewPrefix(testPrefix)
+		prefix, err := newPrefix(testPrefix)
 		if err != nil {
-			t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+			t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 		}
 		log := &capturingHandler{}
-		strip := NewStrip(TrustedProxyConfig{})
-		return NewShell(prefix, strip, slog.New(log)), log
+		return NewShell(prefix, TrustedProxyConfig{}, slog.New(log)), log
 	}
 
 	t.Run("a subtree's own 400 emits no record", func(t *testing.T) {
@@ -505,11 +501,11 @@ func TestIdentitySpellingPresentReadsKeyPresence(t *testing.T) {
 // cheapest refusal in the shell becomes its most expensive log line.
 func TestRefusalLogBoundsThePath(t *testing.T) {
 	capture := &capturingHandler{}
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
-	shell := NewShell(prefix, NewStrip(TrustedProxyConfig{}), slog.New(capture))
+	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(capture))
 
 	const pathBytes = 1 << 20
 	long := "/" + strings.Repeat("a", pathBytes-1)
@@ -626,11 +622,11 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			capture := &capturingHandler{}
-			prefix, err := NewPrefix(testPrefix)
+			prefix, err := newPrefix(testPrefix)
 			if err != nil {
-				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+				t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 			}
-			shell := NewShell(prefix, NewStrip(TrustedProxyConfig{}), slog.New(capture))
+			shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(capture))
 
 			var owned recorder
 			shell.Register("echo", recordingHandler(&owned))
@@ -776,12 +772,12 @@ func TestOriginCheckRunsAfterNormalize(t *testing.T) {
 // shell's own, so it writes the one structured record the shell keeps
 // for every ingress refusal, and names the path it refused.
 func TestOriginRefusalEmitsTheRefusalRecord(t *testing.T) {
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
 	log := &capturingHandler{}
-	shell := NewShell(prefix, NewStrip(TrustedProxyConfig{}), slog.New(log))
+	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(log))
 
 	rec := httptest.NewRecorder()
 	shell.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/outside", nil))
@@ -809,8 +805,8 @@ func TestOriginRefusalEmitsTheRefusalRecord(t *testing.T) {
 // configured trusted proxy is the remedy, so neither warns.
 func TestDirectModeWarnsOnceOnForwardedFromLocalPeer(t *testing.T) {
 	const warning = "a loopback or private peer sent a forwarded-address header in direct mode"
-	loopbackProxy := NewTrustedProxyConfig(addrs("127.0.0.1"), "X-Forwarded-For")
-	remoteProxy := NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
+	loopbackProxy := newTrustedProxyConfig(addrs("127.0.0.1"), "X-Forwarded-For")
+	remoteProxy := newTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
 
 	tests := []struct {
 		name       string
@@ -832,12 +828,12 @@ func TestDirectModeWarnsOnceOnForwardedFromLocalPeer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			prefix, err := NewPrefix(testPrefix)
+			prefix, err := newPrefix(testPrefix)
 			if err != nil {
-				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+				t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 			}
 			var buf strings.Builder
-			shell := NewShell(prefix, NewStrip(tt.proxy), slog.New(slog.NewTextHandler(&buf, nil)))
+			shell := NewShell(prefix, tt.proxy, slog.New(slog.NewTextHandler(&buf, nil)))
 			handler := shell.Handler()
 
 			for range 2 {

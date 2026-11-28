@@ -57,7 +57,12 @@ func WriteStream(path string, perm os.FileMode, write func(io.Writer) error) err
 	if err := os.Rename(tmpPath, path); err != nil {
 		return fmt.Errorf("rename %s to %s: %w", tmpPath, path, err)
 	}
+	return SyncDir(dir)
+}
 
+// SyncDir fsyncs dir, so an entry created or renamed within it survives
+// a power cut along with the file it names.
+func SyncDir(dir string) error {
 	dirFile, err := os.Open(dir)
 	if err != nil {
 		return fmt.Errorf("open %s: %w", dir, err)

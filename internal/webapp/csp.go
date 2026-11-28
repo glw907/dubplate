@@ -6,12 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"maps"
 	"regexp"
 	"slices"
 	"strings"
 )
 
-// The states [DocumentCSP] refuses. Each is a build defect: a document
+// The states [documentCSP] refuses. Each is a build defect: a document
 // that reaches a browser in any of them either never boots or runs a
 // script the policy was meant to forbid.
 var (
@@ -47,12 +48,12 @@ var (
 	scriptCloseRE = regexp.MustCompile(`(?i)</script`)
 )
 
-// DocumentCSP returns the Content-Security-Policy header value for doc,
+// documentCSP returns the Content-Security-Policy header value for doc,
 // a document the SvelteKit build prerendered with hashes. The header's
 // script-src carries 'self' and every sha256 source the document's own
 // CSP meta lists, and the other directives are fixed.
 //
-// Before building it, DocumentCSP hashes every inline script in doc
+// Before building it, documentCSP hashes every inline script in doc
 // and refuses when one is missing from the meta's list, so a document
 // whose bootstrap the policy would block never reaches a browser. It
 // also refuses a document with no CSP meta, a meta with no script-src,
@@ -60,13 +61,13 @@ var (
 // a bare <script>, which is the only kind the build emits and the only
 // kind this scan reads. name identifies the document in a returned
 // error.
-func DocumentCSP(name string, doc []byte) (string, error) {
+func documentCSP(name string, doc []byte) (string, error) {
 	hashes, err := metaScriptHashes(doc)
 	if err != nil {
-		return "", fmt.Errorf("web: document %q: %w", name, err)
+		return "", fmt.Errorf("webapp: document %q: %w", name, err)
 	}
 	if err := checkInlineScripts(doc, hashes); err != nil {
-		return "", fmt.Errorf("web: document %q: %w", name, err)
+		return "", fmt.Errorf("webapp: document %q: %w", name, err)
 	}
 
 	var scriptSrc strings.Builder
@@ -75,6 +76,27 @@ func DocumentCSP(name string, doc []byte) (string, error) {
 		scriptSrc.WriteString(" '" + h + "'")
 	}
 	return strings.Join([]string{cspDefaultSrc, scriptSrc.String(), cspStyleSrc, cspImgSrc, cspHardening}, "; "), nil
+}
+
+// checkVariantCSP refuses when any served variant of the document
+// name holds an inline script the build's own CSP meta does not hash,
+// or yields a policy other than served, the header computed over the
+// build's document. The rewrite is meant to touch no script and no
+// meta, but a placeholder or a stylesheet-link anchor the build left
+// inside a script body would change that script's hash, and the
+// header would then block it in a browser; checking each served body
+// turns that into a startup refusal.
+func checkVariantCSP(name string, variants map[string][]byte, served string) error {
+	for _, palette := range slices.Sorted(maps.Keys(variants)) {
+		csp, err := documentCSP(name, variants[palette])
+		if err != nil {
+			return fmt.Errorf("webapp: the %q variant: %w", palette, err)
+		}
+		if csp != served {
+			return fmt.Errorf("webapp: the %q variant of document %q: its CSP differs from the served header", palette, name)
+		}
+	}
+	return nil
 }
 
 // metaScriptHashes returns the sha256 sources, unquoted, that the

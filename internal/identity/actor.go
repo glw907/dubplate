@@ -1,10 +1,6 @@
 package identity
 
-import (
-	"time"
-
-	"github.com/glw907/dubplate/internal/id"
-)
+import "time"
 
 // An Actor is who makes a change: an operator at the command line,
 // named by their operating-system user, or a member over the network,
@@ -33,27 +29,27 @@ func LocalActor(username string) Actor {
 }
 
 // NetworkActor returns the actor for a change a verified login makes
-// over the network: anchor is when the session that carried id was
+// over the network: anchor is when the session that carried login was
 // first issued, and clientIP is the address the request came from. It
 // renders as "member:<hex UserID>", the durable key and never the
-// principal, so a renamed member keeps one actor. It panics unless
-// id.Valid() holds, so a command-line identity can never become a
+// username, so a renamed member keeps one actor. It panics unless
+// login.Valid() holds, so a command-line identity can never become a
 // network actor.
-func NetworkActor(id Identity, anchor time.Time, clientIP string) Actor {
-	if !id.Valid() {
+func NetworkActor(login Identity, anchor time.Time, clientIP string) Actor {
+	if !login.Valid() {
 		panic("identity: NetworkActor called with an invalid identity")
 	}
-	return Actor{channel: id.Channel, userID: id.UserID, anchor: anchor, clientIP: clientIP}
+	return Actor{channel: login.Channel, userID: login.UserID, anchor: anchor, clientIP: clientIP}
 }
 
 // String returns how an audit record names a. The zero Actor returns
 // the empty string.
 func (a Actor) String() string {
-	switch a.channel {
-	case ChannelCommandLine:
+	switch {
+	case a.channel == ChannelCommandLine:
 		return "local:" + a.name
-	case ChannelCookie:
-		return "member:" + id.ID(a.userID).String()
+	case a.channel.network():
+		return "member:" + a.userID.String()
 	default:
 		return ""
 	}

@@ -6,7 +6,7 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 )
 
-// TestConfigFrom_ResolvesTheSMTPKeys proves [ConfigFrom] reads each
+// TestConfigFrom_ResolvesTheSMTPKeys proves [smtpConfigFrom] reads each
 // field from its own key of the selected identity source, with the port
 // as an int. The registry declares one source whose Required keys are
 // [Keys], so the test needs no other package's source.
@@ -29,13 +29,13 @@ func TestConfigFrom_ResolvesTheSMTPKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	got, err := ConfigFrom(cfg)
+	got, err := smtpConfigFrom(cfg)
 	if err != nil {
-		t.Fatalf("ConfigFrom: %v", err)
+		t.Fatalf("smtpConfigFrom: %v", err)
 	}
-	want := Config{Host: "smtp.example.org", Port: 587, User: "mailer", Password: "fixture-password", From: "Music <music@example.org>"}
+	want := smtpConfig{Host: "smtp.example.org", Port: 587, User: "mailer", Password: "fixture-password", From: "Music <music@example.org>"}
 	if got != want {
-		t.Errorf("ConfigFrom() = %+v, want %+v", got, want)
+		t.Errorf("smtpConfigFrom() = %+v, want %+v", got, want)
 	}
 }
 

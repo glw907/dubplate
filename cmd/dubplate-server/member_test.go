@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -29,27 +30,26 @@ func memberEnviron(t *testing.T) (environ []string, stateDir string) {
 	return environ, stateDir
 }
 
-// testOperatorVerbs returns the values main gives the verbs: a 30
-// second wait and the system's user lookup. A test that varies one
-// overrides that field on the result.
-func testOperatorVerbs() operatorVerbs {
-	return operatorVerbs{WriteWait: 30 * time.Second, LookupID: user.LookupId}
+// stubLookupUser swaps lookupUser for fn until the test ends.
+func stubLookupUser(t *testing.T, fn func(uid string) (*user.User, error)) {
+	t.Helper()
+	orig := lookupUser
+	lookupUser = fn
+	t.Cleanup(func() { lookupUser = orig })
 }
 
 // runMember runs the member verb with args against environ and returns
 // what it wrote to stdout and stderr beside its error.
 func runMember(t *testing.T, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
-	return runMemberWith(t, testOperatorVerbs(), environ, args...)
+	return runMemberContext(t, t.Context(), environ, args...)
 }
 
-// runMemberWith is runMember over verbs built from ov.
-func runMemberWith(t *testing.T, ov operatorVerbs, environ []string, args ...string) (stdout, stderr string, err error) {
+// runMemberContext is runMember under ctx.
+func runMemberContext(t *testing.T, ctx context.Context, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
 	var out, errOut bytes.Buffer
-	cmd := ov.newMemberCmd(environ, productionRegistry(), &out, &errOut)
-	cmd.SetArgs(args)
-	err = cmd.Execute()
+	err = rootFor(environ, productionRegistry(), &out, &errOut, append([]string{"member"}, args...)...).ExecuteContext(ctx)
 	return out.String(), errOut.String(), err
 }
 
@@ -340,10 +340,11 @@ func TestResolveActor(t *testing.T) {
 	euid := os.Geteuid()
 	t.Run("names the user the lookup returns for the effective uid", func(t *testing.T) {
 		var asked string
-		got := resolveActor(func(uid string) (*user.User, error) {
+		stubLookupUser(t, func(uid string) (*user.User, error) {
 			asked = uid
 			return &user.User{Username: "operator"}, nil
 		})
+		got := resolveActor()
 		if got != "operator" {
 			t.Errorf("resolveActor = %q, want %q", got, "operator")
 		}
@@ -352,7 +353,8 @@ func TestResolveActor(t *testing.T) {
 		}
 	})
 	t.Run("falls back to uid:<n> when the lookup fails", func(t *testing.T) {
-		got := resolveActor(func(string) (*user.User, error) { return nil, errors.New("no such user") })
+		stubLookupUser(t, func(string) (*user.User, error) { return nil, errors.New("no such user") })
+		got := resolveActor()
 		if want := fmt.Sprintf("uid:%d", euid); got != want {
 			t.Errorf("resolveActor = %q, want %q", got, want)
 		}
@@ -360,13 +362,12 @@ func TestResolveActor(t *testing.T) {
 }
 
 func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
-	ov := testOperatorVerbs()
-	ov.LookupID = func(string) (*user.User, error) {
+	stubLookupUser(t, func(string) (*user.User, error) {
 		return nil, errors.New("no such user")
-	}
+	})
 	environ, _ := memberEnviron(t)
 
-	_, stderr, err := runMemberWith(t, ov, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
+	_, stderr, err := runMember(t, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
 	if err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr)
 	}
@@ -378,11 +379,8 @@ func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
 
 // TestMemberAddCmd_LockHeldPastDeadlineRefuses holds the store's lock
 // exclusively, as a restore would, and proves the verb gives up once its
-// own wait ends rather than waiting on the holder.
+// context ends rather than waiting on the holder.
 func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
-	ov := testOperatorVerbs()
-	ov.WriteWait = 200 * time.Millisecond
-
 	environ, stateDir := memberEnviron(t)
 	lock, err := os.Open(filepath.Join(stateDir, "store", "store.lock"))
 	if err != nil {
@@ -394,7 +392,9 @@ func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
 	}
 
 	start := time.Now()
-	_, _, err = runMemberWith(t, ov, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
+	ctx, cancel := context.WithTimeout(t.Context(), 200*time.Millisecond)
+	defer cancel()
+	_, _, err = runMemberContext(t, ctx, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
 	elapsed := time.Since(start)
 	if !errors.Is(err, store.ErrLockBusy) {
 		t.Fatalf("Execute() error = %v, want it to wrap store.ErrLockBusy", err)
@@ -444,7 +444,7 @@ func TestMemberAddCmd_ConcurrentAdminAddsBothLand(t *testing.T) {
 }
 
 func TestNewRootCmd_RegistersMemberCommand(t *testing.T) {
-	cmd := newRootCmd()
+	cmd := newRootCmd(nil, productionRegistry())
 	for _, sub := range cmd.Commands() {
 		if sub.Name() == "member" {
 			return
@@ -453,25 +453,25 @@ func TestNewRootCmd_RegistersMemberCommand(t *testing.T) {
 	t.Error(`newRootCmd().Commands() does not include "member"`)
 }
 
-// TestMemberAddCmd_WideAuthLeafRefused proves member add opens the auth
-// leaf for the re-add bump and refuses a leaf wider than 0700, naming the
-// verb and the leaf, before writing any row. Fixture state: an auth leaf
-// created at 0755 under a current store holding no member.
-func TestMemberAddCmd_WideAuthLeafRefused(t *testing.T) {
+// TestMemberAddCmd_WideAuthDirRefused proves member add opens the auth
+// dir for the re-add bump and refuses one wider than 0700, naming the
+// verb and the auth dir, before writing any row. Fixture state: an auth
+// dir created at 0755 under a current store holding no member.
+func TestMemberAddCmd_WideAuthDirRefused(t *testing.T) {
 	environ, stateDir := memberEnviron(t)
-	leaf := filepath.Join(stateDir, "auth")
-	if err := os.Mkdir(leaf, 0o700); err != nil {
-		t.Fatalf("create the auth leaf: %v", err)
+	authDir := filepath.Join(stateDir, "auth")
+	if err := os.Mkdir(authDir, 0o700); err != nil {
+		t.Fatalf("create the auth dir: %v", err)
 	}
-	if err := os.Chmod(leaf, 0o755); err != nil {
-		t.Fatalf("widen the auth leaf: %v", err)
+	if err := os.Chmod(authDir, 0o755); err != nil {
+		t.Fatalf("widen the auth dir: %v", err)
 	}
 
 	_, _, err := runMember(t, environ, "add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test")
 	if err == nil {
-		t.Fatal("add over a wide auth leaf error = nil, want a refusal")
+		t.Fatal("add over a wide auth dir error = nil, want a refusal")
 	}
-	for _, want := range []string{"member add", leaf} {
+	for _, want := range []string{"member add", authDir} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error = %q, want it to contain %q", err, want)
 		}
@@ -481,20 +481,20 @@ func TestMemberAddCmd_WideAuthLeafRefused(t *testing.T) {
 	}
 }
 
-// TestMemberListCmd_OpensNoAuthLeaf proves member list reads the roster
-// without opening the auth leaf: a store with no leaf still has none
-// after a list.
-func TestMemberListCmd_OpensNoAuthLeaf(t *testing.T) {
+// TestMemberListCmd_OpensNoAuthDir proves member list reads the roster
+// without opening the auth dir: a store with no auth dir still has
+// none after a list.
+func TestMemberListCmd_OpensNoAuthDir(t *testing.T) {
 	environ, stateDir := memberEnviron(t)
-	leaf := filepath.Join(stateDir, "auth")
-	if _, err := os.Stat(leaf); !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("Stat(auth leaf) before list = %v, want it absent", err)
+	authDir := filepath.Join(stateDir, "auth")
+	if _, err := os.Stat(authDir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat(auth dir) before list = %v, want it absent", err)
 	}
 	if _, _, err := runMember(t, environ, "list"); err != nil {
 		t.Fatalf("list: %v", err)
 	}
-	if _, err := os.Stat(leaf); !errors.Is(err, os.ErrNotExist) {
-		t.Errorf("Stat(auth leaf) after list = %v, want it still absent", err)
+	if _, err := os.Stat(authDir); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("Stat(auth dir) after list = %v, want it still absent", err)
 	}
 }
 
@@ -542,15 +542,15 @@ func countRows(t *testing.T, stateDir, query string) int {
 	return n
 }
 
-// hasEpoch reports whether the auth leaf under stateDir holds a
+// hasEpoch reports whether the auth dir under stateDir holds a
 // revocation epoch for address.
 func hasEpoch(t *testing.T, stateDir, address string) bool {
 	t.Helper()
-	leaf, err := auth.Open(stateDir)
+	authDir, err := auth.Open(stateDir)
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	_, ok, err := auth.OpenEpochStore(leaf).Read(address)
+	_, ok, err := auth.NewEpochStore(authDir, nil).Read(address)
 	if err != nil {
 		t.Fatalf("read the epoch of %s: %v", address, err)
 	}
@@ -687,28 +687,28 @@ func TestMemberCmd_LastAdminRefused(t *testing.T) {
 	}
 }
 
-// TestMemberCmd_WideAuthLeafRefusesRemoveAndDemote proves both verbs
-// open the auth leaf and refuse one wider than 0700, naming the verb
-// and the leaf, before writing. Fixture: a leaf created at 0755 under a
-// store holding two admins and a member.
-func TestMemberCmd_WideAuthLeafRefusesRemoveAndDemote(t *testing.T) {
+// TestMemberCmd_WideAuthDirRefusesRemoveAndDemote proves both verbs
+// open the auth dir and refuse one wider than 0700, naming the verb
+// and the auth dir, before writing. Fixture: an auth dir widened to
+// 0755 under a store holding two admins and a member.
+func TestMemberCmd_WideAuthDirRefusesRemoveAndDemote(t *testing.T) {
 	for _, tt := range []struct{ verb, address string }{
 		{"remove", "b@example.test"},
 		{"demote", "c@example.test"},
 	} {
 		t.Run(tt.verb, func(t *testing.T) {
 			environ, stateDir := rosterFixture(t)
-			leaf := filepath.Join(stateDir, "auth")
-			if err := os.Chmod(leaf, 0o755); err != nil {
-				t.Fatalf("widen the auth leaf the fixture's adds created: %v", err)
+			authDir := filepath.Join(stateDir, "auth")
+			if err := os.Chmod(authDir, 0o755); err != nil {
+				t.Fatalf("widen the auth dir the fixture's adds created: %v", err)
 			}
 
 			_, _, err := runMember(t, environ, tt.verb, tt.address)
 
 			if err == nil {
-				t.Fatalf("%s over a wide auth leaf error = nil, want a refusal", tt.verb)
+				t.Fatalf("%s over a wide auth dir error = nil, want a refusal", tt.verb)
 			}
-			for _, want := range []string{"member " + tt.verb, leaf} {
+			for _, want := range []string{"member " + tt.verb, authDir} {
 				if !strings.Contains(err.Error(), want) {
 					t.Errorf("error = %q, want it to contain %q", err, want)
 				}
@@ -730,7 +730,7 @@ func TestMemberCmd_WideAuthLeafRefusesRemoveAndDemote(t *testing.T) {
 // no flag at all, which the test asserts so a flag added later must
 // join the table.
 func TestOperatorVerbs_RequiredFlagsSaySo(t *testing.T) {
-	root := newRootCmd()
+	root := newRootCmd(nil, productionRegistry())
 	find := func(path ...string) *cobra.Command {
 		t.Helper()
 		cmd, _, err := root.Find(path)

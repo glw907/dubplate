@@ -39,8 +39,8 @@ func newTestService(t *testing.T) (*store.Handle, *Service) {
 // actorOf is the network actor a verified session for uploader builds.
 func actorOf(uploader identity.UserID) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
-		Address: "member@example.invalid", UserID: uploader, Principal: "member",
-		Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: "member@example.invalid", UserID: uploader, Username: "member",
+		Channel: identity.ChannelCookie,
 	}, time.UnixMicro(testNow), "192.0.2.1")
 }
 
@@ -254,7 +254,7 @@ func TestServiceCreateClientFaults(t *testing.T) {
 	tests := []struct {
 		name       string
 		edit       func(*ops.CreateSubmissionRequest)
-		wantDetail string
+		wantDetail ops.Detail
 	}{
 		{"a separate-tracks manifest naming a scan", func(r *ops.CreateSubmissionRequest) {
 			r.VerdictUnit = "track"

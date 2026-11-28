@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/glw907/dubplate/internal/identity"
 )
 
 // sessionBirth, sessionLifetimeFixture, and sessionCapFixture pin the
@@ -56,7 +54,7 @@ func TestSessionCookieAttributes(t *testing.T) {
 	now := sessionBirth
 	expires := sessionBirth.Add(sessionLifetimeFixture)
 
-	c := SessionCookie(wireSample, now, expires)
+	c := sessionCookie(wireSample, now, expires)
 
 	if c.Name != "__Host-dubplate_session" {
 		t.Errorf("Name = %q, want %q", c.Name, "__Host-dubplate_session")
@@ -88,15 +86,14 @@ func TestSessionCookieAttributes(t *testing.T) {
 }
 
 // TestSessionCookieRenderedHeader asserts the exact Set-Cookie header
-// SessionCookie produces, Max-Age included, against a written-out
-// expectation rather than by reading the struct's fields back (review
-// m1, D5 acceptance).
+// sessionCookie produces, Max-Age included, against a written-out
+// expectation rather than by reading the struct's fields back.
 func TestSessionCookieRenderedHeader(t *testing.T) {
 	const wireSample = "ZHVicGxhdGUtc2Vzc2lvbi0x.YWxpY2VAZXhhbXBsZS50ZXN0.MTc3MjYwMDc2Nw.MTc3MjYwMDc2Nw.MTc3NTE5Mjc2Nw.gTOGtfHaf6_k8TXPiRrX2vk5pWlAUyg0K65h2uOLpMw"
 	now := sessionBirth
 	expires := sessionBirth.Add(sessionLifetimeFixture)
 
-	got := SessionCookie(wireSample, now, expires).String()
+	got := sessionCookie(wireSample, now, expires).String()
 	want := "__Host-dubplate_session=" + wireSample +
 		"; Path=/; Expires=" + expires.Format(http.TimeFormat) +
 		"; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
@@ -110,7 +107,7 @@ func TestSessionCookieRenderedHeader(t *testing.T) {
 // as the one to delete, with MaxAge negative and an empty value
 // (review m9).
 func TestClearSessionCookie(t *testing.T) {
-	c := ClearSessionCookie()
+	c := clearSessionCookie()
 
 	if c.Name != sessionCookieName {
 		t.Errorf("Name = %q, want %q", c.Name, sessionCookieName)
@@ -169,19 +166,19 @@ func TestVerifySession(t *testing.T) {
 			name:  "a one-bit flip in the MAC",
 			value: flipFieldBit(t, valid, sessionFieldCount),
 			now:   inside,
-			want:  ErrSessionMAC,
+			want:  errSessionMAC,
 		},
 		{
 			name:  "a one-bit flip in the address",
 			value: flipFieldBit(t, valid, 1),
 			now:   inside,
-			want:  ErrSessionMAC,
+			want:  errSessionMAC,
 		},
 		{
 			name:  "a one-bit flip in the anchor",
 			value: flipFieldBit(t, valid, 3),
 			now:   inside,
-			want:  ErrSessionMAC,
+			want:  errSessionMAC,
 		},
 		{
 			// The anchor is inside the MAC, so a holder cannot
@@ -190,19 +187,19 @@ func TestVerifySession(t *testing.T) {
 			name:  "an anchor moved forward without the MAC",
 			value: replaceField(valid, 3, []byte("1788325567")),
 			now:   inside,
-			want:  ErrSessionMAC,
+			want:  errSessionMAC,
 		},
 		{
 			name:  "past its expiry and inside its cap",
 			value: valid,
 			now:   pastExpiry,
-			want:  ErrSessionExpired,
+			want:  errSessionExpired,
 		},
 		{
 			name:  "exactly at its expiry",
 			value: valid,
 			now:   sessionBirth.Add(sessionLifetimeFixture),
-			want:  ErrSessionExpired,
+			want:  errSessionExpired,
 		},
 		{
 			// The MAC is checked first, so a value that fails both
@@ -211,49 +208,49 @@ func TestVerifySession(t *testing.T) {
 			name:  "expired and MAC broken reports the MAC",
 			value: flipFieldBit(t, valid, sessionFieldCount),
 			now:   pastExpiry,
-			want:  ErrSessionMAC,
+			want:  errSessionMAC,
 		},
 		{
 			name:  "too few fields",
 			value: strings.Join(strings.Split(valid, ".")[:sessionFieldCount], "."),
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 		{
 			name:  "a field that is not base64url",
 			value: "!!!." + strings.SplitN(valid, ".", 2)[1],
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 		{
 			name:  "an unknown version label",
 			value: replaceField(valid, 0, []byte("dubplate-session-99")),
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 		{
 			name:  "an issue time that is not a number",
 			value: replaceField(valid, 2, []byte("recently")),
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 		{
 			name:  "an anchor that is not a number",
 			value: replaceField(valid, 3, []byte("at birth")),
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 		{
 			name:  "an expiry that is not a number",
 			value: replaceField(valid, 4, []byte("never")),
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 		{
 			name:  "an empty value",
 			value: "",
 			now:   inside,
-			want:  ErrSessionMalformed,
+			want:  errSessionMalformed,
 		},
 	}
 
@@ -312,7 +309,7 @@ func TestRefreshHoldsTheAnchor(t *testing.T) {
 		if err != nil {
 			t.Fatalf("refresh %d: VerifySession error = %v, want nil", i, err)
 		}
-		value, session = RefreshSession([]byte(currentFixture), session, at, sessionLifetimeFixture, sessionCapFixture)
+		value, session = refreshSession([]byte(currentFixture), session, at, sessionLifetimeFixture, sessionCapFixture)
 
 		if !session.AnchoredAt.Equal(wantAnchor) {
 			t.Fatalf("refresh %d: AnchoredAt = %v, want %v", i, session.AnchoredAt, wantAnchor)
@@ -351,7 +348,7 @@ func TestRefreshedSessionRefusedAtTheAbsoluteCap(t *testing.T) {
 		t.Fatalf("MintSession error = %v, want nil", err)
 	}
 	refreshedAt := sessionBirth.Add(175 * 24 * time.Hour)
-	value, session := RefreshSession([]byte(currentFixture), session, refreshedAt, sessionLifetimeFixture, sessionCapFixture)
+	value, session := refreshSession([]byte(currentFixture), session, refreshedAt, sessionLifetimeFixture, sessionCapFixture)
 
 	atCap := sessionBirth.Add(sessionCapFixture)
 	if !session.ExpiresAt.Equal(atCap) {
@@ -360,7 +357,7 @@ func TestRefreshedSessionRefusedAtTheAbsoluteCap(t *testing.T) {
 
 	for _, now := range []time.Time{atCap, atCap.Add(24 * time.Hour)} {
 		got, err := VerifySession([]byte(currentFixture), nil, value, now, sessionCapFixture)
-		if !errors.Is(err, ErrSessionCapReached) {
+		if !errors.Is(err, errSessionCapReached) {
 			t.Errorf("VerifySession at %v error = %v, want ErrSessionCapReached", now, err)
 		}
 		if got != (Session{}) {
@@ -393,7 +390,7 @@ func TestRefreshClampsAtTheExactBoundary(t *testing.T) {
 	}
 
 	refreshedAt := anchor.Add(23 * time.Hour)
-	_, refreshed := RefreshSession([]byte(currentFixture), session, refreshedAt, lifetime, cap)
+	_, refreshed := refreshSession([]byte(currentFixture), session, refreshedAt, lifetime, cap)
 
 	want := anchor.Add(cap)
 	if !refreshed.ExpiresAt.Equal(want) {
@@ -405,7 +402,7 @@ func TestRefreshClampsAtTheExactBoundary(t *testing.T) {
 // half: a lifetime configured far above the cap (the review's own
 // repro pairs a 87600h lifetime with a one-hour cap) never mints a
 // cookie whose Max-Age promises longer than VerifySession will honor.
-// RefreshSession already carried this clamp (review m2); this proves
+// refreshSession already carried this clamp; this proves
 // MintSession carries it too, at the first mint, before any refresh.
 func TestMintSessionClampsAtTheAbsoluteCap(t *testing.T) {
 	const (
@@ -424,7 +421,7 @@ func TestMintSessionClampsAtTheAbsoluteCap(t *testing.T) {
 		t.Fatalf("ExpiresAt = %v, want it clamped to the cap %v", minted.ExpiresAt, wantExpiry)
 	}
 
-	cookie := SessionCookie(value, anchor, minted.ExpiresAt)
+	cookie := sessionCookie(value, anchor, minted.ExpiresAt)
 	if wantMaxAge := int(cap.Seconds()); cookie.MaxAge > wantMaxAge {
 		t.Errorf("cookie Max-Age = %d, want at most %d (the cap in seconds)", cookie.MaxAge, wantMaxAge)
 	}
@@ -433,7 +430,7 @@ func TestMintSessionClampsAtTheAbsoluteCap(t *testing.T) {
 	// refreshed to the cap boundary does: the mint clamp and the
 	// refresh clamp leave the same shape of signed value behind either
 	// way.
-	if _, err := VerifySession([]byte(currentFixture), nil, value, wantExpiry, cap); !errors.Is(err, ErrSessionCapReached) {
+	if _, err := VerifySession([]byte(currentFixture), nil, value, wantExpiry, cap); !errors.Is(err, errSessionCapReached) {
 		t.Errorf("VerifySession at the clamped expiry error = %v, want ErrSessionCapReached", err)
 	}
 }
@@ -451,10 +448,10 @@ func TestSessionAndLinkCannotCross(t *testing.T) {
 	// cookie presented as a magic link: each carries the other's
 	// format-version label, so each is refused before its MAC is
 	// reached.
-	if _, err := VerifySession([]byte(currentFixture), []byte(previousFixture), linkValue, fixtureMint, sessionCapFixture); !errors.Is(err, ErrSessionMalformed) {
+	if _, err := VerifySession([]byte(currentFixture), []byte(previousFixture), linkValue, fixtureMint, sessionCapFixture); !errors.Is(err, errSessionMalformed) {
 		t.Errorf("VerifySession of a link token error = %v, want ErrSessionMalformed", err)
 	}
-	if _, err := VerifyLink([]byte(currentFixture), []byte(previousFixture), sessionValue, sessionBirth.Add(time.Hour)); !errors.Is(err, ErrLinkMalformed) {
+	if _, err := VerifyLink([]byte(currentFixture), []byte(previousFixture), sessionValue, sessionBirth.Add(time.Hour)); !errors.Is(err, errLinkMalformed) {
 		t.Errorf("VerifyLink of a session value error = %v, want ErrLinkMalformed", err)
 	}
 
@@ -462,7 +459,7 @@ func TestSessionAndLinkCannotCross(t *testing.T) {
 	// domain-separation label, which is what a session value would
 	// verify as if the two purposes were one string.
 	underLink := encodeSessionUnderLabel([]byte(currentFixture), linkPurpose, fixtureSession())
-	if _, err := VerifySession([]byte(currentFixture), []byte(previousFixture), underLink, sessionBirth.Add(time.Hour), sessionCapFixture); !errors.Is(err, ErrSessionMAC) {
+	if _, err := VerifySession([]byte(currentFixture), []byte(previousFixture), underLink, sessionBirth.Add(time.Hour), sessionCapFixture); !errors.Is(err, errSessionMAC) {
 		t.Errorf("VerifySession of a value signed under linkPurpose error = %v, want ErrSessionMAC", err)
 	}
 
@@ -470,7 +467,7 @@ func TestSessionAndLinkCannotCross(t *testing.T) {
 	// session.go actually chose rather than a literal, so a session
 	// that adopted linkPurpose would be caught here too.
 	underSession := encodeUnderLabel([]byte(currentFixture), sessionPurpose, fixtureLink("alice@example.test"))
-	if _, err := VerifyLink([]byte(currentFixture), []byte(previousFixture), underSession, fixtureMint); !errors.Is(err, ErrLinkMAC) {
+	if _, err := VerifyLink([]byte(currentFixture), []byte(previousFixture), underSession, fixtureMint); !errors.Is(err, errLinkMAC) {
 		t.Errorf("VerifyLink of a value signed under sessionPurpose error = %v, want ErrLinkMAC", err)
 	}
 }
@@ -520,8 +517,8 @@ func TestMintSession(t *testing.T) {
 		t.Errorf("verified session = %+v, want %+v", parsed, minted)
 	}
 
-	if _, _, err := MintSession([]byte(currentFixture), "not-an-address", now, sessionLifetimeFixture, sessionCapFixture); !errors.Is(err, identity.ErrInvalidAddress) {
-		t.Errorf("MintSession of an unparseable address error = %v, want identity.ErrInvalidAddress", err)
+	if _, _, err := MintSession([]byte(currentFixture), "not-an-address", now, sessionLifetimeFixture, sessionCapFixture); err == nil || !strings.Contains(err.Error(), "invalid address") {
+		t.Errorf("MintSession of an unparseable address error = %v, want an invalid address", err)
 	}
 }
 

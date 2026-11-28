@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"os/user"
 	"syscall"
 	"time"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/settings"
-	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
 
@@ -26,13 +24,10 @@ import (
 // status while it waits for a terminal state.
 const backupPollInterval = 200 * time.Millisecond
 
-// newBackupCmd builds the backup verb: it loads the wall, opens the
-// store in write mode, starts a backup as a local operator, polls its
-// status, and exits with the status its outcome maps to. Its Long text
-// lists every exit status this file assigns, so an operator reading
-// --help sees the same table the verb's tests assert against.
-func newBackupCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
+// newBackupCmd builds the backup verb, whose Long text lists every exit
+// status this file assigns.
+func newBackupCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
 		Use:   "backup",
 		Short: "Snapshot the library database and sync it to remote storage",
 		Long: `Snapshot the library database and sync it to remote storage.
@@ -43,40 +38,24 @@ Exit statuses:
   69   backup integration is disabled (DUBPLATE_BACKUP_ENABLED)
   75   a backup is already running
   130  canceled by any means: a signal (SIGINT, SIGTERM, SIGHUP) or another process's cancel`,
-		Args:          cobra.NoArgs,
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runBackup(cmd.Context(), environ, reg, stdout, stderr)
+			return runBackup(cmd.Context(), environ, reg, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
-// runBackup loads the wall, opens the store in write mode, and runs
-// the backup job to a terminal state. Every runner call after
-// construction runs on opsCtx, a context.WithoutCancel copy of ctx:
-// ctx is the verb's own signal-canceled context
-// (executeWithSignalContext, main.go), and a job or a status read that
-// ran under it would fail the instant a signal arrived rather than
-// letting the verb answer the signal itself.
+// runBackup runs one backup job as a local operator to a terminal
+// state. ctx is canceled by a signal, so every runner call runs on a
+// context.WithoutCancel copy of it: a status read under ctx would fail
+// the instant a signal arrived, before the verb could answer it.
 func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdout, stderr io.Writer) error {
-	cfg, err := loadConfig(environ, reg)
-	if err != nil {
-		return err
-	}
-	busyTimeout, err := store.BusyTimeout(environ)
-	if err != nil {
-		return err
-	}
-
-	logger := slog.New(slog.NewTextHandler(stderr, nil))
+	logger := verbLogger(stderr)
 	opsCtx := context.WithoutCancel(ctx)
 
 	openCtx, cancelOpen := context.WithTimeout(opsCtx, storeWait)
 	defer cancelOpen()
-	h, err := store.OpenWrite(openCtx, cfg.StateDir, busyTimeout)
+	h, cfg, err := openOperatorStore(openCtx, environ, reg)
 	if err != nil {
 		return err
 	}
@@ -114,12 +93,12 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
-	actor := identity.LocalActor(resolveActor(user.LookupId))
+	actor := identity.LocalActor(resolveActor())
 	startCtx, cancelStart := context.WithTimeout(opsCtx, storeWait)
 	jobID, err := runner.StartBackup(startCtx, actor)
 	cancelStart()
 	if err != nil {
-		return backupExitCode(err)
+		return withExitStatus(err)
 	}
 	if _, err := fmt.Fprintf(stdout, "backup %s: started\n", jobID); err != nil {
 		return err
@@ -128,12 +107,10 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	return awaitBackup(ctx, opsCtx, runner, actor, jobID, stdout, logger)
 }
 
-// logSettingsEvaluation logs one warning line per disagreement or
-// refusal the seed rule finds against the store: a refusal names the
-// key and its reason, an environment disagreement names the key and
-// what serve applies at its next start. backup never applies the
-// rule and never fails on its outcome: serve's own seed at its next
-// start is what carries a change, this run included.
+// logSettingsEvaluation logs one warning per refusal or disagreement
+// the seed rule finds against the store. backup never applies the rule
+// and never fails on it: serve's seed at its next start carries the
+// change.
 func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 	for _, o := range ev.Outcomes {
 		switch {
@@ -145,15 +122,12 @@ func logSettingsEvaluation(logger *slog.Logger, ev settings.Evaluation) {
 	}
 }
 
-// awaitBackup polls jobID's status until it turns terminal, calling the
-// cancel operation on the first signal that arrives: SIGINT and
-// SIGTERM through signalCtx's own Done channel (executeWithSignalContext
-// already watches for them), and SIGHUP through this function's own
-// handler, since main's signal context does not (a closed
-// terminal sends SIGHUP, whose default action would kill this process
-// while rclone, in its own process group, survives). Every runner call
-// here runs on opsCtx, never signalCtx, so a poll or a cancel write
-// keeps working after signalCtx is done.
+// awaitBackup polls jobID's status until it turns terminal, requesting
+// a cancel on the first signal: SIGINT or SIGTERM through signalCtx,
+// and SIGHUP through its own handler. A closed terminal sends SIGHUP,
+// whose default action would kill this process while rclone, in its
+// own process group, survives. Runner calls run on opsCtx, so they
+// keep working after signalCtx is done.
 func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor identity.Actor, jobID id.ID, stdout io.Writer, logger *slog.Logger) error {
 	hup := make(chan os.Signal, 1)
 	signal.Notify(hup, syscall.SIGHUP)
@@ -162,11 +136,7 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor i
 	ticker := time.NewTicker(backupPollInterval)
 	defer ticker.Stop()
 
-	// done and hupCh are nil'd out once their cancel fires, so a
-	// signal already answered never wins the select again: a closed
-	// channel is always ready, and without this the loop would spin
-	// on JobStatus at full CPU for the rest of the wait instead of
-	// blocking on ticker.C.
+	// A nil channel never fires: each signal cancels once.
 	done := signalCtx.Done()
 	hupCh := hup
 	for {
@@ -193,12 +163,9 @@ func awaitBackup(signalCtx, opsCtx context.Context, runner *jobs.Runner, actor i
 }
 
 // requestCancel asks the runner to cancel jobID through the cancel
-// operation's own write. When the write fails (the store busy past its
-// busy timeout, or any other error), the job would otherwise run to
-// completion unanswered, so this cancels it in-process through the
-// runner this verb owns instead, and logs the write error rather than
-// returning it: the job still ends canceled, through its own terminal
-// write, and awaitBackup's next poll reports that.
+// operation's write. When that write fails, the job would run on
+// unanswered, so it cancels the job in-process instead and logs the
+// error: the job still ends canceled, and the next poll reports it.
 func requestCancel(opsCtx context.Context, runner *jobs.Runner, actor identity.Actor, jobID id.ID, logger *slog.Logger) {
 	ctx, cancel := context.WithTimeout(opsCtx, storeWait)
 	defer cancel()
@@ -208,11 +175,9 @@ func requestCancel(opsCtx context.Context, runner *jobs.Runner, actor identity.A
 	}
 }
 
-// reportOutcome prints job's terminal state and reports run's exit
-// status for it. A succeeded job prints to stdout and returns nil;
-// every other terminal state returns an error, whose message run
-// prints to stderr, wrapped with its exit status where that status is
-// not the default of 1.
+// reportOutcome prints a succeeded job to stdout and returns nil, and
+// returns every other terminal state of job as an error, carrying its
+// exit status where that is not 1.
 func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	switch job.State {
 	case ops.JobSucceeded:
@@ -223,27 +188,26 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 		_, err := fmt.Fprintln(stdout, msg)
 		return err
 	case ops.JobCanceled:
-		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.JobID)}
+		return &exitError{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.JobID)}
 	case ops.JobFailed:
 		return fmt.Errorf("backup %s: failed, code %s: %s", job.JobID, job.FailureCode, job.FailureMessage)
 	default:
-		// Interrupted reaches this arm in-process when the job's running
-		// or terminal write failed and the next status read recovered
-		// the stranded record. It exits 1 like any other non-success.
+		// Interrupted lands here when a failed write stranded the job's
+		// record and the next status read recovered it.
 		return fmt.Errorf("backup %s: %s", job.JobID, job.State)
 	}
 }
 
-// backupExitCode maps a StartBackup error to its exit status: unavailable
-// while backup integration is off, conflict while another backup holds
-// the kind lease, and every other error unwrapped, run's own default
-// of 1.
-func backupExitCode(err error) error {
+// withExitStatus wraps a StartBackup error in the exit status it maps
+// to: unavailable while backup integration is off, conflict while
+// another backup holds the kind lease. Every other error returns
+// unwrapped, for run's own default of 1.
+func withExitStatus(err error) error {
 	switch {
-	case errors.Is(err, ops.ErrUnavailable):
-		return &exitCodeErr{code: exitUnavailable, err: err}
-	case errors.Is(err, ops.ErrConflict):
-		return &exitCodeErr{code: exitTempFail, err: err}
+	case errors.Is(err, ops.CodeUnavailable):
+		return &exitError{code: exitUnavailable, err: err}
+	case errors.Is(err, ops.CodeConflict):
+		return &exitError{code: exitTempFail, err: err}
 	default:
 		return err
 	}

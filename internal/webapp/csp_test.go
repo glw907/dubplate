@@ -1,6 +1,8 @@
 package webapp
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"strings"
 	"testing"
@@ -91,21 +93,21 @@ func TestDocumentCSP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := DocumentCSP("login.html", []byte(tt.doc))
+			got, err := documentCSP("login.html", []byte(tt.doc))
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("DocumentCSP error = %v, want %v", err, tt.wantErr)
+					t.Fatalf("documentCSPerror = %v, want %v", err, tt.wantErr)
 				}
 				if !strings.Contains(err.Error(), `"login.html"`) {
-					t.Errorf("DocumentCSP error = %q, want it to name the document", err)
+					t.Errorf("documentCSPerror = %q, want it to name the document", err)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("DocumentCSP error = %v, want nil", err)
+				t.Fatalf("documentCSPerror = %v, want nil", err)
 			}
 			if got != tt.want {
-				t.Errorf("DocumentCSP =\n%s\nwant\n%s", got, tt.want)
+				t.Errorf("documentCSP=\n%s\nwant\n%s", got, tt.want)
 			}
 		})
 	}
@@ -116,8 +118,39 @@ func TestDocumentCSP(t *testing.T) {
 // find the script without rerunning the build.
 func TestDocumentCSP_UnhashedScriptNamesItsHash(t *testing.T) {
 	doc := cspMeta("script-src 'self' '"+bootScriptHash+"'") + "<script>" + nextScript + "</script>"
-	_, err := DocumentCSP("members.html", []byte(doc))
+	_, err := documentCSP("members.html", []byte(doc))
 	if err == nil || !strings.Contains(err.Error(), nextScriptHash) {
-		t.Errorf("DocumentCSP error = %v, want it to name %s", err, nextScriptHash)
+		t.Errorf("documentCSPerror = %v, want it to name %s", err, nextScriptHash)
+	}
+}
+
+// TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader proves a served
+// variant must yield exactly the policy the header carries, computed
+// from the build's own document: a variant whose meta lists one more
+// hash still covers its every script, so only the equality check can
+// refuse it.
+func TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader(t *testing.T) {
+	source := func(script string) string {
+		sum := sha256.Sum256([]byte(script))
+		return "'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'"
+	}
+	doc := func(sources string) []byte {
+		return []byte(`<meta http-equiv="content-security-policy" content="script-src 'self' ` + sources + `"><script>boot();</script>`)
+	}
+	boot := source("boot();")
+	served, err := documentCSP("login.html", doc(boot))
+	if err != nil {
+		t.Fatalf("fixture: documentCSP:%v", err)
+	}
+	if err := checkVariantCSP("login.html", map[string][]byte{"label": doc(boot)}, served); err != nil {
+		t.Fatalf("checkVariantCSP on a matching variant: %v", err)
+	}
+	variants := map[string][]byte{"label": doc(boot), "label-night": doc(boot + " " + source("next();"))}
+	err = checkVariantCSP("login.html", variants, served)
+	if err == nil {
+		t.Fatal("checkVariantCSP: got nil error, want the policy mismatch refusal")
+	}
+	if want := `the "label-night" variant of document "login.html": its CSP differs from the served header`; !strings.Contains(err.Error(), want) {
+		t.Errorf("error = %q, want it to contain %q", err.Error(), want)
 	}
 }

@@ -86,7 +86,7 @@ func TestNormalize(t *testing.T) {
 			var got pathRecorder
 			rec := httptest.NewRecorder()
 
-			Normalize(recordingPathHandler(&got)).ServeHTTP(rec, readRequest(t, tt.raw))
+			normalize(recordingPathHandler(&got)).ServeHTTP(rec, readRequest(t, tt.raw))
 
 			if rec.Code != tt.want {
 				t.Errorf("status = %d, want %d", rec.Code, tt.want)
@@ -102,7 +102,7 @@ func TestNormalize(t *testing.T) {
 }
 
 // TestUnencodedPathCarriesEmptyRawPath pins the net/url fact R-D's
-// mechanism rests on and the Normalize doc comment states: RawPath is
+// mechanism rests on and the normalize doc comment states: RawPath is
 // populated only when the escaped form differs from the default
 // encoding of Path, so a path needing no escaping carries an empty
 // RawPath and a comparison against it would admit every encoded path
@@ -139,7 +139,7 @@ func TestUnencodedPathCarriesEmptyRawPath(t *testing.T) {
 // TestServeMuxCleansBeforeARouteRuns is risk 1 stated as behavior: a
 // normalization check registered as a route never sees a dot segment,
 // because http.ServeMux redirects the request before any route runs.
-// This is the measurement behind Normalize wrapping the mux, and it
+// This is the measurement behind normalize wrapping the mux, and it
 // fails if a later change registers a check as a route instead.
 func TestServeMuxCleansBeforeARouteRuns(t *testing.T) {
 	tests := []struct {
@@ -156,7 +156,7 @@ func TestServeMuxCleansBeforeARouteRuns(t *testing.T) {
 		t.Run(tt.target, func(t *testing.T) {
 			var got pathRecorder
 			mux := http.NewServeMux()
-			mux.Handle("/dubplate/", Normalize(recordingPathHandler(&got)))
+			mux.Handle("/dubplate/", normalize(recordingPathHandler(&got)))
 
 			rec := httptest.NewRecorder()
 			mux.ServeHTTP(rec, readRequest(t, originForm(tt.target)))

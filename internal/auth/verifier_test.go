@@ -36,6 +36,17 @@ type verifierFixture struct {
 	dir    string // stateDir, for reaching the epoch subdirectory directly
 }
 
+// verifierConfig is the session half of a [Config] the verifier reads:
+// the fixture secrets and fixed readers for the lifetime and the cap.
+func verifierConfig() Config {
+	return Config{
+		SessionSecret:         []byte(currentFixture),
+		PreviousSessionSecret: []byte(previousFixture),
+		SessionLifetime:       fixed(verifierLifetime),
+		SessionAbsoluteCap:    fixed(verifierCap),
+	}
+}
+
 // newVerifierFixture opens a roster over a fresh store holding rows and a
 // fresh epoch store under t.TempDir(), and wires both into a
 // MagicLinkVerifier signing under currentFixture and previousFixture
@@ -52,9 +63,9 @@ func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap settings.Read
 	stateDir := t.TempDir()
 	_, users := newRosterOver(t, rows...)
 	epoch := newEpochStore(t, stateDir)
-	roster := member.NewRoster(users, epoch, fixedNow(rosterNow))
+	roster := member.NewRoster(users, epoch, fixedNow(rosterNow), discardLogger())
 
-	seam := NewMagicLinkVerifier(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
+	seam := NewMagicLinkVerifier(roster, epoch, Config{SessionSecret: []byte(currentFixture), PreviousSessionSecret: []byte(previousFixture), SessionLifetime: lifetime, SessionAbsoluteCap: absoluteCap})
 	return verifierFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
 }
 
@@ -79,33 +90,33 @@ func requestWithSession(t *testing.T, value string) *http.Request {
 // flag.
 func TestMagicLinkVerifier_VerifyIdentity(t *testing.T) {
 	tests := []struct {
-		name      string
-		rows      []userRow
-		address   string
-		wantAdmin bool
-		wantPrinc string
-		wantErr   error
+		name         string
+		rows         []userRow
+		address      string
+		wantAdmin    bool
+		wantUsername string
+		wantErr      error
 	}{
 		{
-			name:      "member on roster",
-			rows:      []userRow{{address: "member@example.com", displayName: "Member", username: "member"}},
-			address:   "member@example.com",
-			wantAdmin: false,
-			wantPrinc: "member",
+			name:         "member on roster",
+			rows:         []userRow{{address: "member@example.com", displayName: "Member", username: "member"}},
+			address:      "member@example.com",
+			wantAdmin:    false,
+			wantUsername: "member",
 		},
 		{
-			name:      "admin member on roster",
-			rows:      []userRow{{address: "lead@example.com", displayName: "Lead", username: "chief", admin: true}},
-			address:   "lead@example.com",
-			wantAdmin: true,
-			wantPrinc: "chief",
+			name:         "admin member on roster",
+			rows:         []userRow{{address: "lead@example.com", displayName: "Lead", username: "chief", admin: true}},
+			address:      "lead@example.com",
+			wantAdmin:    true,
+			wantUsername: "chief",
 		},
 		{
-			name:      "address named admin is not itself an admin claim",
-			rows:      []userRow{{address: "admin@example.com", displayName: "Not Actually Admin", username: "plainuser"}},
-			address:   "admin@example.com",
-			wantAdmin: false,
-			wantPrinc: "plainuser",
+			name:         "address named admin is not itself an admin claim",
+			rows:         []userRow{{address: "admin@example.com", displayName: "Not Actually Admin", username: "plainuser"}},
+			address:      "admin@example.com",
+			wantAdmin:    false,
+			wantUsername: "plainuser",
 		},
 		{
 			name:    "address removed from roster",
@@ -148,8 +159,8 @@ func TestMagicLinkVerifier_VerifyIdentity(t *testing.T) {
 			if got.Identity.Address != tt.address {
 				t.Errorf("Address = %q, want %q", got.Identity.Address, tt.address)
 			}
-			if got.Identity.Principal != tt.wantPrinc {
-				t.Errorf("Principal = %q, want %q", got.Identity.Principal, tt.wantPrinc)
+			if got.Identity.Username != tt.wantUsername {
+				t.Errorf("Username = %q, want %q", got.Identity.Username, tt.wantUsername)
 			}
 			if got.Admin != tt.wantAdmin {
 				t.Errorf("Admin = %v, want %v", got.Admin, tt.wantAdmin)
@@ -195,7 +206,7 @@ func TestMagicLinkVerifier_VerifyIdentity_NeverCommandLine(t *testing.T) {
 // TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh proves that
 // refreshing a session cannot outrun a revocation aimed at its anchor:
 // the anchor a refresh never moves is what a later epoch bump compares
-// against, the property 5b-i's CheckSession doc records. The test
+// against, the property checkSession's doc records. The test
 // performs a refresh before the bump, so a check reading IssuedAt
 // instead of AnchoredAt would miss it.
 func TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T) {
@@ -219,13 +230,13 @@ func TestMagicLinkVerifier_VerifyIdentity_EpochRevokedAfterRefresh(t *testing.T)
 	// which a check keyed on IssuedAt would miss and a check keyed on
 	// AnchoredAt (unmoved by the refresh) still catches.
 	bumpTime := verifierBirth.Add(30 * time.Minute)
-	if err := fx.epoch.Bump("member@example.com", bumpTime); err != nil {
+	if err := fx.epoch.bump("member@example.com", bumpTime); err != nil {
 		t.Fatalf("Bump: %v", err)
 	}
 
 	req2 := requestWithSession(t, refreshed.RefreshedValue)
 	_, err = fx.seam.VerifyIdentity(req2, refreshTime.Add(time.Minute), true)
-	if !errors.Is(err, ErrSessionRevoked) {
+	if !errors.Is(err, errSessionRevoked) {
 		t.Fatalf("VerifyIdentity (post-bump) error = %v, want ErrSessionRevoked", err)
 	}
 }
@@ -257,7 +268,7 @@ func TestMagicLinkVerifier_VerifyIdentity_CrossOriginDoesNotRefresh(t *testing.T
 }
 
 // TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies proves that a
-// non-sentinel error from EpochStore.Read (via CheckSession) denies
+// non-sentinel error from EpochStore.Read (via checkSession) denies
 // exactly as a sentinel refusal would, the fail-closed discipline
 // security constraint 2 states. Named mutation 3 (treat a non-sentinel
 // error as "not refused") fails this row, because it would let a valid
@@ -272,7 +283,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 		t.Fatalf("MintSession: %v", err)
 	}
 
-	epochDir := filepath.Join(fx.dir, leafDirName, epochSubdir)
+	epochDir := filepath.Join(fx.dir, dirName, epochSubdir)
 	if err := os.Chmod(epochDir, 0o000); err != nil {
 		t.Fatalf("Chmod: %v", err)
 	}
@@ -283,19 +294,19 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 	if err == nil {
 		t.Fatalf("VerifyIdentity: got nil error, want a denial from the unreadable epoch directory")
 	}
-	if errors.Is(err, member.ErrMemberNotFound) || errors.Is(err, ErrSessionRevoked) {
+	if errors.Is(err, member.ErrMemberNotFound) || errors.Is(err, errSessionRevoked) {
 		t.Fatalf("VerifyIdentity error = %v, want a non-sentinel I/O error", err)
 	}
 }
 
 // TestMagicLinkVerifier_VerifyIdentity_UsersTable proves the seam resolves a
 // session through the users table: the identity carries the row's id as
-// UserID and the row's username as Principal. The member's address and
-// username differ, so a Principal built from the address fails.
+// UserID and the row's username as Username. The member's address and
+// username differ, so a Username built from the address fails.
 func TestMagicLinkVerifier_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
+	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil, nil), newEpochStore(t, t.TempDir()), verifierConfig())
 	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
@@ -306,12 +317,10 @@ func TestMagicLinkVerifier_VerifyIdentity_UsersTable(t *testing.T) {
 		t.Fatalf("VerifyIdentity: %v", err)
 	}
 	want := identity.Identity{
-		Address:     "alice@example.com",
-		UserID:      identity.UserID{0xa1, 0x1c, 0xe0},
-		Principal:   "ally",
-		DisplayName: "Alice",
-		Source:      magicLinkSource,
-		Channel:     identity.ChannelCookie,
+		Address:  "alice@example.com",
+		UserID:   identity.UserID{0xa1, 0x1c, 0xe0},
+		Username: "ally",
+		Channel:  identity.ChannelCookie,
 	}
 	if got.Identity != want {
 		t.Errorf("Identity = %+v, want %+v", got.Identity, want)
@@ -343,7 +352,7 @@ func TestMagicLinkVerifier_ReadsTheCapAtEveryVerification(t *testing.T) {
 		wantErr error
 	}{
 		{"the cap in force admits the session's age", verifierCap, nil},
-		{"a cap lowered below the session's age refuses it", 5 * 24 * time.Hour, ErrSessionCapReached},
+		{"a cap lowered below the session's age refuses it", 5 * 24 * time.Hour, errSessionCapReached},
 		{"the cap raised again admits it", verifierCap, nil},
 	} {
 		absoluteCap.set(tt.cap, nil)
@@ -448,8 +457,8 @@ func TestMagicLinkVerifier_CapReadFollowsTheMAC(t *testing.T) {
 		wantErr   error
 		wantReads int
 	}{
-		{"a value that does not parse", func(*testing.T) string { return "not-a-session" }, ErrSessionMalformed, 0},
-		{"a MAC under neither secret", func(t *testing.T) string { return mint(t, "an-unrelated-secret-of-enough-length") }, ErrSessionMAC, 0},
+		{"a value that does not parse", func(*testing.T) string { return "not-a-session" }, errSessionMalformed, 0},
+		{"a MAC under neither secret", func(t *testing.T) string { return mint(t, "an-unrelated-secret-of-enough-length") }, errSessionMAC, 0},
 		{"a valid session", func(t *testing.T) string { return mint(t, currentFixture) }, nil, 1},
 	}
 	for _, tt := range tests {

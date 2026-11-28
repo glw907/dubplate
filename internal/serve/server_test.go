@@ -21,7 +21,7 @@ import (
 // The read timeout is also checked against a literal 30 seconds, R-V's
 // own value, independent of the constant it is wired from.
 func TestNewHTTPServerTimeouts(t *testing.T) {
-	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), slog.Default(), defaultWriteTimeout)
+	srv := newHTTPServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}), slog.Default())
 
 	if srv.ReadHeaderTimeout != readHeaderTimeout {
 		t.Errorf("ReadHeaderTimeout = %v, want the readHeaderTimeout constant %v", srv.ReadHeaderTimeout, readHeaderTimeout)
@@ -33,14 +33,7 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 		t.Errorf("ReadTimeout = %v, want the readTimeout constant %v", srv.ReadTimeout, readTimeout)
 	}
 	if srv.WriteTimeout != 30*time.Second {
-		t.Errorf("WriteTimeout = %v, want the 30s defaultWriteTimeout Run passes", srv.WriteTimeout)
-	}
-	// A second construction with a different write timeout proves the
-	// field is wired from the parameter rather than from a constant
-	// read inside newHTTPServer, which the row above alone could not
-	// tell apart.
-	if short := newHTTPServer(http.NotFoundHandler(), slog.Default(), 5*time.Millisecond); short.WriteTimeout != 5*time.Millisecond {
-		t.Errorf("WriteTimeout = %v for a 5ms argument, want the argument to reach the field", short.WriteTimeout)
+		t.Errorf("WriteTimeout = %v, want 30s", srv.WriteTimeout)
 	}
 	if srv.IdleTimeout != idleTimeout {
 		t.Errorf("IdleTimeout = %v, want the idleTimeout constant %v", srv.IdleTimeout, idleTimeout)
@@ -55,11 +48,9 @@ func TestNewHTTPServerTimeouts(t *testing.T) {
 // TestWriteDeadlineExtension proves the write timeout newHTTPServer
 // wires is real, and that http.ResponseController.SetWriteDeadline,
 // exposed to every handler by newHTTPServer's ordinary
-// construction, lets a handler survive past it. It passes a short
-// write timeout through the constructor, so both rows exercise
-// newHTTPServer's actual wiring path (proving a dropped WriteTimeout
-// field would let the no-extension row succeed instead of fail) at a
-// duration the gate can run in a second rather than thirty.
+// construction, lets a handler survive past it. It lowers the built
+// server's write timeout, so both rows run at a duration the gate can
+// run in a second rather than thirty.
 //
 // This is a timing test. The margins are wide by a large multiple
 // rather than tight, so a loaded machine's scheduling delay cannot
@@ -101,7 +92,8 @@ func TestWriteDeadlineExtension(t *testing.T) {
 			})
 
 			srv := httptest.NewUnstartedServer(handler)
-			srv.Config = newHTTPServer(handler, slog.Default(), testWriteTimeout)
+			srv.Config = newHTTPServer(handler, slog.Default())
+			srv.Config.WriteTimeout = testWriteTimeout
 			srv.Start()
 			defer srv.Close()
 
@@ -131,7 +123,7 @@ func TestWriteDeadlineExtension(t *testing.T) {
 
 // --- the IP_FREEBIND listener set (R20, R-M) --------------------------
 
-// TestListenBindsExactAddresses asserts Listen binds exactly the
+// TestListenBindsExactAddresses asserts listen binds exactly the
 // addresses named, none substituted for the all-interfaces wildcard
 // address (C8), and that every bound listener's address is readable
 // afterward (R-G). One row binds two IPv4 loopback addresses in a
@@ -150,9 +142,9 @@ func TestListenBindsExactAddresses(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			listeners, err := Listen(context.Background(), tt.addrs, 0)
+			listeners, err := listen(context.Background(), addrs(tt.addrs...), 0)
 			if err != nil {
-				t.Fatalf("Listen(%v, 0): %v", tt.addrs, err)
+				t.Fatalf("listen(%v, 0): %v", tt.addrs, err)
 			}
 			defer func() {
 				for _, l := range listeners {
@@ -192,7 +184,7 @@ func TestListenBindsExactAddresses(t *testing.T) {
 // TestListenPartialFailureClosesOpened proves a failure partway through
 // the address list closes every listener already opened, so a partial
 // bind leaks nothing. It pre-occupies a fixed port on 127.0.0.2, then
-// asks Listen for that same port on 127.0.0.1 (which succeeds first)
+// asks listen for that same port on 127.0.0.1 (which succeeds first)
 // and 127.0.0.2 (which collides and fails). 127.0.0.2 is not the
 // documentation-reserved address the Control-hook test below uses.
 func TestListenPartialFailureClosesOpened(t *testing.T) {
@@ -210,16 +202,16 @@ func TestListenPartialFailureClosesOpened(t *testing.T) {
 		t.Fatalf("parse pre-occupied port %q: %v", portStr, err)
 	}
 
-	_, err = Listen(context.Background(), []string{"127.0.0.1", "127.0.0.2"}, port)
+	_, err = listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), port)
 	if err == nil {
-		t.Fatalf("Listen succeeded, want an error binding the already-occupied 127.0.0.2:%d", port)
+		t.Fatalf("listen succeeded, want an error binding the already-occupied 127.0.0.2:%d", port)
 	}
 
 	// If the first listener (127.0.0.1:port) were left open, rebinding
 	// it here would fail with EADDRINUSE.
 	leak, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
 	if err != nil {
-		t.Fatalf("127.0.0.1:%d still bound after Listen's failure, want it closed: %v", port, err)
+		t.Fatalf("127.0.0.1:%d still bound after listen's failure, want it closed: %v", port, err)
 	}
 	_ = leak.Close()
 }
@@ -235,9 +227,9 @@ const freebindTestAddr = "192.0.2.77" // RFC 5737 TEST-NET-3, on no interface
 // assertion.
 func TestControlHookOpensAnUnconfiguredAddress(t *testing.T) {
 	t.Run("with the hook, the address binds", func(t *testing.T) {
-		listeners, err := Listen(context.Background(), []string{freebindTestAddr}, 0)
+		listeners, err := listen(context.Background(), addrs(freebindTestAddr), 0)
 		if err != nil {
-			t.Fatalf("Listen(%q, 0) with the hook: %v, want success (the boot property)", freebindTestAddr, err)
+			t.Fatalf("listen(%q, 0) with the hook: %v, want success (the boot property)", freebindTestAddr, err)
 		}
 		defer func() { _ = listeners[0].Close() }()
 
@@ -291,7 +283,7 @@ func TestRunTakesCtxFirstAndReturnsPromptlyWhenAlreadyDone(t *testing.T) {
 	cancel()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	if err := Run(ctx, slog.Default(), handler, []string{"127.0.0.1"}, 0); err != nil {
+	if err := Run(ctx, slog.Default(), handler, addrs("127.0.0.1"), 0); err != nil {
 		t.Fatalf("Run(already-canceled ctx, ...) = %v, want nil", err)
 	}
 }
@@ -315,15 +307,15 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
-	listeners, err := Listen(ctx, []string{"127.0.0.1"}, 0)
+	listeners, err := listen(ctx, addrs("127.0.0.1"), 0)
 	if err != nil {
-		t.Fatalf("Listen: %v", err)
+		t.Fatalf("listen: %v", err)
 	}
 	addr := listeners[0].Addr().String()
 
 	runErr := make(chan error, 1)
 	go func() {
-		runErr <- serveUntilDone(ctx, newHTTPServer(handler, slog.Default(), defaultWriteTimeout), listeners)
+		runErr <- serveUntilDone(ctx, newHTTPServer(handler, slog.Default()), listeners)
 	}()
 
 	respErr := make(chan error, 1)
@@ -368,9 +360,9 @@ func TestRunDrainsInFlightRequestAfterCtxDone(t *testing.T) {
 func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	listeners, err := Listen(context.Background(), []string{"127.0.0.1", "127.0.0.2"}, 0)
+	listeners, err := listen(context.Background(), addrs("127.0.0.1", "127.0.0.2"), 0)
 	if err != nil {
-		t.Fatalf("Listen: %v", err)
+		t.Fatalf("listen: %v", err)
 	}
 	survivor := listeners[1].Addr().String()
 	if err := listeners[0].Close(); err != nil {
@@ -382,7 +374,7 @@ func TestServeUntilDoneShutsDownWhenOneServeFails(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	err = serveUntilDone(ctx, newHTTPServer(handler, slog.Default(), defaultWriteTimeout), listeners)
+	err = serveUntilDone(ctx, newHTTPServer(handler, slog.Default()), listeners)
 	if err == nil {
 		t.Fatal("serveUntilDone returned nil, want the failing listener's error")
 	}
@@ -424,7 +416,7 @@ func (h *levelCapturingHandler) WithGroup(string) slog.Handler      { return h }
 // where the operator's structured sink never sees them.
 func TestNewHTTPServerErrorLogReachesTheSlogSink(t *testing.T) {
 	capture := &levelCapturingHandler{}
-	srv := newHTTPServer(http.NotFoundHandler(), slog.New(capture), defaultWriteTimeout)
+	srv := newHTTPServer(http.NotFoundHandler(), slog.New(capture))
 
 	if srv.ErrorLog == nil {
 		t.Fatal("srv.ErrorLog = nil, want a logger writing to the shell's own sink")

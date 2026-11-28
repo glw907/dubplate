@@ -12,60 +12,8 @@ import (
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/serve"
 )
-
-// mountPrefix is the owned prefix every mount test serves under.
-const mountPrefix = "/dub"
-
-// A mountFixture is a mount over fake seams and a counting verifier.
-type mountFixture struct {
-	mount    http.Handler
-	admin    *fakeAdmin
-	subs     *fakeSubmissions
-	verified int
-	log      *bytes.Buffer
-}
-
-// newMountFixture builds a mount whose verifier answers decide.
-func newMountFixture(t *testing.T, decide func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error)) *mountFixture {
-	t.Helper()
-	f := &mountFixture{
-		admin: &fakeAdmin{answers: adminSuccesses()},
-		subs:  &fakeSubmissions{answers: submissionSuccesses()},
-		log:   &bytes.Buffer{},
-	}
-	verify := func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
-		f.verified++
-		return decide(w, r)
-	}
-	m, err := NewMount(f.admin, f.subs, mountPrefix, verify, slog.New(slog.NewTextHandler(f.log, nil)))
-	if err != nil {
-		t.Fatalf("NewMount: %v", err)
-	}
-	f.mount = m
-	return f
-}
-
-// operationCallsOf is the number of calls both seams under f have received.
-func operationCallsOf(f *mountFixture) int {
-	return len(f.admin.calls) + len(f.subs.calls)
-}
-
-// admitAs is a verifier admitting every request as ann with p.
-func admitAs(p ops.Privilege) func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-	return func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-		return identity.NetworkActor(ann, annAnchor, "192.0.2.1"), p, nil
-	}
-}
-
-func (f *mountFixture) do(method, path, body string) *httptest.ResponseRecorder {
-	req := httptest.NewRequest(method, "/x", strings.NewReader(body))
-	req.URL.Path = path
-	req.Header.Set("Content-Type", "application/json")
-	rec := httptest.NewRecorder()
-	f.mount.ServeHTTP(rec, req)
-	return rec
-}
 
 // TestMount_OtherAPIPathsAnswerJSONNotFound proves every path under
 // <prefix>/api that names no v1 operation answers 404 not_found in the
@@ -81,8 +29,8 @@ func TestMount_OtherAPIPathsAnswerJSONNotFound(t *testing.T) {
 		mountPrefix + "/apix",
 	} {
 		t.Run(path, func(t *testing.T) {
-			f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
-			rec := f.do(http.MethodPost, path, `{}`)
+			f := newFixture(t, admitAnn())
+			rec := f.send(http.MethodPost, path, `{}`)
 			if rec.Code != http.StatusNotFound {
 				t.Fatalf("status = %d, want 404", rec.Code)
 			}
@@ -97,24 +45,24 @@ func TestMount_OtherAPIPathsAnswerJSONNotFound(t *testing.T) {
 }
 
 // TestMount_NoSessionAnswers401 proves a verifier refusal wrapping
-// ops.ErrUnauthenticated answers 401 unauthenticated and reaches no operation,
+// ops.CodeUnauthenticated answers 401 unauthenticated and reaches no operation,
 // on every operation and on an unknown name under v1.
 func TestMount_NoSessionAnswers401(t *testing.T) {
 	refuse := func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-		return identity.Actor{}, 0, fmt.Errorf("verify: %w", ops.ErrUnauthenticated)
+		return identity.Actor{}, 0, fmt.Errorf("verify: %w", ops.CodeUnauthenticated)
 	}
 	paths := []string{"list_submissions", "list_members", "add_member", "set_setting", "no_such_operation"}
 	for _, name := range paths {
 		t.Run(name, func(t *testing.T) {
-			f := newMountFixture(t, refuse)
-			rec := f.do(http.MethodPost, mountPrefix+"/api/v1/"+name, `{}`)
+			f := newFixture(t, refuse)
+			rec := f.send(http.MethodPost, mountPrefix+"/api/v1/"+name, `{}`)
 			if rec.Code != http.StatusUnauthorized {
 				t.Fatalf("status = %d, want 401", rec.Code)
 			}
 			if code, _, _ := errorAnswer(t, rec); code != ops.CodeUnauthenticated {
 				t.Errorf("code = %q, want unauthenticated", code)
 			}
-			if operationCallsOf(f) != 0 {
+			if operationCalls(f) != 0 {
 				t.Errorf("a refused request reached a seam: %v %v", f.admin.calls, f.subs.calls)
 			}
 		})
@@ -125,10 +73,11 @@ func TestMount_NoSessionAnswers401(t *testing.T) {
 // is the server failing: 500 internal with no reason on the wire and
 // none of the error's text, which may quote an address, in the log.
 func TestMount_VerifierFailureAnswers500(t *testing.T) {
-	f := newMountFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+	f := newFixture(t, func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
 		return identity.Actor{}, 0, errors.New("roster lookup failed for ann@example.com")
 	})
-	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`)
+
+	rec := f.send(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`)
 	if rec.Code != http.StatusInternalServerError {
 		t.Fatalf("status = %d, want 500", rec.Code)
 	}
@@ -142,25 +91,25 @@ func TestMount_VerifierFailureAnswers500(t *testing.T) {
 	if !strings.Contains(f.log.String(), "level=ERROR") {
 		t.Errorf("log %q has no Error record", f.log.String())
 	}
-	if operationCallsOf(f) != 0 {
+	if operationCalls(f) != 0 {
 		t.Errorf("a failed verification reached a seam")
 	}
 }
 
-// TestMount_AdmittedCallerRidesTheContext proves an admitted caller
+// TestMount_VerifiedCallerReachesTheOperation proves an admitted caller
 // reaches the operation as the verifier's actor, whatever the body
 // names, and that an admin operation reaches the admin seam and a
 // submission operation the submission seam.
-func TestMount_AdmittedCallerRidesTheContext(t *testing.T) {
-	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
-	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{"actor":"member:ffffffffffffffffffffffffffffffff"}`)
+func TestMount_VerifiedCallerReachesTheOperation(t *testing.T) {
+	f := newFixture(t, admitAnn())
+	rec := f.send(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{"actor":"member:ffffffffffffffffffffffffffffffff"}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("list_submissions status = %d, body %s", rec.Code, rec.Body)
 	}
 	if len(f.subs.calls) != 1 || f.subs.calls[0].actor.String() != annWire {
 		t.Fatalf("submission seam calls = %v, want one as %s", f.subs.calls, annWire)
 	}
-	rec = f.do(http.MethodPost, mountPrefix+"/api/v1/set_setting", `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h","actor":"member:ffffffffffffffffffffffffffffffff"}`)
+	rec = f.send(http.MethodPost, mountPrefix+"/api/v1/set_setting", `{"key":"DUBPLATE_REAUTH_WINDOW","value":"3h","actor":"member:ffffffffffffffffffffffffffffffff"}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("set_setting status = %d, body %s", rec.Code, rec.Body)
 	}
@@ -176,12 +125,12 @@ func TestMount_AdmittedCallerRidesTheContext(t *testing.T) {
 // meets the submission operations and is refused every admin operation
 // with forbidden, with no admin seam call (AC5).
 func TestMount_MemberReachesOnlyTheSubmissions(t *testing.T) {
-	f := newMountFixture(t, admitAs(ops.PrivilegeMember))
-	if rec := f.do(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`); rec.Code != http.StatusOK {
+	f := newFixture(t, grant(ann, ops.PrivilegeMember))
+	if rec := f.send(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`); rec.Code != http.StatusOK {
 		t.Fatalf("list_submissions status = %d, body %s", rec.Code, rec.Body)
 	}
 	for _, name := range []string{"list_members", "add_member", "remove_member", "demote_member", "list_settings", "set_setting", "reset_setting"} {
-		rec := f.do(http.MethodPost, mountPrefix+"/api/v1/"+name, `{}`)
+		rec := f.send(http.MethodPost, mountPrefix+"/api/v1/"+name, `{}`)
 		if rec.Code != http.StatusForbidden {
 			t.Errorf("%s status = %d, want 403", name, rec.Code)
 		}
@@ -200,26 +149,27 @@ func TestMount_MemberReachesOnlyTheSubmissions(t *testing.T) {
 // session changes nothing.
 func TestMount_BearerHeaderAdmitsNobody(t *testing.T) {
 	sawBearer := false
-	f := newMountFixture(t, func(_ http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
+	f := newFixture(t, func(_ http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
 		if r.Header.Get("Authorization") == "" {
-			return identity.Actor{}, 0, fmt.Errorf("no cookie: %w", ops.ErrUnauthenticated)
+			return identity.Actor{}, 0, fmt.Errorf("no cookie: %w", ops.CodeUnauthenticated)
 		}
 		sawBearer = true
-		return identity.Actor{}, 0, fmt.Errorf("bearer is no session: %w", ops.ErrUnauthenticated)
+		return identity.Actor{}, 0, fmt.Errorf("bearer is no session: %w", ops.CodeUnauthenticated)
 	})
+
 	req := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(`{}`))
 	req.URL.Path = mountPrefix + "/api/v1/list_submissions"
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer 0123456789abcdef0123456789abcdef")
 	rec := httptest.NewRecorder()
-	f.mount.ServeHTTP(rec, req)
+	f.m.ServeHTTP(rec, req)
 	if rec.Code != http.StatusUnauthorized {
 		t.Errorf("status = %d, want 401", rec.Code)
 	}
 	if !sawBearer {
 		t.Fatal("the verifier never saw the request's header, so the test proves nothing")
 	}
-	if n := operationCallsOf(f); n != 0 {
+	if n := operationCalls(f); n != 0 {
 		t.Errorf("a bearer header reached a seam")
 	}
 }
@@ -228,8 +178,8 @@ func TestMount_BearerHeaderAdmitsNobody(t *testing.T) {
 // under v1 that is no operation answers not_found for a verified
 // caller.
 func TestMount_UnknownOperationAnswers404AfterVerification(t *testing.T) {
-	f := newMountFixture(t, admitAs(ops.PrivilegeAdmin))
-	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/no_such_operation", `{}`)
+	f := newFixture(t, admitAnn())
+	rec := f.send(http.MethodPost, mountPrefix+"/api/v1/no_such_operation", `{}`)
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", rec.Code)
 	}
@@ -244,11 +194,12 @@ func TestMount_UnknownOperationAnswers404AfterVerification(t *testing.T) {
 // TestMount_VerifierCanSetCookies proves the verifier is handed the
 // response writer, so a refreshed session cookie reaches the answer.
 func TestMount_VerifierCanSetCookies(t *testing.T) {
-	f := newMountFixture(t, func(w http.ResponseWriter, _ *http.Request) (identity.Actor, ops.Privilege, error) {
+	f := newFixture(t, func(w http.ResponseWriter, _ *http.Request) (identity.Actor, ops.Privilege, error) {
 		http.SetCookie(w, &http.Cookie{Name: "session", Value: "refreshed"})
 		return identity.NetworkActor(ann, annAnchor, "192.0.2.1"), ops.PrivilegeAdmin, nil
 	})
-	rec := f.do(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`)
+
+	rec := f.send(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{}`)
 	if got := rec.Header().Get("Set-Cookie"); !strings.HasPrefix(got, "session=refreshed") {
 		t.Errorf("Set-Cookie = %q, want the verifier's cookie", got)
 	}
@@ -257,24 +208,29 @@ func TestMount_VerifierCanSetCookies(t *testing.T) {
 // TestNewMount_Refusals proves a mount is not built without its parts.
 func TestNewMount_Refusals(t *testing.T) {
 	verify := func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
-		return identity.Actor{}, 0, ops.ErrUnauthenticated
+		return identity.Actor{}, 0, ops.CodeUnauthenticated
 	}
 	log := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
 	admin, subs := &fakeAdmin{}, &fakeSubmissions{}
+	prefix := testPrefix(t)
 	for _, tt := range []struct {
 		name string
 		call func() (http.Handler, error)
+		want string
 	}{
-		{"nil verifier", func() (http.Handler, error) { return NewMount(admin, subs, mountPrefix, nil, log) }},
-		{"nil admin seam", func() (http.Handler, error) { return NewMount(nil, subs, mountPrefix, verify, log) }},
-		{"nil submission seam", func() (http.Handler, error) { return NewMount(admin, nil, mountPrefix, verify, log) }},
-		{"nil logger", func() (http.Handler, error) { return NewMount(admin, subs, mountPrefix, verify, nil) }},
-		{"prefix without a leading separator", func() (http.Handler, error) { return NewMount(admin, subs, "dub", verify, log) }},
-		{"prefix with a trailing separator", func() (http.Handler, error) { return NewMount(admin, subs, "/dub/", verify, log) }},
+		{"nil verifier", func() (http.Handler, error) { return NewMount(admin, subs, prefix, nil, log) }, "verifier is nil"},
+		{"nil admin seam", func() (http.Handler, error) { return NewMount(nil, subs, prefix, verify, log) }, "admin operations are nil"},
+		{"nil submission seam", func() (http.Handler, error) { return NewMount(admin, nil, prefix, verify, log) }, "submission operations are nil"},
+		{"nil logger", func() (http.Handler, error) { return NewMount(admin, subs, prefix, verify, nil) }, "logger is nil"},
+		{"the zero prefix", func() (http.Handler, error) { return NewMount(admin, subs, serve.Prefix{}, verify, log) }, "zero Prefix"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			if h, err := tt.call(); err == nil || h != nil {
-				t.Errorf("NewMount = %v, %v, want a refusal", h, err)
+			h, err := tt.call()
+			if err == nil || h != nil {
+				t.Fatalf("NewMount = %v, %v, want a refusal", h, err)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("NewMount error %q lacks %q", err, tt.want)
 			}
 		})
 	}

@@ -1,21 +1,23 @@
 // Package web embeds the SvelteKit build's static output into the
-// dubplate-server binary. `npm run build` writes a hashed `_app/`
-// directory and a prerendered document per route into build/, plus a
-// copy of web/static/placeholder.txt (adapter-static copies static/
-// verbatim on every build); build/placeholder.txt is a second,
-// separately committed copy of that same file, since adapter-static
-// clears build/ on every run and a fresh checkout that has never run
-// the web build would otherwise fail //go:embed at compile time.
+// dubplate-server binary. A copy of static/placeholder.txt is committed
+// under build/, so a checkout that has never run `npm run build` still
+// compiles.
 package web
 
-import "embed"
+import (
+	"embed"
+	"io/fs"
+)
 
-// Assets is build/'s content, rooted at "build" ("build/login.html",
-// "build/_app/immutable/<hash>.js", ...). cmd/dubplate-server strips
-// the "build" prefix via [io/fs.Sub] itself, rather than this package
-// doing so, since that is the one place able to return an error a
-// placeholder-only tree should produce instead of panicking at program
-// init.
-//
 //go:embed all:build
-var Assets embed.FS
+var embedded embed.FS
+
+// Build is the build's output, rooted at the build directory:
+// "login.html", "_app/immutable/<hash>.js", and so on.
+var Build = func() fs.FS {
+	sub, err := fs.Sub(embedded, "build")
+	if err != nil {
+		panic(err)
+	}
+	return sub
+}()

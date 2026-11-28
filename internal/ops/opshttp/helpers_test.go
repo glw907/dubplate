@@ -16,6 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/serve"
 )
 
 // testHandle is a well-formed record id: 32 lowercase hex characters.
@@ -24,14 +25,12 @@ const testHandle = "0123456789abcdef0123456789abcdef"
 
 var testID = id.ID{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef}
 
-// ann is the verified member the admitting authorizers answer with.
+// ann is the verified member the admitting verifiers answer with.
 var ann = identity.Identity{
-	Address:     "ann@example.com",
-	UserID:      identity.UserID{0x01},
-	Principal:   "ann",
-	DisplayName: "Ann",
-	Source:      "magic-link",
-	Channel:     identity.ChannelCookie,
+	Address:  "ann@example.com",
+	UserID:   identity.UserID{0x01},
+	Username: "ann",
+	Channel:  identity.ChannelCookie,
 }
 
 // annWire is ann's network actor's wire form, written out rather than
@@ -43,7 +42,7 @@ var annAnchor = time.Date(2026, 10, 11, 9, 30, 0, 0, time.UTC)
 
 // A fakeCall is one call a fake seam received.
 type fakeCall struct {
-	op    string
+	op    ops.Op
 	actor identity.Actor
 	req   any
 }
@@ -58,17 +57,17 @@ type fakeAnswer struct {
 // only an operation it was configured for; any other call fails, so an
 // unexpected dispatch can never read as a success.
 type fakeAdmin struct {
-	answers map[string]fakeAnswer
+	answers map[ops.Op]fakeAnswer
 	calls   []fakeCall
 }
 
 // A fakeSubmissions is the submission seam's counterpart to fakeAdmin.
 type fakeSubmissions struct {
-	answers map[string]fakeAnswer
+	answers map[ops.Op]fakeAnswer
 	calls   []fakeCall
 }
 
-func answer[T any](answers map[string]fakeAnswer, calls *[]fakeCall, op string, actor identity.Actor, req any) (T, error) {
+func answer[T any](answers map[ops.Op]fakeAnswer, calls *[]fakeCall, op ops.Op, actor identity.Actor, req any) (T, error) {
 	*calls = append(*calls, fakeCall{op: op, actor: actor, req: req})
 	var zero T
 	a, ok := answers[op]
@@ -158,8 +157,8 @@ var testSubmission = ops.GetSubmissionResponse{
 }
 
 // submissionSuccesses configures every submission operation to succeed.
-func submissionSuccesses() map[string]fakeAnswer {
-	return map[string]fakeAnswer{
+func submissionSuccesses() map[ops.Op]fakeAnswer {
+	return map[ops.Op]fakeAnswer{
 		ops.OpCreateSubmission: {resp: ops.CreateSubmissionResponse{SubmissionID: testID, Files: []ops.CreatedFile{{Path: "a/1.flac", FileID: testID}}}},
 		ops.OpListSubmissions: {resp: ops.ListSubmissionsResponse{Submissions: []ops.SubmissionSummary{
 			{SubmissionID: testID, State: "uploading", VerdictUnit: "album", CreatedAt: annAnchor, UpdatedAt: annAnchor}}}},
@@ -170,8 +169,8 @@ func submissionSuccesses() map[string]fakeAnswer {
 }
 
 // adminSuccesses configures every admin operation to succeed.
-func adminSuccesses() map[string]fakeAnswer {
-	return map[string]fakeAnswer{
+func adminSuccesses() map[ops.Op]fakeAnswer {
+	return map[ops.Op]fakeAnswer{
 		ops.OpListMembers:  {resp: ops.ListMembersResponse{Members: []ops.Member{{UserID: testID, Address: "ann@example.com", Username: "ann", Admin: true}}}},
 		ops.OpAddMember:    {resp: ops.AddMemberResponse{Member: ops.Member{UserID: testID, Address: "bo@example.com", Username: "bo"}}},
 		ops.OpRemoveMember: {resp: ops.RemoveMemberResponse{}},
@@ -182,73 +181,97 @@ func adminSuccesses() map[string]fakeAnswer {
 	}
 }
 
-// A fakeAuthorizer answers with decide and records the operation of
-// each call.
-type fakeAuthorizer struct {
-	decide func(op string) (identity.Actor, ops.Privilege, error)
-	calls  []string
+// mountPrefix is the owned prefix every test mount serves under.
+const mountPrefix = "/dub"
+
+// testPrefix returns mountPrefix as the shell's [serve.Prefix].
+func testPrefix(t *testing.T) serve.Prefix {
+	t.Helper()
+	prefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=" + mountPrefix})
+	if err != nil {
+		t.Fatalf("serve.ParsePrefix: %v", err)
+	}
+	return prefix
 }
 
-func (a *fakeAuthorizer) authorize(_ context.Context, op string) (identity.Actor, ops.Privilege, error) {
-	a.calls = append(a.calls, op)
-	return a.decide(op)
+// grant is a verifier admitting every request as who's network actor,
+// granted p.
+func grant(who identity.Identity, p ops.Privilege) Verifier {
+	return func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
+		return identity.NetworkActor(who, annAnchor, "192.0.2.1"), p, nil
+	}
 }
 
-// grant admits every call as the actor id's network actor, granted p.
-func grant(id identity.Identity, p ops.Privilege) *fakeAuthorizer {
-	return &fakeAuthorizer{decide: func(string) (identity.Actor, ops.Privilege, error) {
-		return identity.NetworkActor(id, annAnchor, "192.0.2.1"), p, nil
-	}}
-}
-
-// admitAnn admits every call as ann, granted admin.
-func admitAnn() *fakeAuthorizer {
+// admitAnn admits every request as ann, granted admin.
+func admitAnn() Verifier {
 	return grant(ann, ops.PrivilegeAdmin)
 }
 
-// A fixture is a handler over fake seams and a fake authorizer, with
-// its log captured. Each seam answers every operation with a success
-// until a test sets its answers.
+// A fixture is a mount over fake seams and a verifier that counts its
+// calls, with its log captured. Each seam answers every operation with
+// a success until a test sets its answers.
 type fixture struct {
-	h     *handler
-	admin *fakeAdmin
-	subs  *fakeSubmissions
-	auth  *fakeAuthorizer
-	log   *bytes.Buffer
+	m        *mount
+	admin    *fakeAdmin
+	subs     *fakeSubmissions
+	verified int
+	log      *bytes.Buffer
 }
 
-func newFixture(t *testing.T, auth *fakeAuthorizer) *fixture {
+// newFixture builds a mount whose verifier answers decide.
+func newFixture(t *testing.T, decide Verifier) *fixture {
 	t.Helper()
-	admin := &fakeAdmin{answers: adminSuccesses()}
-	subs := &fakeSubmissions{answers: submissionSuccesses()}
-	var buf bytes.Buffer
-	h, err := newHandler(admin, subs, auth, identity.ChannelCookie, slog.New(slog.NewTextHandler(&buf, nil)))
-	if err != nil {
-		t.Fatalf("newHandler: %v", err)
+	f := &fixture{
+		admin: &fakeAdmin{answers: adminSuccesses()},
+		subs:  &fakeSubmissions{answers: submissionSuccesses()},
+		log:   &bytes.Buffer{},
 	}
-	return &fixture{h: h, admin: admin, subs: subs, auth: auth, log: &buf}
+	verify := func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
+		f.verified++
+		return decide(w, r)
+	}
+	h, err := NewMount(f.admin, f.subs, testPrefix(t), verify, slog.New(slog.NewTextHandler(f.log, nil)))
+	if err != nil {
+		t.Fatalf("NewMount: %v", err)
+	}
+	m, ok := h.(*mount)
+	if !ok {
+		t.Fatalf("NewMount returned %T, want *mount", h)
+	}
+	f.m = m
+	return f
 }
 
-// do sends one request; an empty contentType sends no Content-Type
-// header at all. A target with no leading slash, which
-// [httptest.NewRequest] refuses to parse, is set as the request's path
-// after the request is built.
+// operationCalls is the number of calls both seams under f have
+// received.
+func operationCalls(f *fixture) int {
+	return len(f.admin.calls) + len(f.subs.calls)
+}
+
+// do sends one request to target, which follows the mount's v1 base
+// as written; an empty contentType sends no Content-Type header at all.
 func (f *fixture) do(method, target, contentType, body string) *httptest.ResponseRecorder {
-	relative, ok := strings.CutPrefix(target, "/")
-	req := httptest.NewRequest(method, "/"+relative, strings.NewReader(body))
-	if !ok {
-		req.URL.Path = target
-	}
+	req := httptest.NewRequest(method, mountPrefix+"/api/v1"+target, strings.NewReader(body))
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
 	rec := httptest.NewRecorder()
-	f.h.ServeHTTP(rec, req)
+	f.m.ServeHTTP(rec, req)
 	return rec
 }
 
-func (f *fixture) post(op, body string) *httptest.ResponseRecorder {
-	return f.do(http.MethodPost, "/"+op, "application/json", body)
+func (f *fixture) post(op ops.Op, body string) *httptest.ResponseRecorder {
+	return f.do(http.MethodPost, "/"+string(op), "application/json", body)
+}
+
+// send sends one JSON request to path, the whole path the mount sees.
+func (f *fixture) send(method, path, body string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(method, "/x", strings.NewReader(body))
+	req.URL.Path = path
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	f.m.ServeHTTP(rec, req)
+	return rec
 }
 
 // errorAnswer decodes rec's JSON error body, failing t when the body is

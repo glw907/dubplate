@@ -4,9 +4,7 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log/slog"
 	"maps"
 	"net/http"
 	"slices"
@@ -17,6 +15,10 @@ import (
 	"github.com/glw907/dubplate/internal/ops"
 )
 
+// TestServeHTTPRefusesBeforeAuthorizing proves the method, path, query,
+// and content type checks answer before the privilege check. Fixture
+// state: a member grant, so an admin row that reached admission would
+// answer 403 rather than its own refusal.
 func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 	idBody := `{"submission_id":"` + testHandle + `"}`
 	tests := []struct {
@@ -50,7 +52,7 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := newFixture(t, admitAnn())
+			f := newFixture(t, grant(ann, ops.PrivilegeMember))
 			rec := f.do(tt.method, tt.target, tt.contentType, tt.body)
 			if rec.Code != tt.wantStatus {
 				t.Errorf("status = %d, want %d; body %q", rec.Code, tt.wantStatus, rec.Body.String())
@@ -63,9 +65,6 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 					t.Errorf("Allow = %q, want POST", allow)
 				}
 			}
-			if n := len(f.auth.calls); n != 0 {
-				t.Errorf("authorizer calls = %d, want 0", n)
-			}
 			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
 			}
@@ -75,13 +74,13 @@ func TestServeHTTPRefusesBeforeAuthorizing(t *testing.T) {
 
 // TestServeHTTPRefusesABadBodyAfterAdmitting posts each malformed body
 // to a member operation as a member who holds its privilege. The
-// handler asks the authorizer once, answers 400, and no seam sees the
+// mount verifies the caller once, answers 400, and no seam sees the
 // call. Fixture state: a member grant, so the refusal can come only
 // from the body.
 func TestServeHTTPRefusesABadBodyAfterAdmitting(t *testing.T) {
 	tests := []struct {
 		name string
-		op   string
+		op   ops.Op
 		body string
 	}{
 		{"empty body", ops.OpListSubmissions, ""},
@@ -104,8 +103,8 @@ func TestServeHTTPRefusesABadBodyAfterAdmitting(t *testing.T) {
 			if code, _, _ := errorAnswer(t, rec); code != ops.CodeInvalidRequest {
 				t.Errorf("code = %q, want %q", code, ops.CodeInvalidRequest)
 			}
-			if got := f.auth.calls; !slices.Equal(got, []string{tt.op}) {
-				t.Errorf("authorizer calls = %v, want one for %s", got, tt.op)
+			if f.verified != 1 {
+				t.Errorf("verifier calls = %d, want 1", f.verified)
 			}
 			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
@@ -121,7 +120,10 @@ func TestServeHTTPRefusesABadBodyAfterAdmitting(t *testing.T) {
 // id's text.
 func TestServeHTTPRefusesAMalformedID(t *testing.T) {
 	const want = "request body names a malformed id: want 32 lowercase hex characters"
-	for _, field := range []struct{ op, key string }{
+	for _, field := range []struct {
+		op  ops.Op
+		key string
+	}{
 		{ops.OpGetSubmission, "submission_id"},
 		{ops.OpRemoveMember, "user_id"},
 		{ops.OpDemoteMember, "user_id"},
@@ -132,7 +134,7 @@ func TestServeHTTPRefusesAMalformedID(t *testing.T) {
 			"0123456789ABCDEF0123456789ABCDEF",
 			"0123456789abcdef0123456789abcdeg",
 		} {
-			t.Run(field.op+" "+bad, func(t *testing.T) {
+			t.Run(string(field.op)+" "+bad, func(t *testing.T) {
 				f := newFixture(t, admitAnn())
 				rec := f.post(field.op, `{"`+field.key+`":"`+bad+`"}`)
 				if rec.Code != http.StatusBadRequest {
@@ -153,7 +155,7 @@ func TestServeHTTPRefusesAMalformedID(t *testing.T) {
 // operation checks the caller's privilege before it reads the body.
 // Fixture state: a caller granted member, posting four bodies that
 // decode to nothing valid, to an admin operation that carries fields
-// and one that carries none. Each answers 403 with the authorizer
+// and one that carries none. Each answers 403 with the verifier
 // asked once, so a malformed body never tells a member whether the
 // operation exists for them.
 func TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody(t *testing.T) {
@@ -163,9 +165,9 @@ func TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody(t *testing.T) {
 		{"an empty array", `[]`},
 		{"an empty body", ``},
 	}
-	for _, op := range []string{ops.OpAddMember, ops.OpSetSetting} {
+	for _, op := range []ops.Op{ops.OpAddMember, ops.OpSetSetting} {
 		for _, b := range bodies {
-			t.Run(op+" "+b.name, func(t *testing.T) {
+			t.Run(string(op)+" "+b.name, func(t *testing.T) {
 				f := newFixture(t, grant(ann, ops.PrivilegeMember))
 				rec := f.post(op, b.body)
 				if rec.Code != http.StatusForbidden {
@@ -177,8 +179,8 @@ func TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody(t *testing.T) {
 				if want := "granted privilege does not reach the operation's"; !strings.Contains(f.log.String(), want) {
 					t.Errorf("log = %q, want it to name %q", f.log.String(), want)
 				}
-				if got := f.auth.calls; !slices.Equal(got, []string{op}) {
-					t.Errorf("authorizer calls = %v, want one for %s", got, op)
+				if f.verified != 1 {
+					t.Errorf("verifier calls = %d, want 1", f.verified)
 				}
 				if n := operationCalls(f); n != 0 {
 					t.Errorf("seam calls = %d, want 0", n)
@@ -195,7 +197,7 @@ func TestServeHTTPRefusesAnUnprivilegedCallerBeforeTheBody(t *testing.T) {
 func TestServeHTTPAdmitsBeforeDecodingAnAdminBody(t *testing.T) {
 	tests := []struct {
 		name string
-		op   string
+		op   ops.Op
 		body string
 	}{
 		{"array body on remove_member", ops.OpRemoveMember, `[]`},
@@ -211,8 +213,8 @@ func TestServeHTTPAdmitsBeforeDecodingAnAdminBody(t *testing.T) {
 			if code, _, _ := errorAnswer(t, rec); code != ops.CodeInvalidRequest {
 				t.Errorf("code = %q, want %q", code, ops.CodeInvalidRequest)
 			}
-			if got := f.auth.calls; !slices.Equal(got, []string{tt.op}) {
-				t.Errorf("authorizer calls = %v, want one for %s", got, tt.op)
+			if f.verified != 1 {
+				t.Errorf("verifier calls = %d, want 1", f.verified)
 			}
 			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
@@ -221,13 +223,13 @@ func TestServeHTTPAdmitsBeforeDecodingAnAdminBody(t *testing.T) {
 	}
 }
 
-// TestServeHTTPRoutesAdminOperations posts each of the seven admin
-// operations to the handler and proves the admin seam, not the
-// submission seam, receives the decoded request as the admitted actor, with its
-// session anchor, and that the answer is the seam's response.
+// TestServeHTTPRoutesAdminOperations posts each admin operation to the
+// mount and proves the admin seam, not the submission seam, receives
+// the decoded request as the verified actor, with its session anchor,
+// and that the answer is the seam's response.
 func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 	tests := []struct {
-		op       string
+		op       ops.Op
 		body     string
 		wantReq  any
 		wantBody string
@@ -249,7 +251,7 @@ func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 			`{"key":"DUBPLATE_REAUTH_WINDOW","apply":"next_operation","source":"env_seed"}`},
 	}
 	for _, tt := range tests {
-		t.Run(tt.op, func(t *testing.T) {
+		t.Run(string(tt.op), func(t *testing.T) {
 			f := newFixture(t, admitAnn())
 			rec := f.post(tt.op, tt.body)
 			if rec.Code != http.StatusOK {
@@ -272,6 +274,7 @@ func TestServeHTTPRoutesAdminOperations(t *testing.T) {
 				t.Errorf("admin seam got actor %q anchored %v, want %q anchored %v", call.actor, call.actor.Anchor(), annWire, annAnchor)
 			}
 		})
+
 	}
 }
 
@@ -300,17 +303,17 @@ func TestServeHTTPErrorDetail(t *testing.T) {
 		wantStatus int
 		wantBody   string
 	}{
-		{"conflict with detail", ops.NewConflictError("no admin would remain").WithDetail(ops.DetailLastAdmin), 409,
+		{"conflict with detail", ops.NewError(ops.CodeConflict, "no admin would remain").WithDetail(ops.DetailLastAdmin), 409,
 			`{"error":{"code":"conflict","reason":"no admin would remain","detail":"last_admin"}}`},
-		{"detail through a wrapper", fmt.Errorf("remove: %w", ops.NewConflictError("taken").WithDetail(ops.DetailDuplicateAddress)), 409,
+		{"detail through a wrapper", fmt.Errorf("remove: %w", ops.NewError(ops.CodeConflict, "taken").WithDetail(ops.DetailDuplicateAddress)), 409,
 			`{"error":{"code":"conflict","reason":"taken","detail":"duplicate_address"}}`},
-		{"invalid request with detail", ops.NewInvalidRequestError("bad name").WithDetail(ops.DetailInvalidUsername), 400,
+		{"invalid request with detail", ops.NewError(ops.CodeInvalidRequest, "bad name").WithDetail(ops.DetailInvalidUsername), 400,
 			`{"error":{"code":"invalid_request","reason":"bad name","detail":"invalid_username"}}`},
-		{"unavailable with detail", ops.NewUnavailableError("store busy").WithDetail(ops.DetailBusy), 503,
+		{"unavailable with detail", ops.NewError(ops.CodeUnavailable, "store busy").WithDetail(ops.DetailBusy), 503,
 			`{"error":{"code":"unavailable","reason":"store busy","detail":"busy"}}`},
-		{"no detail", ops.NewConflictError("elsewhere"), 409,
+		{"no detail", ops.NewError(ops.CodeConflict, "elsewhere"), 409,
 			`{"error":{"code":"conflict","reason":"elsewhere"}}`},
-		{"internal never carries one", ops.NewInternalError("secret path").WithDetail(ops.DetailBusy), 500,
+		{"internal never carries one", ops.NewError(ops.CodeInternal, "secret path").WithDetail(ops.DetailBusy), 500,
 			`{"error":{"code":"internal"}}`},
 	}
 	for _, tt := range tests {
@@ -349,7 +352,7 @@ func TestServeHTTPReadsABodyAtTheCap(t *testing.T) {
 func TestServeHTTPIgnoresUnknownKeys(t *testing.T) {
 	tests := []struct {
 		name string
-		op   string
+		op   ops.Op
 		body string
 	}{
 		{"actor", ops.OpListMembers, `{"actor":"local:root"}`},
@@ -403,8 +406,8 @@ func TestServeHTTPPassesTheDecodedRequest(t *testing.T) {
 
 // TestServeHTTPDenials refuses every denial the same way on the wire
 // and logs it by a cause from a closed set. Each row plants an address
-// and a principal where a denial could echo them, in the authorizer's
-// error or in the actor it answered; neither may reach the log.
+// and a principal in the actor the verifier answered, where a denial
+// could echo them; neither may reach the log.
 func TestServeHTTPDenials(t *testing.T) {
 	const (
 		address   = "planted@example.invalid"
@@ -412,50 +415,32 @@ func TestServeHTTPDenials(t *testing.T) {
 	)
 	planted := ann
 	planted.Address = address
-	planted.Principal = principal
+	planted.Username = principal
 	tests := []struct {
 		name       string
-		decide     func(op string) (identity.Actor, ops.Privilege, error)
+		decide     Verifier
 		wantReason string
 	}{
 		{
-			name: "authorizer answers forbidden",
-			decide: func(string) (identity.Actor, ops.Privilege, error) {
-				return identity.Actor{}, 0, ops.NewForbiddenError(address + " (" + principal + ") is not an admin")
-			},
-			wantReason: "authorizer denied the caller",
-		},
-		{
-			name: "authorizer error",
-			decide: func(string) (identity.Actor, ops.Privilege, error) {
-				return identity.Actor{}, 0, errors.New("read session /var/lib/dubplate/sessions/" + address + ": permission denied")
-			},
-			wantReason: "authorizer denied the caller",
-		},
-		{
-			name: "member grant on an admin operation",
-			decide: func(string) (identity.Actor, ops.Privilege, error) {
-				return identity.NetworkActor(planted, annAnchor, "192.0.2.1"), ops.PrivilegeMember, nil
-			},
+			name:       "member grant on an admin operation",
+			decide:     grant(planted, ops.PrivilegeMember),
 			wantReason: "granted privilege does not reach the operation's",
 		},
 		{
-			name: "zero grant",
-			decide: func(string) (identity.Actor, ops.Privilege, error) {
-				return identity.NetworkActor(planted, annAnchor, "192.0.2.1"), 0, nil
-			},
+			name:       "zero grant",
+			decide:     grant(planted, 0),
 			wantReason: "granted privilege does not reach the operation's",
 		},
 		{
 			name: "command-line actor on a cookie mount",
-			decide: func(string) (identity.Actor, ops.Privilege, error) {
+			decide: func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
 				return identity.LocalActor(principal), ops.PrivilegeAdmin, nil
 			},
 			wantReason: "admitted actor's channel differs from the mount's",
 		},
 		{
 			name: "zero actor admitted",
-			decide: func(string) (identity.Actor, ops.Privilege, error) {
+			decide: func(http.ResponseWriter, *http.Request) (identity.Actor, ops.Privilege, error) {
 				return identity.Actor{}, ops.PrivilegeAdmin, nil
 			},
 			wantReason: "admitted actor's channel differs from the mount's",
@@ -463,7 +448,7 @@ func TestServeHTTPDenials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := newFixture(t, &fakeAuthorizer{decide: tt.decide})
+			f := newFixture(t, tt.decide)
 			rec := f.post(ops.OpListMembers, `{}`)
 			if rec.Code != http.StatusForbidden {
 				t.Errorf("status = %d, want 403; body %q", rec.Code, rec.Body.String())
@@ -483,8 +468,8 @@ func TestServeHTTPDenials(t *testing.T) {
 					t.Errorf("log %q or body %q names %q", log, rec.Body.String(), leak)
 				}
 			}
-			if n := len(f.auth.calls); n != 1 {
-				t.Errorf("authorizer calls = %d, want 1", n)
+			if f.verified != 1 {
+				t.Errorf("verifier calls = %d, want 1", f.verified)
 			}
 			if n := operationCalls(f); n != 0 {
 				t.Errorf("seam calls = %d, want 0", n)
@@ -494,13 +479,13 @@ func TestServeHTTPDenials(t *testing.T) {
 }
 
 // TestServeHTTPAdmitsByGrant runs each operation under an admin grant
-// and a member grant: admin reaches all twelve, member the five
-// submission operations. A refused call reaches no seam.
+// and a member grant: admin reaches every operation, member the
+// submission operations only. A refused call reaches no seam.
 func TestServeHTTPAdmitsByGrant(t *testing.T) {
 	userBody := `{"user_id":"` + testHandle + `"}`
 	submissionBody := `{"submission_id":"` + testHandle + `"}`
 	tests := []struct {
-		op           string
+		op           ops.Op
 		body         string
 		memberStatus int
 	}{
@@ -525,14 +510,14 @@ func TestServeHTTPAdmitsByGrant(t *testing.T) {
 			{ops.PrivilegeAdmin, http.StatusOK},
 			{ops.PrivilegeMember, tt.memberStatus},
 		} {
-			t.Run(tt.op+" as "+g.granted.String(), func(t *testing.T) {
+			t.Run(string(tt.op)+" as "+g.granted.String(), func(t *testing.T) {
 				f := newFixture(t, grant(ann, g.granted))
 				rec := f.post(tt.op, tt.body)
 				if rec.Code != g.status {
 					t.Fatalf("status = %d, want %d; body %q", rec.Code, g.status, rec.Body.String())
 				}
-				if len(f.auth.calls) != 1 || f.auth.calls[0] != tt.op {
-					t.Errorf("authorizer calls = %q, want [%s]", f.auth.calls, tt.op)
+				if f.verified != 1 {
+					t.Errorf("verifier calls = %d, want 1", f.verified)
 				}
 				wantSeamCalls := 0
 				if g.status == http.StatusOK {
@@ -560,17 +545,17 @@ func TestServeHTTPOperationErrors(t *testing.T) {
 		wantReason string // "" means the body carries no reason key
 		wantLog    string // "" means the log carries the error's own text
 	}{
-		{"unavailable", ops.NewUnavailableError("backup integration is off"), 503, ops.CodeUnavailable, "backup integration is off", ""},
-		{"not found", ops.NewNotFoundError("no job " + testHandle), 404, ops.CodeNotFound, "no job " + testHandle, ""},
-		{"conflict", ops.NewConflictError("backup job already running"), 409, ops.CodeConflict, "backup job already running", ""},
-		{"invalid request", ops.NewInvalidRequestError("bad field"), 400, ops.CodeInvalidRequest, "bad field", ""},
-		{"canceled", ops.NewCanceledError("caller went away"), 503, ops.CodeCanceled, "caller went away", ""},
-		{"forbidden", ops.NewForbiddenError("not yours"), 403, ops.CodeForbidden, "not yours", `reason=denied`},
-		{"unauthenticated", ops.NewUnauthenticatedError("sign in again"), 401, ops.CodeUnauthenticated, "sign in again", ""},
-		{"reauthentication required", ops.NewReauthenticationRequiredError("sign in from this browser"), 403, ops.CodeReauthenticationRequired, "sign in from this browser", ""},
-		{"coded internal", ops.NewInternalError("store closed at " + path), 500, ops.CodeInternal, "", ""},
+		{"unavailable", ops.NewError(ops.CodeUnavailable, "backup integration is off"), 503, ops.CodeUnavailable, "backup integration is off", ""},
+		{"not found", ops.NewError(ops.CodeNotFound, "no job "+testHandle), 404, ops.CodeNotFound, "no job " + testHandle, ""},
+		{"conflict", ops.NewError(ops.CodeConflict, "backup job already running"), 409, ops.CodeConflict, "backup job already running", ""},
+		{"invalid request", ops.NewError(ops.CodeInvalidRequest, "bad field"), 400, ops.CodeInvalidRequest, "bad field", ""},
+		{"canceled", ops.NewError(ops.CodeCanceled, "caller went away"), 503, ops.CodeCanceled, "caller went away", ""},
+		{"forbidden", ops.NewError(ops.CodeForbidden, "not yours"), 403, ops.CodeForbidden, "not yours", `reason=denied`},
+		{"unauthenticated", ops.NewError(ops.CodeUnauthenticated, "sign in again"), 401, ops.CodeUnauthenticated, "sign in again", ""},
+		{"reauthentication required", ops.NewError(ops.CodeReauthenticationRequired, "sign in from this browser"), 403, ops.CodeReauthenticationRequired, "sign in from this browser", ""},
+		{"coded internal", ops.NewError(ops.CodeInternal, "store closed at "+path), 500, ops.CodeInternal, "", ""},
 		{"bare context canceled", fmt.Errorf("wait for the write connection: %w", context.Canceled), 503, ops.CodeCanceled, "", ""},
-		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewConflictError("backup job already running")), 409, ops.CodeConflict, "backup job already running", ""},
+		{"coded error wrapped with a path", fmt.Errorf("lease %s: %w", path, ops.NewError(ops.CodeConflict, "backup job already running")), 409, ops.CodeConflict, "backup job already running", ""},
 		{"uncoded error", fmt.Errorf("open %s: permission denied", path), 500, ops.CodeInternal, "", ""},
 		{"zero ops error", &ops.Error{}, 500, ops.CodeInternal, "", `msg="ops error code has no HTTP status" op=list_members code=""`},
 		{"unregistered code", &ops.Error{Code: "teapot", Reason: "brewing at " + path}, 500, ops.CodeInternal, "", "code=teapot"},
@@ -624,43 +609,16 @@ func TestStatuses(t *testing.T) {
 	}
 }
 
-func TestCheckStatusesNamesAMissingCode(t *testing.T) {
-	if err := checkStatuses(statuses); err != nil {
-		t.Fatalf("checkStatuses(statuses) = %v, want nil", err)
+// TestStatusesCoverEveryCode reads the Code constants from package ops's
+// source, so a code added there with no status here fails.
+func TestStatusesCoverEveryCode(t *testing.T) {
+	codes := goConstants(t, "../errors.go", "Code")
+	if !slices.Contains(codes, "canceled") {
+		t.Fatalf("read %v from errors.go, want the Code constants including canceled", codes)
 	}
-	partial := maps.Clone(statuses)
-	delete(partial, ops.CodeCanceled)
-	err := checkStatuses(partial)
-	if err == nil || !strings.Contains(err.Error(), `"canceled"`) {
-		t.Errorf("checkStatuses without canceled = %v, want an error naming \"canceled\"", err)
-	}
-}
-
-func TestNewHandlerRefuses(t *testing.T) {
-	log := slog.New(slog.DiscardHandler)
-	tests := []struct {
-		name    string
-		admin   ops.Admin
-		subs    ops.Submissions
-		auth    authorizer
-		channel identity.Channel
-		log     *slog.Logger
-		want    string
-	}{
-		{"nil admin operations", nil, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, log, "admin operations are nil"},
-		{"nil submission operations", &fakeAdmin{}, nil, admitAnn(), identity.ChannelCookie, log, "submission operations are nil"},
-		{"nil authorizer", &fakeAdmin{}, &fakeSubmissions{}, nil, identity.ChannelCookie, log, "authorizer is nil"},
-		{"nil logger", &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.ChannelCookie, nil, "logger is nil"},
-		{"zero channel", &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.Channel(0), log, "channel 0 is not"},
-		{"unknown channel", &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.Channel(99), log, "channel 99 is not"},
-		{"command-line channel", &fakeAdmin{}, &fakeSubmissions{}, admitAnn(), identity.ChannelCommandLine, log, "command line"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h, err := newHandler(tt.admin, tt.subs, tt.auth, tt.channel, tt.log)
-			if err == nil || !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("newHandler = %v, %v; want an error containing %q", h, err, tt.want)
-			}
-		})
+	for _, c := range codes {
+		if _, ok := statuses[ops.Code(c)]; !ok {
+			t.Errorf("wire code %q has no HTTP status", c)
+		}
 	}
 }

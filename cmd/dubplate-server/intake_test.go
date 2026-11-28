@@ -186,14 +186,10 @@ func TestNestedStagingRefusedByEveryVerb(t *testing.T) {
 	reg := productionRegistry()
 	verbs := map[string]func() error{
 		"serve": func() error {
-			cmd := newServeCmd(nested, reg, io.Discard, io.Discard)
-			cmd.SetArgs([]string{})
-			return cmd.Execute()
+			return rootFor(nested, reg, io.Discard, io.Discard, "serve").Execute()
 		},
 		"check": func() error {
-			cmd := newCheckCmd(nested, reg, io.Discard, io.Discard)
-			cmd.SetArgs([]string{})
-			return cmd.Execute()
+			return rootFor(nested, reg, io.Discard, io.Discard, "check").Execute()
 		},
 		"backup": func() error {
 			return runBackup(context.Background(), nested, reg, io.Discard, io.Discard)
@@ -202,9 +198,7 @@ func TestNestedStagingRefusedByEveryVerb(t *testing.T) {
 			return runRestore(context.Background(), nested, reg, restoreFlags{fromFile: "x.db"}, io.Discard, io.Discard)
 		},
 		"member": func() error {
-			cmd := testOperatorVerbs().newMemberCmd(nested, reg, io.Discard, io.Discard)
-			cmd.SetArgs([]string{"list"})
-			return cmd.Execute()
+			return rootFor(nested, reg, io.Discard, io.Discard, "member", "list").Execute()
 		},
 	}
 	for name, run := range verbs {
@@ -229,7 +223,7 @@ func TestDoctor_StagingNestingReadsInvalid(t *testing.T) {
 	environ := replaceKey(doctorEnviron(t), "DUBPLATE_STAGING_DIR", "/srv/music/library/staging")
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a nonzero status: staging nests in the library root")
 	}
@@ -513,7 +507,7 @@ func TestStallMailGoesToLiveAdminsOnly(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = h.Close() })
 
-	got, err := liveAdminAddresses(member.NewRoster(h, nil, nil))(t.Context())
+	got, err := liveAdminAddresses(member.NewRoster(h, nil, nil, nil))(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}

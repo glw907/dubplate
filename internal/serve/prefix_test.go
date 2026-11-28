@@ -32,15 +32,15 @@ func TestNewPrefix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p, err := NewPrefix(tt.value)
+			p, err := newPrefix(tt.value)
 			if tt.wantErr {
-				if !errors.Is(err, ErrInvalidPrefix) {
-					t.Fatalf("NewPrefix(%q) error = %v, want errors.Is(err, ErrInvalidPrefix)", tt.value, err)
+				if !errors.Is(err, errInvalidPrefix) {
+					t.Fatalf("newPrefix(%q) error = %v, want errors.Is(err, errInvalidPrefix)", tt.value, err)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("NewPrefix(%q) unexpected error: %v", tt.value, err)
+				t.Fatalf("newPrefix(%q) unexpected error: %v", tt.value, err)
 			}
 			if got := p.String(); got != tt.value {
 				t.Fatalf("p.String() = %q, want %q", got, tt.value)
@@ -76,12 +76,12 @@ func TestNewPrefixReportsEachShapeByItsOwnReason(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewPrefix(tt.value)
-			if !errors.Is(err, ErrInvalidPrefix) {
-				t.Fatalf("NewPrefix(%q) error = %v, want errors.Is(err, ErrInvalidPrefix)", tt.value, err)
+			_, err := newPrefix(tt.value)
+			if !errors.Is(err, errInvalidPrefix) {
+				t.Fatalf("newPrefix(%q) error = %v, want errors.Is(err, errInvalidPrefix)", tt.value, err)
 			}
 			if !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("NewPrefix(%q) error = %q, want it to carry %q", tt.value, err, tt.want)
+				t.Errorf("newPrefix(%q) error = %q, want it to carry %q", tt.value, err, tt.want)
 			}
 		})
 	}
