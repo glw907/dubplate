@@ -32,6 +32,7 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
+	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
 )
 
@@ -427,15 +428,15 @@ func TestNewServeShell_StateChangingRequestIsDenied(t *testing.T) {
 		{"boundary probe", under(serve.ProbeRouteName)},
 		{"api operation", under(apiRouteName) + "/v1/list_submissions"},
 		{"api deeper path", under(apiRouteName) + "/v2/x"},
-		{"members", under(membersRouteName)},
-		{"login", under(loginRouteName)},
-		{"assets", under(assetsRouteName) + "/app.js"},
-		{"fonts", under(fontsRouteName) + "/f.woff2"},
-		{"favicon.svg", under(faviconSVGRouteName)},
-		{"favicon.png", under(faviconPNGRouteName)},
-		{"mark", under(markRouteName)},
-		{"branding.css", under(brandingRouteName)},
-		{"operator.css", under(operatorCSSRouteName)},
+		{"members", under(webapp.MembersRouteName)},
+		{"login", under(webapp.LoginRouteName)},
+		{"assets", under(webapp.AssetsRouteName) + "/app.js"},
+		{"fonts", under(webapp.FontsRouteName) + "/f.woff2"},
+		{"favicon.svg", under(webapp.FaviconSVGRouteName)},
+		{"favicon.png", under(webapp.FaviconPNGRouteName)},
+		{"mark", under(webapp.MarkRouteName)},
+		{"branding.css", under(webapp.BrandingRouteName)},
+		{"operator.css", under(webapp.OperatorCSSRouteName)},
 	}
 	shell, err := buildServeShell(t, serveAuthEnviron(t))
 	if err != nil {
@@ -1261,8 +1262,8 @@ func webFSHandler(environ []string, stateDir string, buildFS fs.FS) (http.Handle
 	}
 	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, discardTestLogger())
 	registerWebRoutes(shell, routes)
-	shell.Register(membersRouteName, routes.Members)
-	shell.Register(serverSettingsRouteName, routes.ServerSettings)
+	shell.Register(webapp.MembersRouteName, routes.Members)
+	shell.Register(webapp.ServerSettingsRouteName, routes.ServerSettings)
 	return shell.Handler(), nil
 }
 

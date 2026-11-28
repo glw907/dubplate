@@ -74,9 +74,6 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		return nil, err
 	}
 	shell := serve.NewShell(prefix, proxyConfig, logger)
-	// No mount takes a bearer credential, so every one stays behind the
-	// origin check. A route that bypasses it needs a shell-level test
-	// that it never reads the session cookie.
 	routes := mountRoutes(shell)
 	if sendsHSTS(authConfig.PublicOrigin) {
 		shell.EnableHSTS()

@@ -82,8 +82,9 @@ func Register(reg *config.Registry) {
 }
 
 // FromEnviron resolves the four web thresholds from environ into the
-// settings half of a [Config]: Match, Palette, Branding,
-// BrandingNeutral, and OperatorCSS. The caller fills in the rest. It
+// settings half of a [Config]: the theme match and palette, the
+// branding and its neutral, and the operator stylesheet. The caller
+// fills in the rest. It
 // checks the theme match, the palette's grammar, the branding, and the
 // operator stylesheet in that order and returns the first refusal.
 // stateDir is the directory the operator stylesheet must not sit
@@ -114,11 +115,11 @@ func FromEnviron(environ []string, stateDir string) (Config, error) {
 		return Config{}, err
 	}
 	return Config{
-		Match:           match,
-		Palette:         palette,
-		Branding:        branding,
-		BrandingNeutral: neutral,
-		OperatorCSS:     operatorCSS,
+		match:           match,
+		palette:         palette,
+		branding:        branding,
+		brandingNeutral: neutral,
+		operatorCSS:     operatorCSS,
 	}, nil
 }
 
