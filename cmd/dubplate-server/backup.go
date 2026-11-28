@@ -17,7 +17,6 @@ import (
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/ops/jobs"
 	"github.com/glw907/dubplate/internal/settings"
-	"github.com/glw907/dubplate/internal/store"
 	"github.com/spf13/cobra"
 )
 
@@ -57,21 +56,12 @@ Exit statuses:
 // ran under it would fail the instant a signal arrived rather than
 // letting the verb answer the signal itself.
 func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdout, stderr io.Writer) error {
-	cfg, err := loadConfig(environ, reg)
-	if err != nil {
-		return err
-	}
-	busyTimeout, err := store.BusyTimeout(environ)
-	if err != nil {
-		return err
-	}
-
-	logger := slog.New(slog.NewTextHandler(stderr, nil))
+	logger := verbLogger(stderr)
 	opsCtx := context.WithoutCancel(ctx)
 
 	openCtx, cancelOpen := context.WithTimeout(opsCtx, storeWait)
 	defer cancelOpen()
-	h, err := store.OpenWrite(openCtx, cfg.StateDir, busyTimeout)
+	h, cfg, err := openOperatorStore(openCtx, environ, reg)
 	if err != nil {
 		return err
 	}

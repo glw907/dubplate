@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -176,7 +175,7 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 		LibraryRoot:    cfg.LibraryRoot,
 		IntoNonempty:   f.intoNonempty,
 		Out:            out,
-		Logger:         slog.New(slog.NewTextHandler(stderr, nil)),
+		Logger:         verbLogger(stderr),
 	})
 	switch {
 	case err == nil:

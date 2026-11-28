@@ -46,20 +46,25 @@ func newMemberCmd(environ []string, reg *config.Registry) *cobra.Command {
 // mode every operator verb shares: it refuses an absent store, a store at
 // any version but the binary's, a restore in progress, and a leaf another
 // user owns, each with the store's own message. A verb that only reads
-// opens the same mode, so one set of refusals covers them all. It also
-// returns the state directory the store lives under. The caller closes
-// the handle.
-func openOperatorStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, string, error) {
+// opens the same mode, so one set of refusals covers them all. The
+// caller closes the handle.
+func openOperatorStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, *config.Config, error) {
 	cfg, err := loadConfig(environ, reg)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 	busyTimeout, err := store.BusyTimeout(environ)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 	h, err := store.OpenWrite(ctx, cfg.StateDir, busyTimeout)
-	return h, cfg.StateDir, err
+	return h, cfg, err
+}
+
+// verbLogger returns the logger an operator verb writes its audit and
+// failure records through, as text to w.
+func verbLogger(w io.Writer) *slog.Logger {
+	return slog.New(slog.NewTextHandler(w, nil))
 }
 
 // withStore runs fn over the store opened in write mode under
@@ -68,12 +73,12 @@ func openOperatorStore(ctx context.Context, environ []string, reg *config.Regist
 func withStore(ctx context.Context, environ []string, reg *config.Registry, fn func(ctx context.Context, h *store.Handle, stateDir string) error) (err error) {
 	ctx, cancel := context.WithTimeout(ctx, storeWait)
 	defer cancel()
-	h, stateDir, err := openOperatorStore(ctx, environ, reg)
+	h, cfg, err := openOperatorStore(ctx, environ, reg)
 	if err != nil {
 		return err
 	}
 	defer func() { err = errors.Join(err, h.Close()) }()
-	return fn(ctx, h, stateDir)
+	return fn(ctx, h, cfg.StateDir)
 }
 
 // writingRoster returns a roster over h that may write: it opens the
@@ -114,8 +119,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry) *cobra.Command {
 					Username:    username,
 					Admin:       admin,
 				}
-				logger := slog.New(slog.NewTextHandler(cmd.ErrOrStderr(), nil))
-				_, err = roster.AddMember(ctx, candidate, identity.LocalActor(resolveActor()), logger)
+				_, err = roster.AddMember(ctx, candidate, identity.LocalActor(resolveActor()), verbLogger(cmd.ErrOrStderr()))
 				return err
 			})
 		},
@@ -167,8 +171,7 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 				if err != nil {
 					return err
 				}
-				logger := slog.New(slog.NewTextHandler(cmd.ErrOrStderr(), nil))
-				return change(roster, ctx, target.ID, identity.LocalActor(resolveActor()), logger)
+				return change(roster, ctx, target.ID, identity.LocalActor(resolveActor()), verbLogger(cmd.ErrOrStderr()))
 			})
 		},
 	}
@@ -183,20 +186,14 @@ func newMemberListCmd(environ []string, reg *config.Registry) *cobra.Command {
 		Use:   "list",
 		Short: "List the group's members",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) (err error) {
-			openCtx, cancel := context.WithTimeout(cmd.Context(), storeWait)
-			defer cancel()
-			h, _, err := openOperatorStore(openCtx, environ, reg)
-			if err != nil {
-				return err
-			}
-			defer func() { err = errors.Join(err, h.Close()) }()
-
-			members, err := member.NewRoster(h, nil, nil).List(cmd.Context())
-			if err != nil {
-				return err
-			}
-			return printMemberList(cmd.OutOrStdout(), members)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, _ string) error {
+				members, err := member.NewRoster(h, nil, nil).List(ctx)
+				if err != nil {
+					return err
+				}
+				return printMemberList(cmd.OutOrStdout(), members)
+			})
 		},
 	}
 }
