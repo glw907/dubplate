@@ -14,23 +14,17 @@ import (
 // fields joined by fieldSeparator with the MAC last. They differ only in
 // their field list and their domain-separation label.
 
-// fieldSeparator joins the encoded fields. Every field is
-// base64url-encoded before the join, so no field value can carry the
-// separator: a raw join would split a dotted local part.
+// Fields are base64url-encoded before the join, so no field can carry
+// the separator, as a dotted local part otherwise would.
 const fieldSeparator = "."
 
-// fieldEncoding is unpadded base64url that refuses non-zero trailing
-// bits in a field's final character. A lax decoder ignores those bits,
-// so a field whose byte length is not a multiple of three has several
-// encodings that decode alike, and every one of them would verify.
-// Refusing them is the canonical encoding RFC 4648 section 3.5
-// describes. A strict decoder still skips CR and LF, so splitSigned
-// refuses those itself, and between the two each credential has exactly
+// fieldEncoding refuses non-zero trailing bits, the canonical encoding
+// of RFC 4648 section 3.5: a lax decoder ignores them, giving a field
+// several encodings that all verify. A strict decoder still skips CR
+// and LF, so splitSigned refuses those, and each credential has exactly
 // one string.
 var fieldEncoding = base64.RawURLEncoding.Strict()
 
-// encodeSigned renders fields and the MAC computed over them under
-// purpose.
 func encodeSigned(secret []byte, purpose string, fields [][]byte) string {
 	parts := make([]string, 0, len(fields)+1)
 	for _, field := range fields {
@@ -40,15 +34,10 @@ func encodeSigned(secret []byte, purpose string, fields [][]byte) string {
 	return strings.Join(parts, fieldSeparator)
 }
 
-// splitSigned decodes value into count MAC-covered fields and the MAC
-// that follows them, authenticating none of them. malformed is the
-// caller's sentinel, so a refusal names the credential that was
-// malformed.
-//
-// The split stops after count+2 parts, one more than a well-formed
-// value holds, so the field-count check stays exact while a value of
-// nothing but separators costs a fixed handful of substrings rather
-// than one per byte.
+// splitSigned decodes value into count fields and the MAC after them,
+// authenticating none; malformed is the caller's sentinel. Splitting at
+// count+2 parts keeps the count check exact while a value of only
+// separators costs a fixed handful of substrings.
 func splitSigned(value string, count int, malformed error) ([][]byte, []byte, error) {
 	if strings.ContainsAny(value, "\r\n") {
 		return nil, nil, fmt.Errorf("%w: field encoding", malformed)
@@ -85,12 +74,9 @@ func sign(secret []byte, purpose string, fields ...[]byte) []byte {
 	return mac.Sum(nil)
 }
 
-// macInput length-prefixes the domain-separation label and every field.
-// Without the prefixes, two different field sets whose values
-// concatenate to the same bytes share a MAC input, so one token's
-// signature authenticates the other's fields: a character moved from
-// the end of an address onto the front of an expiry would carry its
-// signature with it.
+// macInput length-prefixes the label and every field. Without the
+// prefixes, a character moved from the end of an address onto the front
+// of an expiry would keep the signature valid.
 func macInput(purpose string, fields [][]byte) []byte {
 	buf := appendField(nil, []byte(purpose))
 	for _, field := range fields {

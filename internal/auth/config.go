@@ -71,24 +71,16 @@ var magicLinkIdentitySource = config.IdentitySource{
 	Validate: validateMagicLinkSource,
 }
 
-// secretLengthFloor is the minimum accepted byte length of a magic-link
-// or session secret, HMAC-SHA256's own recommended key length: RFC 2104
-// section 3 (https://www.rfc-editor.org/rfc/rfc2104#section-3, read
-// 2026-09-12) recommends a key at least as long as the hash's output,
-// 32 bytes for SHA-256. The count is of raw bytes with no
-// transformation, so an adopter pasting a base64 rendering of 32 random
-// bytes passes with room to spare.
+// secretLengthFloor is the minimum byte length of a magic-link or
+// session secret: RFC 2104 section 3 recommends an HMAC key at least as
+// long as the hash's output, 32 bytes for SHA-256. It counts raw bytes,
+// so a base64 rendering of 32 random bytes passes with room to spare.
 const secretLengthFloor = 32
 
 // MagicLinkExpiryCeiling bounds how long a mailed link can stay
-// redeemable. The threat model's mail-scanner residual is bounded by
-// "single use, a 15-minute default expiry"; an hour is generous
-// headroom above the default without admitting a link that survives a
-// whole day in a mail provider's link-scanner cache or a browser's
-// history. It is [magicLinkExpirySetting]'s registered
-// ceiling, and the nonce store's mtime fallback keeps a record past it
-// rather than past the value in force, since only the ceiling outlives
-// every token a changed expiry could have minted.
+// redeemable: generous headroom above the 15-minute default, short of a
+// link surviving a day in a mail scanner's cache or a browser's history.
+// It is [magicLinkExpirySetting]'s registered ceiling.
 const MagicLinkExpiryCeiling = time.Hour
 
 // magicLinkExpirySetting, sessionLifetimeSetting,

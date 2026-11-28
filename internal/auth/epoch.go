@@ -17,43 +17,28 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 )
 
-// Sentinels the two refusal checks return. Distinct from every other
-// credential refusal in this package, so a caller can log a revocation
-// as what it is rather than as an expiry or a signature failure.
+// The revocation refusals are distinct from every other credential
+// refusal, so a caller logs a revocation as what it is.
 var (
-	// errSessionRevoked reports a session whose anchor predates its
-	// address's revocation epoch.
 	errSessionRevoked = errors.New("session revoked")
 
-	// errLinkRevoked reports a magic link whose mint time predates its
-	// address's revocation epoch.
 	errLinkRevoked = errors.New("magic link revoked")
 )
 
-// errEpochBackward reports a bump whose time is earlier than the epoch
-// already stored for its address. The stored epoch is left in place,
-// so the revocation it records still holds; the sentinel lets a caller
-// tell that outcome from a bump that failed to write.
+// errEpochBackward reports a bump earlier than the stored epoch, which
+// is left in place, so a caller can tell it from a failed write.
 var errEpochBackward = errors.New("revocation epoch would move backward")
 
-// epochRecordVersion labels the record's field layout. A later field
-// lands under a new label rather than changing what an existing field
-// means, so a record written before the change is read with the
-// meanings it was written under.
+// epochRecordVersion labels the record layout. A new layout takes a new
+// label, so a record is read with the meanings it was written under.
 const epochRecordVersion = "dubplate-epoch-1"
 
-// epochRecordFieldCount is how many whitespace-separated fields a
-// record carries: the version label and the epoch second.
 const epochRecordFieldCount = 2
 
 // An EpochStore is the set of revocation epochs, one record per
-// normalized login address under the auth dir's epoch subdirectory.
-// A revocation is stamped on the person, so the record is
-// keyed on the address, the identity a credential carries.
-//
-// A bump overwrites its record through [atomicfile.WriteStream], which
-// fsyncs the containing directory after the rename, rather than the
-// first-writer-wins create [NonceStore] uses.
+// normalized login address under the auth dir's epoch subdirectory. A
+// revocation is stamped on the person, so it is keyed on the address a
+// credential carries.
 type EpochStore struct {
 	authDir *Dir
 
@@ -67,15 +52,9 @@ func NewEpochStore(authDir *Dir) *EpochStore {
 }
 
 // bump revokes every credential for address anchored or minted at or
-// before now: it writes now as address's new epoch.
-//
-// The stored epoch only moves forward. A bump earlier than it writes
-// nothing and returns [errEpochBackward], so a backward clock step
-// cannot reinstate a credential an earlier bump revoked. A bump at the
-// stored epoch's own second has nothing to move and returns nil. The
-// read of the stored epoch and the write of the new one happen under
-// one lock, so of two concurrent bumps the later time is the one left
-// stored.
+// before now. The stored epoch only moves forward: an earlier bump
+// writes nothing and returns [errEpochBackward], so a backward clock
+// step cannot reinstate a revoked credential.
 func (e *EpochStore) bump(address string, now time.Time) error {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
@@ -87,13 +66,12 @@ func (e *EpochStore) bump(address string, now time.Time) error {
 	return nil
 }
 
-// Revoke bumps address's epoch to at for a roster write. The write calls
-// it inside its transaction, and a failed bump rolls the write back. A
-// bump refused with [errEpochBackward] is logged to logger, and Revoke
-// returns nil. The stored epoch is later than at and already refuses
-// every credential this bump would. What committing accepts is a
-// session anchored between that stored epoch and the clock's step back:
-// no bump at the stepped-back time can reach it.
+// Revoke bumps address's epoch to at for a roster write, which calls it
+// inside its transaction and rolls back when it fails. A bump refused as
+// backward is logged and Revoke returns nil: the later stored epoch
+// already refuses every credential this bump would. A session anchored
+// after that epoch but before the clock stepped back survives, since no
+// bump at the stepped-back time can reach it.
 func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, logger *slog.Logger) error {
 	err := e.bump(address, at)
 	if errors.Is(err, errEpochBackward) {
@@ -103,9 +81,10 @@ func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, l
 	return err
 }
 
-// advance writes epoch as normalized's epoch when it is later than the
-// stored one. It writes nothing when the stored epoch already equals
-// epoch, and returns [errEpochBackward] when the stored epoch is later.
+// advance reads and writes under one lock, so of two concurrent bumps
+// the later time is the one stored. The write is a rename through
+// [atomicfile.WriteStream], not the first-writer-wins create
+// [NonceStore] uses.
 func (e *EpochStore) advance(normalized string, epoch time.Time) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -130,10 +109,8 @@ func (e *EpochStore) advance(normalized string, epoch time.Time) error {
 	})
 }
 
-// Read returns address's current revocation epoch. ok is false when
-// address carries no record, which is the ordinary case for a member
-// who has never been offboarded, and is reported as such rather than as
-// an error.
+// Read returns address's current revocation epoch. ok is false, with a
+// nil error, when address has never been revoked.
 func (e *EpochStore) Read(address string) (epoch time.Time, ok bool, err error) {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
@@ -161,16 +138,10 @@ func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) 
 	return epoch, true, nil
 }
 
-// checkSession refuses s when its anchor predates or equals its
-// address's revocation epoch.
-//
-// The comparison reads [Session.AnchoredAt] rather than
-// [Session.IssuedAt]: a refresh advances the issue time but
-// never the anchor, so checking the issue time would let a session
-// refreshed once after a bump carry a post-bump issue time and be
-// permitted from then on, permanently. The anchor is what refresh never
-// moves, so no ordering rule between this check and a refresh is
-// load-bearing.
+// checkSession refuses s when its anchor is at or before its address's
+// revocation epoch. It reads [Session.AnchoredAt], not IssuedAt: one
+// refresh after a bump would carry a later issue time and be permitted
+// from then on.
 func (e *EpochStore) checkSession(s Session) error {
 	revoked, err := e.revokedAt(s.Address, s.AnchoredAt)
 	if err != nil {
@@ -182,14 +153,11 @@ func (e *EpochStore) checkSession(s Session) error {
 	return nil
 }
 
-// checkLink refuses tok when its mint time predates or equals its
-// address's revocation epoch.
-//
-// Without this check, an outstanding magic link survives an offboarding
-// for the whole of its expiry and mints a session [EpochStore.checkSession]
-// then honors, because the session's anchor is set at that later mint.
-// The attacker chooses when to click, so the refusal must be on the
-// link's own mint time, not on when it happens to be redeemed.
+// checkLink refuses tok when its mint time is at or before its address's
+// revocation epoch. Without it, an outstanding link survives an
+// offboarding and mints a session whose fresh anchor passes
+// [EpochStore.checkSession]; the clicker chooses when to redeem, so the
+// refusal keys on the mint time.
 func (e *EpochStore) checkLink(tok LinkToken) error {
 	revoked, err := e.revokedAt(tok.Address, tok.MintedAt)
 	if err != nil {
@@ -201,8 +169,6 @@ func (e *EpochStore) checkLink(tok LinkToken) error {
 	return nil
 }
 
-// revokedAt reports whether a credential for address stamped at t falls
-// at or before address's revocation epoch.
 func (e *EpochStore) revokedAt(address string, t time.Time) (bool, error) {
 	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
@@ -215,13 +181,10 @@ func (e *EpochStore) revokedAt(address string, t time.Time) (bool, error) {
 	return ok && !t.After(epoch), nil
 }
 
-// epochRecord renders a record at second granularity, the resolution
-// every other timestamp this package writes already uses.
 func epochRecord(epoch time.Time) []byte {
 	return fmt.Appendf(nil, "%s %d\n", epochRecordVersion, epoch.Unix())
 }
 
-// parseEpochRecord returns the epoch a record carries.
 func parseEpochRecord(data []byte) (time.Time, error) {
 	fields := strings.Fields(string(data))
 	if len(fields) != epochRecordFieldCount || fields[0] != epochRecordVersion {
