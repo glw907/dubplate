@@ -20,25 +20,24 @@ func chmodRestoring(t *testing.T, path string, mode os.FileMode) {
 }
 
 func TestDirStatus(t *testing.T) {
-	euid := os.Geteuid()
-	own := dirOptions{geteuid: os.Geteuid}
+	own := os.Geteuid()
 
 	tests := []struct {
 		name string
 		// setup shapes the leaf under stateDir and returns the status
-		// text the row must carry, and the options it runs with.
-		setup      func(t *testing.T, stateDir string) (want string, opts dirOptions)
+		// text the row must carry, and the euid it runs with.
+		setup      func(t *testing.T, stateDir string) (want string, euid int)
 		wantFailed bool
 	}{
 		{
 			name: "an absent leaf under a writable state directory",
-			setup: func(*testing.T, string) (string, dirOptions) {
+			setup: func(*testing.T, string) (string, int) {
 				return "absent; serve creates it", own
 			},
 		},
 		{
 			name: "a leaf Open built",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
@@ -47,7 +46,7 @@ func TestDirStatus(t *testing.T) {
 		},
 		{
 			name: "a leaf at mode 0750",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
@@ -59,19 +58,18 @@ func TestDirStatus(t *testing.T) {
 		},
 		{
 			name: "a leaf another uid owns",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
 				leaf := filepath.Join(stateDir, "auth")
-				return "leaf " + leaf + " is owned by uid " + strconv.Itoa(euid) + ", want uid " + strconv.Itoa(euid+1),
-					dirOptions{geteuid: func() int { return euid + 1 }}
+				return "leaf " + leaf + " is owned by uid " + strconv.Itoa(own) + ", want uid " + strconv.Itoa(own+1), own + 1
 			},
 			wantFailed: true,
 		},
 		{
 			name: "a nonce subdirectory the process may not write",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
@@ -83,7 +81,7 @@ func TestDirStatus(t *testing.T) {
 		},
 		{
 			name: "an absent epoch subdirectory under a leaf the process may not write",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
@@ -98,7 +96,7 @@ func TestDirStatus(t *testing.T) {
 		},
 		{
 			name: "an absent leaf under a state directory the process may not write",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				chmodRestoring(t, stateDir, 0o500)
 				return "absent, and serve cannot create it: " + stateDir + " is not writable: permission denied", own
 			},
@@ -106,7 +104,7 @@ func TestDirStatus(t *testing.T) {
 		},
 		{
 			name: "a leaf that is a file",
-			setup: func(t *testing.T, stateDir string) (string, dirOptions) {
+			setup: func(t *testing.T, stateDir string) (string, int) {
 				leaf := filepath.Join(stateDir, "auth")
 				if err := os.WriteFile(leaf, nil, 0o600); err != nil {
 					t.Fatalf("fixture state: %v", err)
@@ -119,8 +117,8 @@ func TestDirStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stateDir := t.TempDir()
-			want, opts := tt.setup(t, stateDir)
-			got, failed := dirStatus(&config.Config{StateDir: stateDir}, opts)
+			want, euid := tt.setup(t, stateDir)
+			got, failed := dirStatus(&config.Config{StateDir: stateDir}, euid)
 			if got != want || failed != tt.wantFailed {
 				t.Errorf("dirStatus() = %q, %v, want %q, %v", got, failed, want, tt.wantFailed)
 			}
@@ -129,7 +127,7 @@ func TestDirStatus(t *testing.T) {
 }
 
 func TestDirStatus_NilConfigIsNotChecked(t *testing.T) {
-	got, failed := dirStatus(nil, dirOptions{geteuid: os.Geteuid})
+	got, failed := dirStatus(nil, os.Geteuid())
 	if got != "not checked" || failed {
 		t.Errorf("dirStatus(nil) = %q, %v, want %q, false", got, failed, "not checked")
 	}

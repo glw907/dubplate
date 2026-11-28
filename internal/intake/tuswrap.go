@@ -124,7 +124,7 @@ func (m *tusMount) authorize(ctx context.Context, member identity.UserID, upload
 	}
 	var current state
 	err = m.subs.store.QueryRow(ctx, `SELECT s.state FROM submission_files f JOIN submissions s ON s.id = f.submission_id
-		WHERE f.id = ? AND s.user_id = ? AND s.`+openSubmission, file, member[:]).Scan(&current)
+		WHERE f.id = ? AND s.user_id = ? AND s.`+openSubmission, file, member).Scan(&current)
 	if errors.Is(err, sql.ErrNoRows) {
 		return handler.ErrNotFound
 	}

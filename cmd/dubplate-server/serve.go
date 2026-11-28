@@ -208,7 +208,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	epoch := auth.OpenEpochStore(authDir)
+	epoch := auth.NewEpochStore(authDir)
 
 	roster := member.NewRoster(h, epoch, time.Now)
 
@@ -218,7 +218,10 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	mailer := notify.New(mailConfig)
+	mailer, err := notify.New(mailConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	verifier := auth.NewMagicLinkVerifier(roster, epoch, authConfig.SessionSecret, authConfig.PreviousSessionSecret,
 		authConfig.SessionLifetime, authConfig.SessionAbsoluteCap)
@@ -411,5 +414,5 @@ func methodOnly(method string, h http.Handler) http.Handler {
 func sweepNonces(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logger) {
 	ticker := time.NewTicker(auth.SweepInterval)
 	defer ticker.Stop()
-	auth.RunSweep(ctx, nonces.Sweep, time.Now, ticker.C, logger)
+	nonces.RunSweep(ctx, ticker.C, time.Now, logger)
 }

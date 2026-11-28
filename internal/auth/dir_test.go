@@ -18,7 +18,7 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 	}
 
 	for _, sub := range []string{"", "nonce", "epoch"} {
-		dir := filepath.Join(DirPath(stateDir), sub)
+		dir := filepath.Join(dirPath(stateDir), sub)
 		info, err := os.Stat(dir)
 		if err != nil {
 			t.Fatalf("stat %s: %v", dir, err)
@@ -37,7 +37,7 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 	// NonceStore writes through os.OpenFile with O_CREATE|O_EXCL
 	// (nonce.go), and EpochStore writes through atomicfile.WriteStream
 	// (epoch.go).
-	path, err := store.NoncePath(RecordID(nonceSubdir, "fixed-vector"))
+	path, err := store.noncePath(recordID(nonceSubdir, "fixed-vector"))
 	if err != nil {
 		t.Fatalf("NoncePath: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 // whatever its mode.
 func TestOpen_RefusesWideLeaf(t *testing.T) {
 	stateDir := t.TempDir()
-	if err := os.MkdirAll(DirPath(stateDir), 0o755); err != nil {
+	if err := os.MkdirAll(dirPath(stateDir), 0o755); err != nil {
 		t.Fatalf("pre-create wide leaf: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func TestOpen_RefusesWideLeaf(t *testing.T) {
 	if err == nil {
 		t.Fatal("Open() error = nil, want a refusal on a leaf wider than 0700")
 	}
-	if !strings.Contains(err.Error(), DirPath(stateDir)) {
+	if !strings.Contains(err.Error(), dirPath(stateDir)) {
 		t.Errorf("error = %q, want it to name the leaf path", err.Error())
 	}
 }
@@ -77,7 +77,7 @@ func TestOpen_RefusesWideLeaf(t *testing.T) {
 // it at, starts cleanly.
 func TestOpen_AdmitsNarrowerLeaf(t *testing.T) {
 	stateDir := t.TempDir()
-	if err := os.MkdirAll(DirPath(stateDir), 0o700); err != nil {
+	if err := os.MkdirAll(dirPath(stateDir), 0o700); err != nil {
 		t.Fatalf("pre-create leaf: %v", err)
 	}
 	if _, err := Open(stateDir); err != nil {
@@ -95,14 +95,14 @@ func TestRecordID_Vector(t *testing.T) {
 		wantEpoch = "c333f9dd4b2043340c7aedc69d35f9896dc1f19de703a35373c330035217c9d5"
 	)
 
-	if got := RecordID(nonceSubdir, input); got != wantNonce {
+	if got := recordID(nonceSubdir, input); got != wantNonce {
 		t.Errorf("RecordID(%q, %q) = %s, want %s", nonceSubdir, input, got, wantNonce)
 	}
-	if got := RecordID(epochSubdir, input); got != wantEpoch {
+	if got := recordID(epochSubdir, input); got != wantEpoch {
 		t.Errorf("RecordID(%q, %q) = %s, want %s", epochSubdir, input, got, wantEpoch)
 	}
-	if len(RecordID(nonceSubdir, input)) != 64 {
-		t.Errorf("RecordID length = %d, want 64", len(RecordID(nonceSubdir, input)))
+	if len(recordID(nonceSubdir, input)) != 64 {
+		t.Errorf("RecordID length = %d, want 64", len(recordID(nonceSubdir, input)))
 	}
 }
 
@@ -112,7 +112,7 @@ func TestRecordID_Vector(t *testing.T) {
 // directory without a silent overwrite.
 func TestRecordID_KindSeparatesTheDigest(t *testing.T) {
 	const value = "member@example.com"
-	if RecordID(nonceSubdir, value) == RecordID(epochSubdir, value) {
+	if recordID(nonceSubdir, value) == recordID(epochSubdir, value) {
 		t.Errorf("RecordID(%q, ...) == RecordID(%q, ...), want them to differ", nonceSubdir, epochSubdir)
 	}
 }
@@ -128,7 +128,7 @@ func TestValidID(t *testing.T) {
 		{"dotdot", "..", false},
 		{"forward slash", "a/b", false},
 		{"backslash", `a\b`, false},
-		{"valid digest", RecordID(nonceSubdir, "some-value"), true},
+		{"valid digest", recordID(nonceSubdir, "some-value"), true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestValidID(t *testing.T) {
 // TestRecordPathRefusalNamesNoValue proves the review m7 fix: an
 // invalid id's refusal names its length and its offending character
 // class, never the id itself, so a future caller that skipped
-// [RecordID] could not leak a raw credential into an error string.
+// [recordID] could not leak a raw credential into an error string.
 func TestRecordPathRefusalNamesNoValue(t *testing.T) {
 	stateDir := t.TempDir()
 	store, err := Open(stateDir)
@@ -151,7 +151,7 @@ func TestRecordPathRefusalNamesNoValue(t *testing.T) {
 	}
 
 	const secret = "attacker-controlled-nonce-value"
-	_, err = store.NoncePath("../" + secret)
+	_, err = store.noncePath("../" + secret)
 	if err == nil {
 		t.Fatal("NoncePath() error = nil, want a refusal")
 	}
@@ -164,7 +164,7 @@ func TestRecordPathRefusalNamesNoValue(t *testing.T) {
 }
 
 // TestConfinement writes through every entry point this package offers
-// (Open's directory creation, NoncePath/EpochPath's path derivation,
+// (Open's directory creation, noncePath/epochPath's path derivation,
 // and atomicfile.WriteFile) and proves, by walking the filesystem from
 // stateDir, that no file lands outside root. It is the static argument
 // the unit's ReadWritePaths grant rests on at 5d.
@@ -174,19 +174,19 @@ func TestConfinement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	root := DirPath(stateDir)
+	root := dirPath(stateDir)
 
 	// An address whose local part carries "..": hashed first, so the
 	// derived id is always a safe 64-character digest and the write
-	// through NoncePath succeeds.
+	// through noncePath succeeds.
 	const address = "a..b@example.com"
-	nonceID := RecordID(nonceSubdir, address)
-	epochID := RecordID(epochSubdir, address)
-	noncePath, err := store.NoncePath(nonceID)
+	nonceID := recordID(nonceSubdir, address)
+	epochID := recordID(epochSubdir, address)
+	noncePath, err := store.noncePath(nonceID)
 	if err != nil {
 		t.Fatalf("NoncePath(%s): %v", nonceID, err)
 	}
-	epochPath, err := store.EpochPath(epochID)
+	epochPath, err := store.epochPath(epochID)
 	if err != nil {
 		t.Fatalf("EpochPath(%s): %v", epochID, err)
 	}
@@ -199,10 +199,10 @@ func TestConfinement(t *testing.T) {
 
 	// An attacker-shaped id is refused before any file is created.
 	const attackerID = "../../evil"
-	if _, err := store.NoncePath(attackerID); err == nil {
+	if _, err := store.noncePath(attackerID); err == nil {
 		t.Fatalf("NoncePath(%q): want error, got nil", attackerID)
 	}
-	if _, err := store.EpochPath(attackerID); err == nil {
+	if _, err := store.epochPath(attackerID); err == nil {
 		t.Fatalf("EpochPath(%q): want error, got nil", attackerID)
 	}
 

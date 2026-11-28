@@ -61,7 +61,7 @@ func newRevokeFixture(t *testing.T) revokeFixture {
 		t.Fatalf("Open: %v", err)
 	}
 	fx.leaf = leaf
-	fx.epoch = OpenEpochStore(leaf)
+	fx.epoch = NewEpochStore(leaf)
 	fx.roster = member.NewRoster(fx.h, fx.epoch, fx.clock.now)
 	return fx
 }
@@ -105,11 +105,11 @@ func TestRosterRemoval_RevokesSessions(t *testing.T) {
 	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, operatorActor, slog.New(slog.DiscardHandler)); err != nil {
 		t.Fatalf("RemoveMember: %v", err)
 	}
-	if _, err := fx.verifyAliceAt(t, minted); !errors.Is(err, ErrSessionRevoked) {
+	if _, err := fx.verifyAliceAt(t, minted); !errors.Is(err, errSessionRevoked) {
 		t.Errorf("pre-removal session after removal: %v, want ErrSessionRevoked", err)
 	}
 
-	path, err := fx.leaf.EpochPath(RecordID(epochSubdir, "alice@example.com"))
+	path, err := fx.leaf.epochPath(recordID(epochSubdir, "alice@example.com"))
 	if err != nil {
 		t.Fatalf("EpochPath: %v", err)
 	}
@@ -123,10 +123,10 @@ func TestRosterRemoval_RevokesSessions(t *testing.T) {
 	if _, err := fx.roster.AddMember(writeCtx(t), readd, operatorActor, slog.New(slog.DiscardHandler)); err != nil {
 		t.Fatalf("re-add: %v", err)
 	}
-	if _, err := fx.verifyAliceAt(t, minted); !errors.Is(err, ErrSessionRevoked) {
+	if _, err := fx.verifyAliceAt(t, minted); !errors.Is(err, errSessionRevoked) {
 		t.Errorf("pre-removal session after re-add: %v, want ErrSessionRevoked", err)
 	}
-	if _, err := fx.verifyAliceAt(t, readdedAt.Add(-time.Minute)); !errors.Is(err, ErrSessionRevoked) {
+	if _, err := fx.verifyAliceAt(t, readdedAt.Add(-time.Minute)); !errors.Is(err, errSessionRevoked) {
 		t.Errorf("session minted between the removal and the re-add: %v, want ErrSessionRevoked", err)
 	}
 
@@ -141,7 +141,7 @@ func TestRosterRemoval_RevokesSessions(t *testing.T) {
 
 // TestEpochStoreRevoke holds Revoke's failure policy: a revocation
 // bumps the epoch to the time it names; one refused with
-// ErrEpochBackward, because the stored epoch is later, logs a warning,
+// errEpochBackward, because the stored epoch is later, logs a warning,
 // returns nil, and leaves the later epoch in place; and any other bump
 // failure comes back. Fixture states: no stored epoch, an epoch five
 // hours past the revocation, and an epoch subdirectory no bump can
@@ -159,7 +159,7 @@ func TestEpochStoreRevoke(t *testing.T) {
 		{
 			name: "a later stored epoch",
 			prepare: func(t *testing.T, _ *Dir, epoch *EpochStore) {
-				if err := epoch.Bump("alice@example.com", later); err != nil {
+				if err := epoch.bump("alice@example.com", later); err != nil {
 					t.Fatalf("Bump the later epoch: %v", err)
 				}
 			},
@@ -188,13 +188,13 @@ func TestEpochStoreRevoke(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Open: %v", err)
 			}
-			epoch := OpenEpochStore(leaf)
+			epoch := NewEpochStore(leaf)
 			tt.prepare(t, leaf, epoch)
 
 			var logBuf bytes.Buffer
 			err = epoch.Revoke(t.Context(), "alice@example.com", rosterNow, slog.New(slog.NewJSONHandler(&logBuf, nil)))
 			if tt.wantErr {
-				if err == nil || errors.Is(err, ErrEpochBackward) {
+				if err == nil || errors.Is(err, errEpochBackward) {
 					t.Fatalf("Revoke = %v, want the bump's error", err)
 				}
 				return
@@ -220,7 +220,7 @@ func TestEpochStoreRevoke(t *testing.T) {
 func TestRosterWrites_EpochBackwardCommits(t *testing.T) {
 	later := rosterNow.Add(5 * time.Hour)
 	fx := newRevokeFixture(t)
-	if err := fx.epoch.Bump("alice@example.com", later); err != nil {
+	if err := fx.epoch.bump("alice@example.com", later); err != nil {
 		t.Fatalf("Bump the later epoch: %v", err)
 	}
 	logger := slog.New(slog.DiscardHandler)

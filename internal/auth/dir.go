@@ -16,9 +16,8 @@ import (
 const leafDirName = "auth"
 
 // nonceSubdir and epochSubdir are the two record subdirectories Open
-// creates beneath the leaf. They double as [RecordID]'s
-// domain-separation labels, so the one pair of names serves both
-// purposes rather than a second constant apiece.
+// creates beneath the leaf. They double as [recordID]'s
+// domain-separation labels.
 const (
 	nonceSubdir = "nonce"
 	epochSubdir = "epoch"
@@ -32,14 +31,12 @@ const (
 	filePerm = 0o600
 )
 
-// DirPath joins stateDir to the auth leaf, so the leaf name has one
-// home rather than a literal at every call site.
-func DirPath(stateDir string) string {
+func dirPath(stateDir string) string {
 	return filepath.Join(stateDir, leafDirName)
 }
 
 // A Dir is the auth leaf, the directory under the state directory that
-// holds the auth package's durable records, rooted at DirPath(stateDir).
+// holds the auth package's durable records.
 // The nonce store and the epoch store are built on the record path Dir
 // derives, so neither can disagree about where a record lives or what
 // its name may contain.
@@ -55,9 +52,9 @@ type Dir struct {
 // whatever its mode, so a leaf created once at a wider mode, by a
 // hand-run command or an earlier deploy, would otherwise stay wide
 // forever. Record names are digests, but a listable directory is still
-// a listing of how many links are outstanding (review m3).
+// a listing of how many links are outstanding.
 func Open(stateDir string) (*Dir, error) {
-	s := &Dir{root: DirPath(stateDir)}
+	s := &Dir{root: dirPath(stateDir)}
 	for _, sub := range []string{nonceSubdir, epochSubdir} {
 		if err := os.MkdirAll(s.subdir(sub), dirPerm); err != nil {
 			return nil, fmt.Errorf("open auth dir: create %s: %w", sub, err)
@@ -73,22 +70,19 @@ func Open(stateDir string) (*Dir, error) {
 	return s, nil
 }
 
-// subdir returns the path of one of the store's record subdirectories.
-// It is the one place the leaf and a subdirectory become a directory
-// path, so no caller reaches for the root field to build one.
 func (s *Dir) subdir(sub string) string {
 	return filepath.Join(s.root, sub)
 }
 
-// NoncePath and EpochPath return the record path for id inside the
-// nonce and epoch subdirectories, after refusing an id validID rejects.
-// This is the one place a subdirectory and an id become a path, so no
-// other file in the package builds one by hand.
-func (s *Dir) NoncePath(id string) (string, error) {
+// noncePath returns the record path for id inside the nonce
+// subdirectory, after refusing an id validID rejects.
+func (s *Dir) noncePath(id string) (string, error) {
 	return s.recordPath(nonceSubdir, id)
 }
 
-func (s *Dir) EpochPath(id string) (string, error) {
+// epochPath returns the record path for id inside the epoch
+// subdirectory, after refusing an id validID rejects.
+func (s *Dir) epochPath(id string) (string, error) {
 	return s.recordPath(epochSubdir, id)
 }
 
@@ -99,14 +93,12 @@ func (s *Dir) recordPath(sub, id string) (string, error) {
 	return filepath.Join(s.root, sub, id), nil
 }
 
-// RecordID derives a record's filename from kind and value: the hex of
+// recordID derives a record's filename from kind and value: the hex of
 // the SHA-256 digest of the two together, untruncated. kind
-// domain-separates the digest the same way macInput already
-// length-prefixes a MAC's own purpose label, so the nonce store and
-// the epoch store keying two different values can never collide even
-// if a future caller placed both kinds of record in one directory
-// (review m12). Callers pass [nonceSubdir] or [epochSubdir] as kind.
-func RecordID(kind, value string) string {
+// domain-separates the digest the same way macInput length-prefixes a
+// MAC's purpose label, so a nonce record and an epoch record can never
+// share a name. Callers pass [nonceSubdir] or [epochSubdir] as kind.
+func recordID(kind, value string) string {
 	buf := appendField(nil, []byte(kind))
 	buf = appendField(buf, []byte(value))
 	sum := sha256.Sum256(buf)
@@ -114,7 +106,7 @@ func RecordID(kind, value string) string {
 }
 
 // validID reports whether id is safe to use as a single path segment
-// under root. Ids are digest-derived (RecordID), so anything else is a
+// under root. Ids are digest-derived ([recordID]), so anything else is a
 // bug rather than input, and this check makes it a loud one rather than
 // a path traversal.
 func validID(id string) bool {
@@ -124,11 +116,9 @@ func validID(id string) bool {
 	return !strings.ContainsAny(id, `/\`)
 }
 
-// idRefusalReason names why validID refused id, without ever printing
-// id itself: every current caller passes a RecordID digest, but a
-// future caller that skipped it could pass a raw credential, and this
-// package's doc promises no error here ever carries one (review m7,
-// internal/auth/doc.go).
+// idRefusalReason names why validID refused id without printing id
+// itself, since a refused id is not known to be a digest and this
+// package's errors never carry a credential.
 func idRefusalReason(id string) string {
 	switch {
 	case id == "":

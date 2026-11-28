@@ -184,7 +184,7 @@ func (s *submissions) create(ctx context.Context, uploader identity.UserID, n ne
 		_, err = tx.Exec(ctx, `INSERT INTO submissions (id, user_id, collection_id, verdict_unit, container, state,
 			source, source_note, store_url, declared_bytes, reserved_bytes, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			c.id, uploader[:], coll, string(n.manifest.Unit), string(n.manifest.Container), stateUploading,
+			c.id, uploader, coll, string(n.manifest.Unit), string(n.manifest.Container), stateUploading,
 			n.manifest.Source, nullable(n.sourceNote), nullable(n.storeURL), total, total, at, at)
 		if err != nil {
 			return fmt.Errorf("write submission: %w", err)
@@ -258,7 +258,7 @@ func (s *submissions) expire(ctx context.Context, id []byte, reason string, from
 // another member's id reads as an unknown one.
 func owned(ctx context.Context, tx *store.Tx, uploader identity.UserID, id []byte) error {
 	var n int
-	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE id = ? AND user_id = ?`, id, uploader[:]).Scan(&n); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM submissions WHERE id = ? AND user_id = ?`, id, uploader).Scan(&n); err != nil {
 		return fmt.Errorf("read submission owner: %w", err)
 	}
 	if n == 0 {

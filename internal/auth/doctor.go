@@ -22,19 +22,13 @@ const dirRowName = "auth dir"
 // [config.Load] refused the environment.
 func DoctorRows(cfg *config.Config) []doctor.Row {
 	row := doctor.Row{Name: dirRowName}
-	row.Status, row.Failed = dirStatus(cfg, dirOptions{geteuid: os.Geteuid})
+	row.Status, row.Failed = dirStatus(cfg, os.Geteuid())
 	return []doctor.Row{row}
-}
-
-// dirOptions are the process facts [dirStatus] reads.
-type dirOptions struct {
-	// geteuid returns the effective uid the leaf must belong to.
-	geteuid func() int
 }
 
 // dirStatus reports, without writing, whether serve could open
 // the auth leaf under cfg's state directory: "ok" when the leaf is at
-// most 0700, owned by the effective uid, and each record directory is
+// most 0700, owned by euid, and each record directory is
 // writable; "absent; serve creates it" when the leaf is missing and
 // its nearest existing ancestor is writable. Otherwise it names every
 // problem and fails: the leaf's mode in the words [Open] refuses it
@@ -42,11 +36,11 @@ type dirOptions struct {
 // shape a path outside the unit's ReadWritePaths takes. A nil cfg reads
 // "not checked" and adds no failure of its own, since Load's own
 // report already fails doctor.
-func dirStatus(cfg *config.Config, opts dirOptions) (status string, failed bool) {
+func dirStatus(cfg *config.Config, euid int) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	leaf := DirPath(cfg.StateDir)
+	leaf := dirPath(cfg.StateDir)
 	info, err := os.Stat(leaf)
 	if errors.Is(err, fs.ErrNotExist) {
 		if err := checkCreatable(leaf); err != nil {
@@ -69,7 +63,7 @@ func dirStatus(cfg *config.Config, opts dirOptions) (status string, failed bool)
 	// (can return nil)"; on Linux, os.Stat's carries a *syscall.Stat_t.
 	if st, ok := info.Sys().(*syscall.Stat_t); !ok {
 		problems = append(problems, fmt.Sprintf("leaf %s: cannot determine its owner", leaf))
-	} else if euid := opts.geteuid(); int(st.Uid) != euid {
+	} else if int(st.Uid) != euid {
 		problems = append(problems, fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, st.Uid, euid))
 	}
 	for _, name := range []string{nonceSubdir, epochSubdir} {

@@ -13,7 +13,7 @@ import (
 // sessionCookieName is the name of the session cookie. The __Host- prefix is enforced by the
 // browser rather than by this server: a cookie so named is stored only
 // when it is Secure, carries no Domain, and has Path=/, which is why
-// [SessionCookie] sets exactly those attributes and why same-origin is
+// [sessionCookie] sets exactly those attributes and why same-origin is
 // a stated precondition of the session rather than something a
 // deployment can relax.
 const sessionCookieName = "__Host-dubplate_session"
@@ -38,29 +38,27 @@ const (
 	sessionFieldCount = 5
 )
 
-// Sentinels a caller branches on. The refusals are distinct so the
-// session middleware can log which check failed while showing one
-// generic outcome, which is the middleware's choice rather than this
-// package's.
+// The session refusals are distinct so the gate can log which check
+// failed while showing one generic outcome.
 var (
-	// ErrSessionMalformed reports a value that is not a session cookie
+	// errSessionMalformed reports a value that is not a session cookie
 	// at all: the wrong field count, a field that is not base64url, an
 	// unknown version label, or a field whose contents do not parse.
-	ErrSessionMalformed = errors.New("malformed session")
+	errSessionMalformed = errors.New("malformed session")
 
-	// ErrSessionMAC reports a session value whose MAC verifies under
+	// errSessionMAC reports a session value whose MAC verifies under
 	// neither the current nor the previous secret.
-	ErrSessionMAC = errors.New("bad session signature")
+	errSessionMAC = errors.New("bad session signature")
 
-	// ErrSessionCapReached reports a session whose anchor plus the
+	// errSessionCapReached reports a session whose anchor plus the
 	// absolute cap has passed. It is reported even when the value's
 	// own expiry is still in the future, which is the case a rolling
 	// refresh produces.
-	ErrSessionCapReached = errors.New("session absolute cap reached")
+	errSessionCapReached = errors.New("session absolute cap reached")
 
-	// ErrSessionExpired reports a session inside its absolute cap
+	// errSessionExpired reports a session inside its absolute cap
 	// whose own expiry has passed.
-	ErrSessionExpired = errors.New("session expired")
+	errSessionExpired = errors.New("session expired")
 )
 
 // Session is a session cookie's fields. [VerifySession] returns one
@@ -92,11 +90,11 @@ type Session struct {
 // now, and returns the encoded value alongside the fields it carries.
 // The address is normalized here rather than assumed normalized, so the
 // value a MAC covers is the value every later lookup keys on. The
-// anchor is the issue time at a first mint; only [RefreshSession] can
+// anchor is the issue time at a first mint; only [refreshSession] can
 // separate the two.
 //
 // The expiry is clamped to the anchor plus absoluteCap, the same clamp
-// [RefreshSession] applies: a lifetime configured above the cap would
+// [refreshSession] applies: a lifetime configured above the cap would
 // otherwise mint a cookie whose Max-Age promises longer than
 // [VerifySession] will ever honor, misleading whatever reads the
 // cookie's own attributes rather than the value it carries.
@@ -115,26 +113,18 @@ func MintSession(secret []byte, address string, now time.Time, lifetime, absolut
 	return encodeSession(secret, s), s, nil
 }
 
-// RefreshSession re-signs s with its issue time moved to now and its
+// refreshSession re-signs s with its issue time moved to now and its
 // expiry moved to the earlier of now plus lifetime and the session's
 // own anchor plus absoluteCap, so the cookie a browser is handed never
-// carries an expiry [VerifySession] will refuse anyway (review m2). The
-// anchor is carried across untouched: a session refreshed any number
-// of times is still refused once its anchor plus the absolute cap has
-// passed, and moving the anchor here would remove that cap without any
-// other change being visible.
+// carries an expiry [VerifySession] will refuse anyway. The anchor is
+// carried across untouched, so a session refreshed any number of times
+// is still refused once its anchor plus the absolute cap has passed.
 //
 // Callers refresh on same-origin requests only. A cross-origin
 // subresource load counts as traffic to the browser but not to the
 // person: honouring one would hold a session open to its absolute cap
-// on a machine its owner walked away from, which is the shared-device
-// adversary the threat model names. The session middleware is the
-// caller that enforces the precondition; this function cannot see the
-// request.
-//
-// s is a verified session, so there is nothing left to refuse and no
-// error to return.
-func RefreshSession(secret []byte, s Session, now time.Time, lifetime, absoluteCap time.Duration) (string, Session) {
+// on a machine its owner walked away from.
+func refreshSession(secret []byte, s Session, now time.Time, lifetime, absoluteCap time.Duration) (string, Session) {
 	s.IssuedAt = now.UTC().Truncate(time.Second)
 	s.clampExpiry(lifetime, absoluteCap)
 	return encodeSession(secret, s), s
@@ -142,7 +132,7 @@ func RefreshSession(secret []byte, s Session, now time.Time, lifetime, absoluteC
 
 // clampExpiry sets s.ExpiresAt to the earlier of s.IssuedAt plus
 // lifetime and s.AnchoredAt plus absoluteCap, the clamp both
-// [MintSession] and [RefreshSession] apply.
+// [MintSession] and [refreshSession] apply.
 func (s *Session) clampExpiry(lifetime, absoluteCap time.Duration) {
 	expiresAt := s.IssuedAt.Add(lifetime)
 	if capAt := s.AnchoredAt.Add(absoluteCap); expiresAt.After(capAt) {
@@ -151,7 +141,7 @@ func (s *Session) clampExpiry(lifetime, absoluteCap time.Duration) {
 	s.ExpiresAt = expiresAt
 }
 
-// SessionCookie builds the cookie carrying value, expiring at
+// sessionCookie builds the cookie carrying value, expiring at
 // expiresAt as measured from now. Every attribute follows from the
 // __Host- prefix [sessionCookieName] carries: Secure and Path=/ are
 // required for the browser to store it at all, and Domain must stay
@@ -159,16 +149,12 @@ func (s *Session) clampExpiry(lifetime, absoluteCap time.Duration) {
 // that set it. SameSite is Lax so a magic link followed from a mail
 // client arrives with the session attached.
 //
-// Both Expires and MaxAge carry the same instant (review m1): Expires
-// is evaluated against the browser's own clock, so a client clock that
-// drifts from the server's would otherwise keep or drop the cookie at
-// the wrong moment, and MaxAge is the primary control OWASP's Session
-// Management cheat sheet recommends
-// (https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#cookie-duration,
-// read 2026-09-12) precisely because it does not depend on the
-// client's clock at all. Either way, the value's own signed expiry is
-// what the server enforces.
-func SessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
+// Both Expires and MaxAge carry the same instant. MaxAge does not
+// depend on the client's clock, which is why OWASP's Session Management
+// cheat sheet makes it the primary control; Expires serves a client
+// that honors only the older attribute. Either way, the value's own
+// signed expiry is what the server enforces.
+func sessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
 	return &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    value,
@@ -181,11 +167,10 @@ func SessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
 	}
 }
 
-// ClearSessionCookie returns a cookie that instructs the browser to
+// clearSessionCookie returns a cookie that instructs the browser to
 // stop storing the session cookie, carrying the same Path, Secure,
 // HttpOnly, SameSite, and absent Domain the __Host- prefix requires, so
-// the browser recognizes it as the same cookie to delete (review m9).
-// MaxAge is negative, which every browser treats as "delete
+// the browser recognizes it as the same cookie to delete. MaxAge is negative, which every browser treats as "delete
 // immediately"; Expires carries a moment far in the past for a client
 // that honors only the older attribute.
 //
@@ -193,7 +178,7 @@ func SessionCookie(value string, now, expiresAt time.Time) *http.Cookie {
 // invalidate the signed value it carried, so a session captured before
 // this runs keeps verifying until its own expiry or an epoch bump
 // revokes it. A caller's sign-out copy must not claim more than that.
-func ClearSessionCookie() *http.Cookie {
+func clearSessionCookie() *http.Cookie {
 	return &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
@@ -236,7 +221,7 @@ func authenticateSession(current, previous []byte, value string) (Session, error
 		return Session{}, err
 	}
 	if !macMatches(current, sessionPurpose, fields, mac) && !macMatches(previous, sessionPurpose, fields, mac) {
-		return Session{}, ErrSessionMAC
+		return Session{}, errSessionMAC
 	}
 	return s, nil
 }
@@ -245,10 +230,10 @@ func authenticateSession(current, previous []byte, value string) (Session, error
 // absoluteCap has passed, and otherwise once its own expiry has.
 func (s Session) checkLife(now time.Time, absoluteCap time.Duration) error {
 	if !now.Before(s.AnchoredAt.Add(absoluteCap)) {
-		return ErrSessionCapReached
+		return errSessionCapReached
 	}
 	if !now.Before(s.ExpiresAt) {
-		return ErrSessionExpired
+		return errSessionExpired
 	}
 	return nil
 }
@@ -275,25 +260,25 @@ func (s Session) fields() [][]byte {
 // can verify the MAC over exactly the bytes that arrived, rather than
 // over a re-serialization that could differ from them.
 func parseSession(value string) (Session, [][]byte, []byte, error) {
-	fields, mac, err := splitSigned(value, sessionFieldCount, ErrSessionMalformed)
+	fields, mac, err := splitSigned(value, sessionFieldCount, errSessionMalformed)
 	if err != nil {
 		return Session{}, nil, nil, err
 	}
 
 	if string(fields[0]) != sessionVersion {
-		return Session{}, nil, nil, fmt.Errorf("%w: version label", ErrSessionMalformed)
+		return Session{}, nil, nil, fmt.Errorf("%w: version label", errSessionMalformed)
 	}
 	issued, err := strconv.ParseInt(string(fields[2]), 10, 64)
 	if err != nil {
-		return Session{}, nil, nil, fmt.Errorf("%w: issue time", ErrSessionMalformed)
+		return Session{}, nil, nil, fmt.Errorf("%w: issue time", errSessionMalformed)
 	}
 	anchored, err := strconv.ParseInt(string(fields[3]), 10, 64)
 	if err != nil {
-		return Session{}, nil, nil, fmt.Errorf("%w: anchor", ErrSessionMalformed)
+		return Session{}, nil, nil, fmt.Errorf("%w: anchor", errSessionMalformed)
 	}
 	expires, err := strconv.ParseInt(string(fields[4]), 10, 64)
 	if err != nil {
-		return Session{}, nil, nil, fmt.Errorf("%w: expiry", ErrSessionMalformed)
+		return Session{}, nil, nil, fmt.Errorf("%w: expiry", errSessionMalformed)
 	}
 
 	return Session{

@@ -93,7 +93,7 @@ func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, erro
 	if err != nil {
 		return nil, fmt.Errorf("member %s: %w", verb, err)
 	}
-	return member.NewRoster(h, auth.OpenEpochStore(leaf), time.Now), nil
+	return member.NewRoster(h, auth.NewEpochStore(leaf), time.Now), nil
 }
 
 // newMemberAddCmd builds "member add <address>": it opens the store in

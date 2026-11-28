@@ -10,12 +10,6 @@ import (
 	"github.com/glw907/dubplate/internal/settings"
 )
 
-// magicLinkSource is the identity source name a session verified through
-// MagicLinkVerifier reports. A member's session was always minted by
-// consuming a magic link, so the source names that mechanism rather
-// than the cookie carrying the session now.
-const magicLinkSource = "magic-link"
-
 // A Verifier verifies the credential a request carries and yields the
 // identity it asserts, so a caller never inspects a credential's own
 // encoding to decide who is logged in or whether they are an operator.
@@ -39,9 +33,7 @@ type Verifier interface {
 // VerifiedIdentity is what a Verifier yields for a credential that
 // verified.
 type VerifiedIdentity struct {
-	// Identity is the verified login, carrying the login address, the
-	// member's id, the resolved principal, the display name, the
-	// source, and the channel it was asserted on.
+	// Identity is the verified login.
 	Identity identity.Identity
 
 	// Admin is read from the roster record at verification, never from
@@ -118,7 +110,7 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 	if err := sess.checkLife(now, absoluteCap); err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
-	if err := m.epoch.CheckSession(sess); err != nil {
+	if err := m.epoch.checkSession(sess); err != nil {
 		return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 	}
 	member, err := m.roster.Lookup(r.Context(), sess.Address)
@@ -128,12 +120,10 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 
 	result := VerifiedIdentity{
 		Identity: identity.Identity{
-			Address:     member.Address,
-			UserID:      member.ID,
-			Principal:   member.Username,
-			DisplayName: member.DisplayName,
-			Source:      magicLinkSource,
-			Channel:     identity.ChannelCookie,
+			Address:  member.Address,
+			UserID:   member.ID,
+			Username: member.Username,
+			Channel:  identity.ChannelCookie,
 		},
 		Admin:   member.Admin,
 		Session: sess,
@@ -143,7 +133,7 @@ func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameO
 		if err != nil {
 			return VerifiedIdentity{}, fmt.Errorf("verify identity: %w", err)
 		}
-		value, refreshed := RefreshSession(m.currentSecret, sess, now, lifetime, absoluteCap)
+		value, refreshed := refreshSession(m.currentSecret, sess, now, lifetime, absoluteCap)
 		result.Session = refreshed
 		result.RefreshedValue = value
 	}

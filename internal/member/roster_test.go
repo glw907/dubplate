@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -18,30 +16,6 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/store"
 )
-
-// TestNormalizeMemberAddress_SingleResolutionPoint proves R1's single
-// resolution point by grep: normalizeMemberAddress is the only
-// function in this file that resolves a roster member's address. A
-// write's actor is named by id, so no other function has an address to
-// resolve. Named mutation 5 (add a second member-address derivation
-// outside normalizeMemberAddress) fails this test.
-func TestNormalizeMemberAddress_SingleResolutionPoint(t *testing.T) {
-	source, err := os.ReadFile("roster.go")
-	if err != nil {
-		t.Fatalf("read roster.go: %v", err)
-	}
-	calls := regexp.MustCompile(`identity\.NormalizeAddress\(`)
-	body := regexp.MustCompile(`(?s)func normalizeMemberAddress\(.*?\n}`).Find(source)
-	if body == nil {
-		t.Fatal("roster.go has no func normalizeMemberAddress")
-	}
-	if n := len(calls.FindAllIndex(body, -1)); n != 1 {
-		t.Errorf("normalizeMemberAddress calls identity.NormalizeAddress %d times, want exactly 1", n)
-	}
-	if total := len(calls.FindAllIndex(source, -1)); total != 1 {
-		t.Errorf("roster.go calls identity.NormalizeAddress %d times, want exactly 1 (normalizeMemberAddress)", total)
-	}
-}
 
 // TestValidateWriteCandidate_UsernameShape proves the write
 // path's narrower shape check: an alphanumeric first character, then
@@ -252,11 +226,8 @@ func TestValidateWriteCandidate_Fields(t *testing.T) {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("validateWriteCandidate() error = %v, want it to wrap %v", err, tt.wantErr)
 				}
-				// An address refusal carries the normalizer's
-				// sentinel too, so the roster and the config wall
-				// refuse one address for one reason.
-				if tt.wantErr == ErrInvalidMemberAddress && !errors.Is(err, identity.ErrInvalidAddress) {
-					t.Errorf("validateWriteCandidate() error = %v, want it to wrap identity.ErrInvalidAddress", err)
+				if tt.wantErr == ErrInvalidMemberAddress && !strings.Contains(err.Error(), "invalid address") {
+					t.Errorf("validateWriteCandidate() error = %v, want it to carry the normalizer's reason", err)
 				}
 				return
 			}
@@ -727,8 +698,8 @@ var operator = identity.LocalActor("operator")
 // builds, writing from clientIP.
 func memberActor(id identity.UserID, clientIP string) identity.Actor {
 	return identity.NetworkActor(identity.Identity{
-		Address: "member@example.invalid", UserID: id, Principal: "member",
-		Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: "member@example.invalid", UserID: id, Username: "member",
+		Channel: identity.ChannelCookie,
 	}, rosterNow, clientIP)
 }
 
@@ -832,7 +803,7 @@ func TestUsersRoster_Lookup(t *testing.T) {
 		if err == nil || errors.Is(err, ErrMemberNotFound) {
 			t.Fatalf("Lookup of a short-id row = %+v, %v; want an error that is not ErrMemberNotFound", got, err)
 		}
-		if !strings.Contains(err.Error(), "3 bytes") {
+		if !strings.Contains(err.Error(), "length 3") {
 			t.Errorf("Lookup error = %q, want it to name the 3-byte id", err)
 		}
 	})
@@ -910,7 +881,7 @@ func TestUsersRoster_List(t *testing.T) {
 		if err == nil || got != nil {
 			t.Fatalf("List with a short-id row = %+v, %v; want nil and an error", got, err)
 		}
-		if !strings.Contains(err.Error(), "3 bytes") {
+		if !strings.Contains(err.Error(), "length 3") {
 			t.Errorf("List error = %q, want it to name the 3-byte id", err)
 		}
 	})

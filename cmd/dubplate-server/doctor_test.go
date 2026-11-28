@@ -1523,7 +1523,7 @@ func makeAuthLeaf(t *testing.T, stateDir string) string {
 	if _, err := auth.Open(stateDir); err != nil {
 		t.Fatalf("fixture state: auth.Open: %v", err)
 	}
-	return auth.DirPath(stateDir)
+	return filepath.Join(stateDir, "auth")
 }
 
 // chmodRestoring sets path's mode and restores 0700 at cleanup, so

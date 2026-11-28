@@ -3,9 +3,7 @@ package notify
 import (
 	"errors"
 	"fmt"
-	"net/mail"
 	"strconv"
-	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
 )
@@ -67,12 +65,11 @@ func validatePort(value string) error {
 	return nil
 }
 
-// validateFrom checks that value parses as a single RFC 5322 address,
-// display name allowed, with no carriage return or line feed to inject
-// a mail header. Checked at load, a typo fails doctor rather than the
-// first login's send. The returned error never repeats value.
+// validateFrom applies [New]'s From check at load, so a typo fails
+// doctor rather than the first login's send. The returned error never
+// repeats value.
 func validateFrom(value string) error {
-	if _, err := mail.ParseAddress(value); err != nil || strings.ContainsAny(value, "\r\n") {
+	if _, err := parseFrom(value); err != nil {
 		return &config.KeyError{Key: fromKey, Reason: "invalid email address"}
 	}
 	return nil

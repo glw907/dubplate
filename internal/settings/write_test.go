@@ -28,7 +28,7 @@ const (
 // actor's rendering fails the audit assertions.
 var (
 	testAuthor = identity.NetworkActor(identity.Identity{
-		Address: "member@example.invalid", Principal: "member", Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: "member@example.invalid", Username: "member", Channel: identity.ChannelCookie,
 		UserID: identity.UserID{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
 	}, testNow, "192.0.2.1")
 	testAuthorWire = "member:00112233445566778899aabbccddeeff"
