@@ -10,6 +10,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/serve"
 )
 
 // A Verifier admits one request to the mount. It reads whatever
@@ -46,16 +47,15 @@ type mount struct {
 // whatever a later route does.
 //
 // Every operation runs as the actor verify admits and never as a field
-// of the request. prefix is the shell's owned prefix, with a leading
-// separator and no trailing one. NewMount fails on a nil admin or
-// submissions implementation, verifier, or logger, and on a prefix of
-// the wrong shape.
-func NewMount(admin ops.Admin, subs ops.Submissions, prefix string, verify Verifier, log *slog.Logger) (http.Handler, error) {
+// of the request. prefix is the shell's owned prefix. NewMount fails on
+// a nil admin or submissions implementation, verifier, or logger, and
+// on the zero Prefix.
+func NewMount(admin ops.Admin, subs ops.Submissions, prefix serve.Prefix, verify Verifier, log *slog.Logger) (http.Handler, error) {
 	switch {
 	case verify == nil:
 		return nil, errors.New("verifier is nil")
-	case !strings.HasPrefix(prefix, "/") || strings.HasSuffix(prefix, "/"):
-		return nil, errors.New("prefix must begin with a separator and carry no trailing one")
+	case prefix == serve.Prefix{}:
+		return nil, errors.New("prefix is the zero Prefix")
 	case log == nil:
 		return nil, errors.New("logger is nil")
 	case admin == nil:
@@ -63,7 +63,7 @@ func NewMount(admin ops.Admin, subs ops.Submissions, prefix string, verify Verif
 	case subs == nil:
 		return nil, errors.New("submission operations are nil")
 	}
-	m := &mount{base: prefix + "/api/v1/", verify: verify, log: log, routes: map[ops.Op]route{}}
+	m := &mount{base: prefix.String() + "/api/v1/", verify: verify, log: log, routes: map[ops.Op]route{}}
 	handle(m, ops.OpListMembers, admin.ListMembers)
 	handle(m, ops.OpAddMember, admin.AddMember)
 	handle(m, ops.OpRemoveMember, admin.RemoveMember)

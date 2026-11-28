@@ -17,11 +17,11 @@ type Prefix struct {
 	value string
 }
 
-// NewPrefix validates value and returns the [Prefix] it names. value
+// newPrefix validates value and returns the [Prefix] it names. value
 // must begin with a separator, carry no trailing separator, and carry
 // nothing normalize would refuse in a request path: no empty, ".", or
 // ".." segment, no backslash, and no percent-encoded byte.
-func NewPrefix(value string) (Prefix, error) {
+func newPrefix(value string) (Prefix, error) {
 	if err := validatePrefix(value); err != nil {
 		return Prefix{}, err
 	}

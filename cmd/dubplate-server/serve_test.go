@@ -1251,7 +1251,7 @@ func checkDocumentSet(buildFS fs.FS) string {
 // from buildFS, with the members document mounted with no gate, since
 // these checks read the document rather than the gate.
 func webFSHandler(environ []string, stateDir string, buildFS fs.FS) (http.Handler, error) {
-	prefix, err := serve.NewPrefix("/dubplate")
+	prefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=/dubplate"})
 	if err != nil {
 		return nil, err
 	}

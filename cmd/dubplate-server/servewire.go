@@ -96,11 +96,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 
 	limiter := auth.NewLimiter(limits)
 
-	mailConfig, err := notify.ConfigFrom(cfg)
-	if err != nil {
-		return nil, err
-	}
-	mailer, err := notify.New(mailConfig)
+	mailer, err := notify.New(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +280,7 @@ func sweepNonces(ctx context.Context, nonces *auth.NonceStore, logger *slog.Logg
 // newAPIMount builds the /api/v1 handler over the admin and submission
 // operations for the sessions cfg verifies.
 func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Submissions, cfg auth.VerifyConfig) (http.Handler, error) {
-	return opshttp.NewMount(adminOps, submissionOps, prefix.String(), apiVerifier(cfg), cfg.Logger)
+	return opshttp.NewMount(adminOps, submissionOps, prefix, apiVerifier(cfg), cfg.Logger)
 }
 
 // apiVerifier admits a request whose session verifies as any member,

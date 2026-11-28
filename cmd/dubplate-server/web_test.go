@@ -101,9 +101,9 @@ func newFixtureBuildFS(loginPlaceholderCount, linkPlaceholderCount int) fstest.M
 
 func webTestPrefix(t *testing.T) serve.Prefix {
 	t.Helper()
-	prefix, err := serve.NewPrefix("/dubplate")
+	prefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=/dubplate"})
 	if err != nil {
-		t.Fatalf("serve.NewPrefix: %v", err)
+		t.Fatalf("serve.ParsePrefix: %v", err)
 	}
 	return prefix
 }
@@ -607,9 +607,9 @@ func resolveAgainstDocument(docPath, ref string) (string, error) {
 // criterion names.
 func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 	const prefixValue = "/p/q"
-	prefix, err := serve.NewPrefix(prefixValue)
+	prefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=" + prefixValue})
 	if err != nil {
-		t.Fatalf("serve.NewPrefix: %v", err)
+		t.Fatalf("serve.ParsePrefix: %v", err)
 	}
 
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}

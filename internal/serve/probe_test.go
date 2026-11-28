@@ -74,7 +74,7 @@ func probeBody(t *testing.T, srv *httptest.Server, prefix Prefix, proxy TrustedP
 // socket: every count is zero, because the strip removed every header
 // the route counts before the mux handed it the request.
 func TestProbeRoute_ThroughShellCountsNothing(t *testing.T) {
-	prefix, err := NewPrefix("/dubplate")
+	prefix, err := newPrefix("/dubplate")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func TestProbeRoute_ThroughShellCountsNothing(t *testing.T) {
 // Connection header lists, so a zero through the shell is the strip's
 // work and nothing else's.
 func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
-	prefix, err := NewPrefix("/dubplate")
+	prefix, err := newPrefix("/dubplate")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestProbeRoute_WithoutStripCountsEverySpelling(t *testing.T) {
 // makes each refusal row meaningful: the same handler does answer a
 // permitted GET.
 func TestProbeRoute_PeerAndMethod(t *testing.T) {
-	prefix, err := NewPrefix("/dubplate")
+	prefix, err := newPrefix("/dubplate")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +210,7 @@ func TestProbeRoute_PeerAndMethod(t *testing.T) {
 // TestNewProbeRequest_RefusesBadInput pins the builder's one failure:
 // a host that leaves the URL unparseable.
 func TestNewProbeRequest_RefusesBadInput(t *testing.T) {
-	prefix, err := NewPrefix("/dubplate")
+	prefix, err := newPrefix("/dubplate")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -254,7 +254,7 @@ func TestCountPresentMatchesNormalizedKeys(t *testing.T) {
 // 127.0.0.1, is not the configured proxy, so the strip treats it as
 // any client.
 func TestProbeConfiguredHeader(t *testing.T) {
-	prefix, err := NewPrefix("/dubplate")
+	prefix, err := newPrefix("/dubplate")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestProbeConfiguredHeader(t *testing.T) {
 // identity count is every spelling, which is what makes the zero
 // through the shell the strip's work.
 func TestProbeRoute_TrustedPeerReceivesIdentityOnly(t *testing.T) {
-	prefix, err := NewPrefix("/dubplate")
+	prefix, err := newPrefix("/dubplate")
 	if err != nil {
 		t.Fatal(err)
 	}

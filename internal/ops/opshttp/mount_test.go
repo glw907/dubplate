@@ -12,6 +12,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
+	"github.com/glw907/dubplate/internal/serve"
 )
 
 // TestMount_OtherAPIPathsAnswerJSONNotFound proves every path under
@@ -211,17 +212,17 @@ func TestNewMount_Refusals(t *testing.T) {
 	}
 	log := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
 	admin, subs := &fakeAdmin{}, &fakeSubmissions{}
+	prefix := testPrefix(t)
 	for _, tt := range []struct {
 		name string
 		call func() (http.Handler, error)
 		want string
 	}{
-		{"nil verifier", func() (http.Handler, error) { return NewMount(admin, subs, mountPrefix, nil, log) }, "verifier is nil"},
-		{"nil admin seam", func() (http.Handler, error) { return NewMount(nil, subs, mountPrefix, verify, log) }, "admin operations are nil"},
-		{"nil submission seam", func() (http.Handler, error) { return NewMount(admin, nil, mountPrefix, verify, log) }, "submission operations are nil"},
-		{"nil logger", func() (http.Handler, error) { return NewMount(admin, subs, mountPrefix, verify, nil) }, "logger is nil"},
-		{"prefix without a leading separator", func() (http.Handler, error) { return NewMount(admin, subs, "dub", verify, log) }, "prefix must begin"},
-		{"prefix with a trailing separator", func() (http.Handler, error) { return NewMount(admin, subs, "/dub/", verify, log) }, "prefix must begin"},
+		{"nil verifier", func() (http.Handler, error) { return NewMount(admin, subs, prefix, nil, log) }, "verifier is nil"},
+		{"nil admin seam", func() (http.Handler, error) { return NewMount(nil, subs, prefix, verify, log) }, "admin operations are nil"},
+		{"nil submission seam", func() (http.Handler, error) { return NewMount(admin, nil, prefix, verify, log) }, "submission operations are nil"},
+		{"nil logger", func() (http.Handler, error) { return NewMount(admin, subs, prefix, verify, nil) }, "logger is nil"},
+		{"the zero prefix", func() (http.Handler, error) { return NewMount(admin, subs, serve.Prefix{}, verify, log) }, "zero Prefix"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			h, err := tt.call()

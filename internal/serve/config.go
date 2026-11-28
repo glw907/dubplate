@@ -78,7 +78,7 @@ func ParsePrefix(environ []string) (Prefix, error) {
 	if err != nil {
 		return Prefix{}, err
 	}
-	return NewPrefix(value)
+	return newPrefix(value)
 }
 
 // Config is the shell's listen configuration, read from the three

@@ -52,11 +52,11 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func newMailer(t *testing.T, cfg Config) *Mailer {
+func mustMailer(t *testing.T, cfg smtpConfig) *Mailer {
 	t.Helper()
-	mailer, err := New(cfg)
+	mailer, err := newMailer(cfg)
 	if err != nil {
-		t.Fatalf("New() error = %v, want nil", err)
+		t.Fatalf("newMailer() error = %v, want nil", err)
 	}
 	return mailer
 }
@@ -320,7 +320,7 @@ func receive(t *testing.T, srv *testServer) delivery {
 // the RFC 2047 encoded-word Subject, and the RFC 2045 section 6.7
 // quoted-printable body, each decoded back to the exact value Send was
 // given.
-func assertParity(t *testing.T, d delivery, cfg Config, to, wantSubject, wantBody string) {
+func assertParity(t *testing.T, d delivery, cfg smtpConfig, to, wantSubject, wantBody string) {
 	t.Helper()
 
 	if d.user != cfg.User {
@@ -415,13 +415,13 @@ func TestSend_ImplicitTLS465(t *testing.T) {
 	addr := startTestServer(t, srv, true)
 	host, port := splitHostPort(t, addr)
 
-	cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
+	cfg := smtpConfig{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
 	// Binding the real port 465 needs root, so the ephemeral port stands
 	// in for it.
 	prev := implicitTLSPort
 	implicitTLSPort = port
 	t.Cleanup(func() { implicitTLSPort = prev })
-	mailer := newMailer(t, cfg)
+	mailer := mustMailer(t, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -440,8 +440,8 @@ func TestSend_StartTLS587(t *testing.T) {
 	addr := startTestServer(t, srv, false)
 	host, port := splitHostPort(t, addr)
 
-	cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
-	mailer := newMailer(t, cfg)
+	cfg := smtpConfig{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
+	mailer := mustMailer(t, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -476,8 +476,8 @@ func TestSend_AuthMechanismFollowsTheServer(t *testing.T) {
 			addr := startTestServer(t, srv, false)
 			host, port := splitHostPort(t, addr)
 
-			cfg := Config{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
-			mailer := newMailer(t, cfg)
+			cfg := smtpConfig{Host: host, Port: port, User: "smtp-user@example.com", Password: "s3cret-app-password", From: "dubplate@example.com"}
+			mailer := mustMailer(t, cfg)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
@@ -503,8 +503,8 @@ func TestSend_StartTLSNotOffered(t *testing.T) {
 	addr := startTestServer(t, srv, false)
 	host, port := splitHostPort(t, addr)
 
-	cfg := Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"}
-	mailer := newMailer(t, cfg)
+	cfg := smtpConfig{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"}
+	mailer := mustMailer(t, cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -536,7 +536,7 @@ func TestSend_ContextCancelled(t *testing.T) {
 	_ = ln.Close()
 	host, port := splitHostPort(t, addr)
 
-	mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer := mustMailer(t, smtpConfig{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 	if err := mailer.Send(ctx, "contributor@example.com", "subject", "body"); !errors.Is(err, context.Canceled) {
 		t.Errorf("Send() error = %v, want context.Canceled", err)
 	}
@@ -562,7 +562,7 @@ func TestSend_CancelledMidSendKeepsTheCause(t *testing.T) {
 	prev := implicitTLSPort
 	implicitTLSPort = port
 	t.Cleanup(func() { implicitTLSPort = prev })
-	mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer := mustMailer(t, smtpConfig{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -603,7 +603,7 @@ func TestSend_HeaderInjectionGuard(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+			mailer := mustMailer(t, smtpConfig{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
@@ -628,13 +628,13 @@ func TestNew_RefusesAnInvalidFrom(t *testing.T) {
 		"dubplate@example.com\r\nBcc: attacker@example.com",
 		"Dubplate (c\r\n x) <dubplate@example.com>",
 	} {
-		_, err := New(Config{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: from})
+		_, err := newMailer(smtpConfig{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: from})
 		if !errors.Is(err, errInvalidFrom) {
-			t.Errorf("New(From %q) error = %v, want errInvalidFrom", from, err)
+			t.Errorf("newMailer(From %q) error = %v, want errInvalidFrom", from, err)
 			continue
 		}
 		if err.Error() != "invalid from address" {
-			t.Errorf("New(From %q) error = %q, want %q", from, err, "invalid from address")
+			t.Errorf("newMailer(From %q) error = %q, want %q", from, err, "invalid from address")
 		}
 	}
 }
@@ -643,7 +643,7 @@ func TestNew_RefusesAnInvalidFrom(t *testing.T) {
 // fails with errInvalidTo and that the address itself never appears in
 // the error text, unlike go-mail's own parse error which quotes it.
 func TestSend_InvalidRecipientOmitsAddress(t *testing.T) {
-	mailer := newMailer(t, Config{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer := mustMailer(t, smtpConfig{Host: "127.0.0.1", Port: 1, User: "u", Password: "p", From: "dubplate@example.com"})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -667,7 +667,7 @@ func TestSend_RCPTRejected(t *testing.T) {
 	addr := startTestServer(t, srv, false)
 	host, port := splitHostPort(t, addr)
 
-	mailer := newMailer(t, Config{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
+	mailer := mustMailer(t, smtpConfig{Host: host, Port: port, User: "u", Password: "p", From: "dubplate@example.com"})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
