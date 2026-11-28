@@ -124,13 +124,6 @@ func TestDoctorCmd(t *testing.T) {
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
-			// The same statuses map doctor's own RunE built from the
-			// same Load call, so the threshold expectation below
-			// reflects a relational refusal exactly as the row under
-			// test would.
-			_, loadErr := config.Load(environ, reg)
-			statuses := rowStatuses(loadErr)
-
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("Execute() error = nil, want error")
@@ -184,16 +177,12 @@ func TestDoctorCmd(t *testing.T) {
 				li++
 			}
 
-			for _, th := range reg.Thresholds() {
-				want := thresholdStatus(environ, statuses, th)
-				if li >= len(lines) {
-					t.Fatalf("stdout ran out of lines before threshold row %s", th.Key)
-				}
-				wantPrefix := fmt.Sprintf("%-32s %s", th.Key, want)
-				if !strings.HasPrefix(lines[li], wantPrefix) {
-					t.Errorf("threshold row %d = %q, want prefix %q", li, lines[li], wantPrefix)
-				}
-				li++
+			// The threshold rows' statuses are pinned by the tests that
+			// register thresholds; this fixture registers none, so no
+			// threshold line sits between the integration rows and the
+			// store row.
+			if n := len(reg.Thresholds()); n != 0 {
+				t.Fatalf("fixture state: freshRegistry registers %d thresholds, and this test pins none", n)
 			}
 
 			// The store row prints unconditionally, for every state
