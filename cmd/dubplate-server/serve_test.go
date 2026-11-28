@@ -491,7 +491,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 
 // TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree holds
 // security review finding 2, R-5c9's routing test: a link minted
-// through the real handler config, the prefix and the public origin
+// from the prefix and the public origin
 // [newServeShell] itself resolves, lands on a path the owned prefix
 // owns and a registered "login" subtree answers. It runs for both
 // public-URL forms, a bare origin and one carrying a trailing
@@ -525,13 +525,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			}
 			t.Cleanup(func() { _ = srv.Close() })
 			shell := srv.shell
-			handlersConfig := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())), nil, nil, nil, nil, nil, nil, nil)
-			if handlersConfig.Prefix != prefix.String() {
-				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
-			}
-			if handlersConfig.BodyCapCeiling != 65536 {
-				t.Errorf("authHandlersConfig BodyCapCeiling = %d, want the registered ceiling 65536", handlersConfig.BodyCapCeiling)
-			}
+			handlersConfig := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())))
 
 			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
 			if err != nil {
@@ -561,6 +555,25 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 
 	if gotPaths[0] != gotPaths[1] {
 		t.Errorf("minted link path = %q for %q and %q for %q, want the same path for both origin forms", gotPaths[0], origins[0], gotPaths[1], origins[1])
+	}
+}
+
+// handlersConfigFor is the part of the handler config serve fills from
+// ac and prefix: the secrets, the setting readers, the public origin,
+// and the prefix.
+func handlersConfigFor(prefix serve.Prefix, ac auth.Config) auth.HandlersConfig {
+	return auth.HandlersConfig{
+		LinkSecret:         ac.LinkSecret,
+		PreviousLinkSecret: ac.PreviousLinkSecret,
+		SessionSecret:      ac.SessionSecret,
+		LinkExpiry:         ac.LinkExpiry,
+		SessionLifetime:    ac.SessionLifetime,
+		SessionAbsoluteCap: ac.SessionAbsoluteCap,
+		PublicOrigin:       ac.PublicOrigin,
+		Prefix:             prefix.String(),
+		BodyCap:            ac.BodyCap,
+		BodyCapCeiling:     auth.RequestBodyCapCeiling,
+		GenericAnswer:      ac.GenericAnswer,
 	}
 }
 
@@ -2001,9 +2014,12 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
 		var mailed []string
-		hc := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())), member.NewRoster(h, nil, nil), nil, nil,
-			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
-			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
+		hc := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())))
+		hc.Roster = member.NewRoster(h, nil, nil)
+		hc.Limiter = auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10})
+		hc.ClientIP = func(*http.Request) string { return "192.0.2.50" }
+		hc.Now = time.Now
+		hc.Logger = discardTestLogger()
 		hc.Send = func(_ context.Context, _, _, body string) error {
 			mailed = append(mailed, body)
 			return nil
