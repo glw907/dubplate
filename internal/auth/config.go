@@ -349,7 +349,7 @@ func validateMagicLinkSource(values map[string]string, _ []string) error {
 // validatePublicURL checks value against the conditions a configured
 // public origin must meet: it parses; it carries no userinfo, query
 // string, fragment, or path other than empty or "/", any of which would
-// ride into every link [LinkURL] builds; it has a host, since a
+// ride into every link [linkURL] builds; it has a host, since a
 // path-only link would land wherever the mail client chose; and its
 // scheme is https unless its host is loopback, the whole loopback set
 // the W3C Secure Contexts definition treats as potentially trustworthy.

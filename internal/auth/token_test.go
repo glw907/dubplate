@@ -423,18 +423,18 @@ func TestLinkURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := LinkURL(tt.origin, tt.prefix, vector)
+			got, err := linkURL(tt.origin, tt.prefix, vector)
 			if tt.wantErr {
 				if err == nil {
-					t.Fatalf("LinkURL(%q, %q) error = nil, want an error", tt.origin, tt.prefix)
+					t.Fatalf("linkURL(%q, %q) error = nil, want an error", tt.origin, tt.prefix)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("LinkURL(%q, %q) error = %v, want nil", tt.origin, tt.prefix, err)
+				t.Fatalf("linkURL(%q, %q) error = %v, want nil", tt.origin, tt.prefix, err)
 			}
 			if got != tt.want {
-				t.Errorf("LinkURL(%q, %q) = %q, want %q", tt.origin, tt.prefix, got, tt.want)
+				t.Errorf("linkURL(%q, %q) = %q, want %q", tt.origin, tt.prefix, got, tt.want)
 			}
 		})
 	}
@@ -464,7 +464,7 @@ func TestErrorsCarryNoFixtureValues(t *testing.T) {
 	record(err)
 	_, err = VerifyLink([]byte(currentFixture), []byte(previousFixture), "!!!", fixtureMint)
 	record(err)
-	_, err = LinkURL("://bad", "/dubplate", valid)
+	_, err = linkURL("://bad", "/dubplate", valid)
 	record(err)
 
 	joined := strings.Join(texts, "\n")
