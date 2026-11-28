@@ -619,10 +619,10 @@ func TestSend_HeaderInjectionGuard(t *testing.T) {
 	}
 }
 
-// TestNew_RefusesAnInvalidFrom proves New refuses a From that is not one
+// TestNewMailer_RefusesAnInvalidFrom proves newMailer refuses a From that is not one
 // mailbox free of CR and LF, including a CR or LF net/mail accepts inside
 // a comment, and that the address never appears in the error text.
-func TestNew_RefusesAnInvalidFrom(t *testing.T) {
+func TestNewMailer_RefusesAnInvalidFrom(t *testing.T) {
 	for _, from := range []string{
 		"not-an-address",
 		"dubplate@example.com\r\nBcc: attacker@example.com",
@@ -659,7 +659,7 @@ func TestSend_InvalidRecipientOmitsAddress(t *testing.T) {
 }
 
 // TestSend_RCPTRejected proves a mid-transaction SMTP rejection wraps
-// ErrSend and that the rejected recipient never appears in the error
+// errSend and that the rejected recipient never appears in the error
 // text, unlike go-mail's own *SendError.Error, which appends "affected
 // recipient(s): <address>".
 func TestSend_RCPTRejected(t *testing.T) {
