@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/glw907/dubplate/internal/identity"
 )
 
 // baseEnviron returns a minimal environ with every owned-now key set
@@ -1161,8 +1159,8 @@ func TestLoad_AdminAddress(t *testing.T) {
 			if !errors.As(err, &keyed) || keyed.Key != "DUBPLATE_ADMIN_EMAIL" {
 				t.Fatalf("Load(%q) error = %v, want a KeyError on DUBPLATE_ADMIN_EMAIL", tt.value, err)
 			}
-			if !errors.Is(err, identity.ErrInvalidAddress) {
-				t.Errorf("Load(%q) error = %v, want it to wrap identity.ErrInvalidAddress", tt.value, err)
+			if keyed.Err == nil || !strings.Contains(keyed.Err.Error(), "invalid address") {
+				t.Errorf("Load(%q) KeyError.Err = %v, want the normalizer's invalid address", tt.value, keyed.Err)
 			}
 		})
 	}

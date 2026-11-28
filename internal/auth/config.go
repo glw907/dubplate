@@ -85,7 +85,7 @@ const secretLengthFloor = 32
 // "single use, a 15-minute default expiry"; an hour is generous
 // headroom above the default without admitting a link that survives a
 // whole day in a mail provider's link-scanner cache or a browser's
-// history (review m5). It is [magicLinkExpirySetting]'s registered
+// history. It is [magicLinkExpirySetting]'s registered
 // ceiling, and the nonce store's mtime fallback keeps a record past it
 // rather than past the value in force, since only the ceiling outlives
 // every token a changed expiry could have minted.
@@ -96,7 +96,7 @@ const MagicLinkExpiryCeiling = time.Hour
 // auth durations.
 //
 // Every duration takes a positive floor, since zero or a negative
-// duration cannot mean "never" or "immediately" here (review m5). The
+// duration cannot mean "never" or "immediately" here. The
 // link expiry's floor is a minute instead of a second: a link that
 // expires inside a minute leaves no time for the mail to arrive, and
 // the mailed copy would read "0 minutes". The absolute cap's ceiling,
@@ -156,13 +156,11 @@ var (
 	}
 )
 
-// Fork 3's four rate limits (R28) each take a floor of one, since zero
-// is ambiguous between "unlimited" and "blocked outright", and a
-// ceiling of ten times the default: generous headroom for a larger
-// group without admitting a rate that defeats R28's own reasoning, as
-// a per-address or per-client limiter set high enough stops bounding
-// anything an enumerator does. The limiter is built once, so each
-// applies at the next start.
+// The four rate limits each take a floor of one, since zero is
+// ambiguous between "unlimited" and "blocked outright", and a ceiling
+// of ten times the default: headroom for a larger group without a
+// limit so high it stops bounding anything an enumerator does. The
+// limiter is built once, so each applies at the next start.
 var (
 	linkRequestsPerAddressSetting = config.Setting{
 		Key:         "DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR",
@@ -215,14 +213,11 @@ var (
 // no limiter charges reads no setting.
 const RequestBodyCapCeiling = 65536
 
-// authRequestBodyCapSetting is the auth request body cap security
-// constraint 3 requires. Its floor, 512 bytes, comfortably fits an RFC
-// 5321 address (254 bytes at most) plus its form-encoded field name;
-// its ceiling, 64KiB, is generous headroom that still keeps the
-// amplification bound (M5) meaningful, because a cap large enough to
-// admit an arbitrary upload defeats the reason the cap exists. Its
-// 4096-byte default fits the login form's one mailed-address field
-// with room to spare.
+// authRequestBodyCapSetting bounds an auth request's body. Its floor,
+// 512 bytes, fits an RFC 5321 address (254 bytes at most) plus its
+// form-encoded field name; its ceiling, 64KiB, still keeps the
+// amplification bound meaningful, because a cap large enough to admit
+// an arbitrary upload defeats the reason the cap exists.
 var authRequestBodyCapSetting = config.Setting{
 	Key:         "DUBPLATE_AUTH_REQUEST_BODY_CAP",
 	Kind:        config.KindInt,
@@ -360,34 +355,16 @@ func validateMagicLinkSource(values map[string]string, _ []string) error {
 }
 
 // validatePublicURL checks value against the conditions a configured
-// public origin must meet (review m7): it parses; it carries no
-// userinfo, no query string, no fragment, and no path other than empty
-// or "/", because any of the four would ride into every link [LinkURL]
-// builds and make an attacker-chosen string part of its visible prefix
-// or suffix (review m4): the owned serve prefix is what sets where
-// dubplate lives, so the public URL carries none of its own; it
-// carries a non-empty host, because net/url
-// accepts a bare hostname with a nil error and an empty Host, and a URL
-// with no host builds a path-only link that defeats security review
-// finding 7; and its scheme is https unless its host is loopback, the
-// carve-out the W3C Secure Contexts definition of a potentially
-// trustworthy origin extends to the whole loopback set
-// (https://w3c.github.io/webappsec-secure-contexts/#is-origin-trustworthy,
-// read 2026-09-12), not the name localhost alone (review m6, ruled,
-// conductor 2026-09-12). The comparison reads the parsed hostname
-// rather than the host, since url.Parse("http://localhost:8080").Host
-// is "localhost:8080" and only Hostname() is "localhost".
+// public origin must meet: it parses; it carries no userinfo, query
+// string, fragment, or path other than empty or "/", any of which would
+// ride into every link [LinkURL] builds; it has a host, since a
+// path-only link would land wherever the mail client chose; and its
+// scheme is https unless its host is loopback, the whole loopback set
+// the W3C Secure Contexts definition treats as potentially trustworthy.
 //
-// No returned error quotes value or any part of it: every message names
-// the key and the defect alone. url.Parse's own error is never wrapped,
-// even its inner reason, because a raw value carrying userinfo with a
-// "/", "?" or "#" inside the password makes url.Parse cut the authority
-// there and misread "user:pass" as "host:port", so its error quotes the
-// password up to that character
-// (net/url/url.go, fmt.Sprintf("%s %q: %s", e.Op, e.URL, e.Err), read
-// 2026-09-23). value is checked for "@" before it is parsed at all, so
-// a value net/url would misparse this way is still caught as userinfo
-// rather than reaching url.Parse's error path.
+// No returned error quotes value. It is checked for "@" before it is
+// parsed, because url.Parse misreads a password containing "/", "?", or
+// "#" as host:port and quotes it in its error.
 func validatePublicURL(value string) error {
 	if strings.Contains(value, "@") {
 		return &config.KeyError{Key: publicURLKey, Reason: "carries userinfo, which would become an attacker-chosen prefix of every mailed link"}

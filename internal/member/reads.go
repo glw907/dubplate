@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/store"
@@ -16,20 +15,15 @@ import (
 // is changed. A read error comes back bare: the caller adds the prefix
 // its operators already read.
 func EarliestAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
-	var raw []byte
+	var id identity.UserID
 	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
-		ORDER BY created_at, id LIMIT 1`).Scan(&raw)
+		ORDER BY created_at, id LIMIT 1`).Scan(&id)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return identity.UserID{}, false, nil
 	case err != nil:
 		return identity.UserID{}, false, err
 	}
-	var id identity.UserID
-	if len(raw) != len(id) {
-		return identity.UserID{}, false, fmt.Errorf("member: the earliest admin's id is %d bytes, want %d", len(raw), len(id))
-	}
-	copy(id[:], raw)
 	return id, true, nil
 }
 

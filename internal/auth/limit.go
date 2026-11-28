@@ -10,11 +10,11 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// ErrRateLimited reports that a login request or a link consumption was
+// errRateLimited reports that a login request or a link consumption was
 // refused because one of [Limiter]'s limits is spent. The wrapped text
 // names which limit tripped, never the key it tripped on; the caller
 // logs the refusal with the client address it already holds.
-var ErrRateLimited = errors.New("rate limit tripped")
+var errRateLimited = errors.New("rate limit tripped")
 
 // limitInterval is the window every [Limits] count is stated over: a
 // count of n admits n events per interval, refilling one event every
@@ -74,7 +74,7 @@ func NewLimiter(limits Limits) *Limiter {
 }
 
 // allowLinkClient charges one link request against client, and returns
-// an error wrapping [ErrRateLimited] when its limit is spent. The
+// an error wrapping [errRateLimited] when its limit is spent. The
 // caller charges it first, for every request, before it reads the
 // address: an address that fails to normalize still spends the
 // client's budget, and a refused client never reaches the per-address
@@ -85,7 +85,7 @@ func (l *Limiter) allowLinkClient(now time.Time, client string) error {
 
 // allowLinkAddress charges one link request against address, which the
 // caller has normalized and found on the roster, and returns an error
-// wrapping [ErrRateLimited] when its limit is spent. The caller never
+// wrapping [errRateLimited] when its limit is spent. The caller never
 // charges an address the roster does not hold, so the per-address map
 // holds no more keys than the roster has members and a flood of
 // made-up addresses never reaches it.
@@ -93,22 +93,22 @@ func (l *Limiter) allowLinkAddress(now time.Time, address string) error {
 	return l.perAddress.chargeOrRefuse(now, address, "link requests per address")
 }
 
-// AllowConsumption charges one link consumption attempt against client
-// and returns an error wrapping [ErrRateLimited] when its limit is
+// allowConsumption charges one link consumption attempt against client
+// and returns an error wrapping [errRateLimited] when its limit is
 // spent. The caller runs it before verifying the link, so a flood of
 // forged tokens is bounded here rather than reaching the verifier.
-func (l *Limiter) AllowConsumption(now time.Time, client string) error {
+func (l *Limiter) allowConsumption(now time.Time, client string) error {
 	return l.consumption.chargeOrRefuse(now, clientKey(client), "link consumption attempts per client")
 }
 
-// AllowLinkMail charges one outbound link mail against the global
-// ceiling and returns an error wrapping [ErrRateLimited] when it is
+// allowLinkMail charges one outbound link mail against the global
+// ceiling and returns an error wrapping [errRateLimited] when it is
 // spent. The ceiling is shared by every key, so an enumerator walking
 // distinct addresses from distinct clients still cannot send more mail
 // than it admits.
-func (l *Limiter) AllowLinkMail(now time.Time) error {
+func (l *Limiter) allowLinkMail(now time.Time) error {
 	if !l.linkMail.AllowN(now, 1) {
-		return fmt.Errorf("%w: outbound link mail ceiling", ErrRateLimited)
+		return fmt.Errorf("%w: outbound link mail ceiling", errRateLimited)
 	}
 	return nil
 }
@@ -201,11 +201,11 @@ func newKeyedLimiter(perInterval, capacity int, policy atCapacity) *keyedLimiter
 }
 
 // chargeOrRefuse charges one event against key at now and returns an
-// error wrapping [ErrRateLimited] naming reason when the limit is
+// error wrapping [errRateLimited] naming reason when the limit is
 // spent.
 func (k *keyedLimiter) chargeOrRefuse(now time.Time, key, reason string) error {
 	if !k.allow(now, key) {
-		return fmt.Errorf("%w: %s", ErrRateLimited, reason)
+		return fmt.Errorf("%w: %s", errRateLimited, reason)
 	}
 	return nil
 }
@@ -259,11 +259,4 @@ func (k *keyedLimiter) pushFront(kb *keyedBucket) {
 	kb.prev, kb.next = &k.ring, k.ring.next
 	k.ring.next.prev = kb
 	k.ring.next = kb
-}
-
-// size returns how many keys the map holds.
-func (k *keyedLimiter) size() int {
-	k.mu.Lock()
-	defer k.mu.Unlock()
-	return len(k.byKey)
 }

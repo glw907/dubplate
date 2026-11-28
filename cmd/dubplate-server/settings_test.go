@@ -387,7 +387,7 @@ func TestSettingsResetCmd_ServingHandleReadsTheDefault(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	author := identity.NetworkActor(identity.Identity{
-		Address: "member@example.invalid", Principal: "member", Source: "magic-link", Channel: identity.ChannelCookie,
+		Address: "member@example.invalid", Username: "member", Channel: identity.ChannelCookie,
 		UserID: identity.UserID{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
 	}, time.Now(), "192.0.2.1")
 	if _, err := settings.Set(ctx, serving, reg, nil, author, nil, keepKey, "50", time.Now()); err != nil {

@@ -1,8 +1,4 @@
-// Package notify sends dubplate's contributor-facing mail over SMTP. It
-// is a general send seam, born general rather than as a magic-link
-// mailer: the upload reject copy and run notifications are its other
-// callers, and it carries a subject and a body as data so it never
-// duplicates internal/reject's wording.
+// Package notify sends plain-text mail over SMTP.
 package notify
 
 import (
@@ -10,38 +6,43 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log/slog"
+	netmail "net/mail"
 	"strings"
 
 	"github.com/wneessen/go-mail"
 )
 
 // implicitTLSPort is the port at which Send dials with TLS from the
-// first byte instead of upgrading via STARTTLS. Some hosts block
-// outbound 465, so STARTTLS on 587 is the usual route; this branch
-// exists for any provider that still reserves 465 for implicit TLS.
-const implicitTLSPort = 465
+// first byte instead of upgrading via STARTTLS.
+var implicitTLSPort = 465
 
-// ErrHeaderInjection reports that a recipient, subject, or From address
-// carried a CR or LF, either of which could inject an additional header
-// into the composed message.
-var ErrHeaderInjection = errors.New("header value contains CR or LF")
+// tlsConfig, when non-nil, replaces the client's TLS configuration. Nil
+// keeps go-mail's default, which verifies the server against the system
+// trust store.
+var tlsConfig *tls.Config
 
-// ErrInvalidFrom reports that the configured From address does not
-// parse as an RFC 5322 mailbox. The error text never repeats the
-// address: go-mail's own parse error quotes it verbatim.
-var ErrInvalidFrom = errors.New("invalid from address")
+// errHeaderInjection reports that a To address or a subject carried a
+// CR or LF, either of which could inject an additional header into the
+// composed message.
+var errHeaderInjection = errors.New("header value contains CR or LF")
 
-// ErrInvalidRecipient reports that the recipient address does not parse
-// as an RFC 5322 mailbox. The error text never repeats the address, for
-// the same reason as ErrInvalidFrom.
-var ErrInvalidRecipient = errors.New("invalid recipient address")
+// errInvalidFrom reports that the configured From address is not one
+// RFC 5322 mailbox. The error text never repeats the address: net/mail's
+// own parse error quotes it verbatim.
+var errInvalidFrom = errors.New("invalid from address")
 
-// ErrSend reports that the SMTP transaction failed after a successful
-// dial. The error text carries the host, port, and go-mail's failure
+// errInvalidTo reports that the To address does not parse as an RFC 5322
+// mailbox. The error text never repeats the address, for the same reason
+// as errInvalidFrom.
+var errInvalidTo = errors.New("invalid to address")
+
+// errSend reports that connecting to or talking with the SMTP server
+// failed. The error text carries the host, port, and go-mail's failure
 // reason and code, but never the recipient list: go-mail's own
-// *SendError.Error appends "affected recipient(s): <address>".
-var ErrSend = errors.New("send failed")
+// *SendError.Error appends "affected recipient(s): <address>". A Config
+// go-mail refuses to build a client from fails before any connection
+// and is not errSend.
+var errSend = errors.New("send failed")
 
 // Config names the five SMTP values a Mailer needs. The caller resolves
 // them; Send reads no environment variable of its own.
@@ -55,57 +56,54 @@ type Config struct {
 
 // Mailer sends mail over one SMTP transport.
 type Mailer struct {
-	cfg Config
-
-	// tlsConfig overrides the client's trust store. Test-only: New never
-	// sets it, so every real Mailer verifies the server certificate
-	// against the system trust store. This package's own tests set it to
-	// trust a self-signed local test server.
-	tlsConfig *tls.Config
-
-	// forceImplicitTLS routes Send down the implicit-TLS branch
-	// regardless of cfg.Port. Test-only: New never sets it. Binding the
-	// real port 465 needs root, which `go test` does not have, so the
-	// implicit-TLS test exercises this field against an ephemeral port
-	// instead.
-	forceImplicitTLS bool
+	cfg  Config
+	from *netmail.Address
 }
 
 // New returns a Mailer that delivers through the SMTP server cfg
-// describes.
-func New(cfg Config) *Mailer {
-	return &Mailer{cfg: cfg}
+// describes. It refuses a cfg whose From is not one RFC 5322 mailbox
+// free of CR and LF.
+func New(cfg Config) (*Mailer, error) {
+	from, err := parseFrom(cfg.From)
+	if err != nil {
+		return nil, err
+	}
+	return &Mailer{cfg: cfg, from: from}, nil
+}
+
+// parseFrom parses value as one RFC 5322 mailbox. It also refuses a CR
+// or LF, which net/mail accepts inside a comment.
+func parseFrom(value string) (*netmail.Address, error) {
+	addr, err := netmail.ParseAddress(value)
+	if err != nil || strings.ContainsAny(value, "\r\n") {
+		return nil, errInvalidFrom
+	}
+	return addr, nil
 }
 
 // Send delivers one email to to with subject and body. It refuses to
-// dial when ctx is already done, and refuses to send when to, subject,
-// or the configured From address carries a CR or LF, since any of them
-// could inject an additional header into the message it is about to
-// compose. Subject and body may hold non-ASCII text (contributor
-// names, album titles): go-mail encodes the subject per RFC 2047 and the
-// body as quoted-printable per RFC 2045 section 6.7. Send reports
-// failure to its caller and makes no retry or best-effort policy of its
-// own; that decision belongs to each caller.
+// dial when ctx is already done, and refuses to send when to or subject
+// carries a CR or LF, since either could inject an additional header
+// into the message it is about to compose. Subject and body may hold
+// non-ASCII text (contributor names, album titles): go-mail encodes the
+// subject per RFC 2047 and the body as quoted-printable per RFC 2045
+// section 6.7. Send reports failure to its caller and makes no retry or
+// best-effort policy of its own; that decision belongs to each caller.
 func (m *Mailer) Send(ctx context.Context, to, subject, body string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := guardHeaderValue("recipient", to); err != nil {
+	if err := guardHeaderValue("to", to); err != nil {
 		return err
 	}
 	if err := guardHeaderValue("subject", subject); err != nil {
 		return err
 	}
-	if err := guardHeaderValue("from", m.cfg.From); err != nil {
-		return err
-	}
 
 	msg := mail.NewMsg()
-	if err := msg.From(m.cfg.From); err != nil {
-		return ErrInvalidFrom
-	}
+	msg.FromMailAddress(m.from)
 	if err := msg.To(to); err != nil {
-		return ErrInvalidRecipient
+		return errInvalidTo
 	}
 	msg.Subject(subject)
 	msg.SetBodyString(mail.TypeTextPlain, body)
@@ -114,23 +112,19 @@ func (m *Mailer) Send(ctx context.Context, to, subject, body string) error {
 
 	opts := []mail.Option{
 		mail.WithPort(m.cfg.Port),
-		// go-mail v0.8.1's SMTPAuthAutoDiscover "dynamically discovers
-		// all authentication mechanisms supported by the SMTP server and
-		// selects the strongest available one" (auth.go): over TLS it
-		// ranks SCRAM, NTLM, CRAM-MD5, PLAIN, then LOGIN
-		// (client.go, authTypeAutoDiscover), so a provider advertising
-		// LOGIN alone still authenticates.
+		// AutoDiscover picks the strongest mechanism the server offers,
+		// so a LOGIN-only server still authenticates.
 		mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
 		mail.WithUsername(m.cfg.User),
 		mail.WithPassword(m.cfg.Password),
 	}
-	if m.cfg.Port == implicitTLSPort || m.forceImplicitTLS {
+	if m.cfg.Port == implicitTLSPort {
 		opts = append(opts, mail.WithSSL())
 	} else {
 		opts = append(opts, mail.WithTLSPolicy(mail.TLSMandatory))
 	}
-	if m.tlsConfig != nil {
-		opts = append(opts, mail.WithTLSConfig(m.tlsConfig))
+	if tlsConfig != nil {
+		opts = append(opts, mail.WithTLSConfig(tlsConfig))
 	}
 
 	client, err := mail.NewClient(m.cfg.Host, opts...)
@@ -140,20 +134,16 @@ func (m *Mailer) Send(ctx context.Context, to, subject, body string) error {
 
 	if err := client.DialAndSendWithContext(ctx, msg); err != nil {
 		if sendErr, ok := errors.AsType[*mail.SendError](err); ok {
-			return fmt.Errorf("%w: %s:%d: %s (code %d)", ErrSend, m.cfg.Host, m.cfg.Port, sendErr.Reason, sendErr.ErrorCode())
+			return fmt.Errorf("%w: %s:%d: %s (code %d)", errSend, m.cfg.Host, m.cfg.Port, sendErr.Reason, sendErr.ErrorCode())
 		}
-		return fmt.Errorf("%w: %s:%d: %v", ErrSend, m.cfg.Host, m.cfg.Port, err)
+		return fmt.Errorf("%w: %s:%d: %w", errSend, m.cfg.Host, m.cfg.Port, err)
 	}
-
-	// Only the roster audit record names an address, so a second copy
-	// here would be an uncontrolled duplicate of that fact.
-	slog.Info("notify sent", "host", m.cfg.Host, "port", m.cfg.Port)
 	return nil
 }
 
 func guardHeaderValue(field, value string) error {
 	if strings.ContainsAny(value, "\r\n") {
-		return fmt.Errorf("%s: %w", field, ErrHeaderInjection)
+		return fmt.Errorf("%s: %w", field, errHeaderInjection)
 	}
 	return nil
 }

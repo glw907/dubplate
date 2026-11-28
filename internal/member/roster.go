@@ -76,9 +76,9 @@ var (
 	ErrDuplicateUsername = errors.New("duplicate username")
 
 	// ErrInvalidMemberAddress reports that a record's address does not
-	// normalize as a login address. A write's refusal wraps it beside
-	// [identity.ErrInvalidAddress], whose detail names the rule the
-	// address broke and never quotes the address.
+	// normalize as a login address. A write's refusal carries the
+	// normalizer's reason beside it, which names the rule the address
+	// broke and never quotes the address.
 	ErrInvalidMemberAddress = errors.New("address does not parse as a login address")
 
 	// ErrInvalidDisplayName reports that a record's display name
@@ -118,7 +118,7 @@ type Member struct {
 	// member is first added. It is zero on a candidate not yet written.
 	ID identity.UserID
 	// Address is the member's login address, normalized by
-	// normalizeMemberAddress.
+	// [identity.NormalizeAddress].
 	Address string
 	// DisplayName is the member's human-readable name.
 	DisplayName string
@@ -197,7 +197,7 @@ func authorizeActor(ctx context.Context, tx *store.Tx, a identity.Actor) error {
 // check still refuses the write.
 func CheckAdmin(ctx context.Context, tx *store.Tx, id identity.UserID) error {
 	var admin bool
-	err := tx.QueryRow(ctx, `SELECT admin FROM users WHERE id = ? AND tombstoned_at IS NULL`, id[:]).Scan(&admin)
+	err := tx.QueryRow(ctx, `SELECT admin FROM users WHERE id = ? AND tombstoned_at IS NULL`, id).Scan(&admin)
 	switch {
 	case errors.Is(err, sql.ErrNoRows) || (err == nil && !admin):
 		return ErrActorNotAdmin
@@ -207,20 +207,13 @@ func CheckAdmin(ctx context.Context, tx *store.Tx, id identity.UserID) error {
 	return nil
 }
 
-// normalizeMemberAddress is the roster's single resolution point: the
-// only place a login address becomes the value the roster keys,
-// compares, and looks members up by.
-func normalizeMemberAddress(address string) (string, error) {
-	return identity.NormalizeAddress(address)
-}
-
 // validateWriteCandidate validates candidate's fields: the address
 // parses and normalizes, the display name carries no refused rune, fits
 // its bound, and is not blank, and the username is present, fits its
 // bound, and matches usernamePattern. It returns the candidate with its
 // address normalized.
 func validateWriteCandidate(candidate Member) (Member, error) {
-	normalized, err := normalizeMemberAddress(candidate.Address)
+	normalized, err := identity.NormalizeAddress(candidate.Address)
 	if err != nil {
 		return Member{}, fmt.Errorf("%w: %w", ErrInvalidMemberAddress, err)
 	}
@@ -289,7 +282,7 @@ func (r *Roster) Lookup(ctx context.Context, address string) (Member, error) {
 	// The parse error is dropped rather than wrapped: net/mail quotes
 	// the unparsed remainder of its input, which would carry an address
 	// into an error this package promises never names one.
-	normalized, err := normalizeMemberAddress(address)
+	normalized, err := identity.NormalizeAddress(address)
 	if err != nil {
 		return Member{}, fmt.Errorf("%w: address does not parse", ErrMemberNotFound)
 	}
@@ -389,17 +382,10 @@ const memberColumns = `id, address, display_name, username, admin`
 // scanMember scans one users row, selected as memberColumns, through
 // scan.
 func scanMember(scan func(dest ...any) error) (Member, error) {
-	var (
-		m  Member
-		id []byte
-	)
-	if err := scan(&id, &m.Address, &m.DisplayName, &m.Username, &m.Admin); err != nil {
+	var m Member
+	if err := scan(&m.ID, &m.Address, &m.DisplayName, &m.Username, &m.Admin); err != nil {
 		return Member{}, err
 	}
-	if len(id) != len(m.ID) {
-		return Member{}, fmt.Errorf("member: a users row's id is %d bytes, want %d", len(id), len(m.ID))
-	}
-	m.ID = identity.UserID(id)
 	return m, nil
 }
 
@@ -422,13 +408,13 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 		}
 
 		var (
-			rowID      []byte
+			existing   identity.UserID
 			tombstoned bool
 		)
-		err := tx.QueryRow(ctx, `SELECT id, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, member.Address).Scan(&rowID, &tombstoned)
+		err := tx.QueryRow(ctx, `SELECT id, tombstoned_at IS NOT NULL FROM users WHERE address = ?`, member.Address).Scan(&existing, &tombstoned)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			// A new address: rowID stays nil, and the write inserts.
+			// A new address: existing stays zero, and the write inserts.
 		case err != nil:
 			return fmt.Errorf("member: read the address's row: %w", err)
 		case !tombstoned:
@@ -446,23 +432,19 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 
 		now := r.now()
 		at := now.UnixMicro()
-		reactivate := rowID != nil
+		reactivate := !existing.IsZero()
 		if reactivate {
+			member.ID = existing
 			_, err = tx.Exec(ctx, `UPDATE users SET display_name = ?, username = ?, admin = ?, tombstoned_at = NULL, updated_at = ? WHERE id = ?`,
-				member.DisplayName, member.Username, member.Admin, at, rowID)
+				member.DisplayName, member.Username, member.Admin, at, member.ID)
 		} else {
-			minted := id.New()
-			rowID = minted[:]
+			member.ID = identity.UserID(id.New())
 			_, err = tx.Exec(ctx, `INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-				rowID, member.Address, member.DisplayName, member.Username, member.Admin, at, at)
+				member.ID, member.Address, member.DisplayName, member.Username, member.Admin, at, at)
 		}
 		if err != nil {
 			return fmt.Errorf("member: write the member's row: %w", err)
 		}
-		if len(rowID) != len(member.ID) {
-			return fmt.Errorf("member: a users row's id is %d bytes, want %d", len(rowID), len(member.ID))
-		}
-		member.ID = identity.UserID(rowID)
 
 		if err := requireLiveAdmin(ctx, tx); err != nil {
 			if errors.Is(err, ErrNoAdmin) {
@@ -516,10 +498,10 @@ func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identi
 		}
 		address = target.Address
 		now := r.now()
-		if _, err := tx.Exec(ctx, `UPDATE users SET tombstoned_at = ?, updated_at = ? WHERE id = ?`, now.UnixMicro(), now.UnixMicro(), id[:]); err != nil {
+		if _, err := tx.Exec(ctx, `UPDATE users SET tombstoned_at = ?, updated_at = ? WHERE id = ?`, now.UnixMicro(), now.UnixMicro(), id); err != nil {
 			return fmt.Errorf("member: tombstone the member's row: %w", err)
 		}
-		if _, err := tx.Exec(ctx, `DELETE FROM member_preferences WHERE user_id = ?`, id[:]); err != nil {
+		if _, err := tx.Exec(ctx, `DELETE FROM member_preferences WHERE user_id = ?`, id); err != nil {
 			return fmt.Errorf("member: delete the member's preferences: %w", err)
 		}
 		if err := requireLiveAdmin(ctx, tx); err != nil {
@@ -559,7 +541,7 @@ func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identi
 		if target, err = liveMember(ctx, tx, id); err != nil || !target.Admin {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `UPDATE users SET admin = 0, updated_at = ? WHERE id = ?`, r.now().UnixMicro(), id[:]); err != nil {
+		if _, err := tx.Exec(ctx, `UPDATE users SET admin = 0, updated_at = ? WHERE id = ?`, r.now().UnixMicro(), id); err != nil {
 			return fmt.Errorf("member: clear the member's admin flag: %w", err)
 		}
 		return requireLiveAdmin(ctx, tx)
@@ -574,7 +556,7 @@ func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identi
 // liveMember reads id's live row through tx, answering
 // [ErrMemberNotFound] for an id with no row or a tombstoned one.
 func liveMember(ctx context.Context, tx *store.Tx, id identity.UserID) (Member, error) {
-	m, err := scanMember(tx.QueryRow(ctx, `SELECT `+memberColumns+` FROM users WHERE id = ? AND tombstoned_at IS NULL`, id[:]).Scan)
+	m, err := scanMember(tx.QueryRow(ctx, `SELECT `+memberColumns+` FROM users WHERE id = ? AND tombstoned_at IS NULL`, id).Scan)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return Member{}, ErrMemberNotFound

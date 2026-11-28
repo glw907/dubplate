@@ -26,8 +26,8 @@ func newAPIMount(prefix serve.Prefix, adminOps ops.Admin, submissionOps ops.Subm
 // building the actor from the session's anchor, never its issue time: a
 // refresh moves the issue time, and staying signed in must never renew
 // the freshness the re-authentication gate reads. It logs one record
-// per admitted request, naming the principal under its own key because
-// the actor carries the durable id.
+// per admitted request, naming the username under the "principal" key
+// because the actor carries the durable id.
 func apiVerifier(cfg auth.VerifyConfig) opshttp.Verifier {
 	return func(w http.ResponseWriter, r *http.Request) (identity.Actor, ops.Privilege, error) {
 		v, err := auth.VerifyRequest(cfg, w, r)
@@ -41,7 +41,7 @@ func apiVerifier(cfg auth.VerifyConfig) opshttp.Verifier {
 			privilege = ops.PrivilegeAdmin
 		}
 		cfg.Logger.Info("api request admitted",
-			"op", path.Base(r.URL.Path), "actor", actor.String(), "principal", v.Identity.Principal,
+			"op", path.Base(r.URL.Path), "actor", actor.String(), "principal", v.Identity.Username,
 			"channel", v.Identity.Channel.String(), "client_ip", clientIP)
 		return actor, privilege, nil
 	}

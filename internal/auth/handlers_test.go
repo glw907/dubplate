@@ -277,7 +277,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
-	epoch := OpenEpochStore(store)
+	epoch := NewEpochStore(store)
 	roster, users := newRosterOver(t, slices.Clone(handlerRoster)...)
 
 	limits := opts.limits
@@ -467,7 +467,7 @@ func TestConsumeLink_Refusals(t *testing.T) {
 			name: "link minted before the epoch",
 			setup: func(t *testing.T, fx handlerFixture) string {
 				token := mintFixtureLink(t, currentFixture, "member@example.com", handlerNow.Add(-time.Minute))
-				if err := fx.epoch.Bump("member@example.com", handlerNow); err != nil {
+				if err := fx.epoch.bump("member@example.com", handlerNow); err != nil {
 					t.Fatalf("Bump: %v", err)
 				}
 				return token
@@ -479,7 +479,7 @@ func TestConsumeLink_Refusals(t *testing.T) {
 				if os.Geteuid() == 0 {
 					t.Skip("running as root: permission bits do not block reads")
 				}
-				dir := filepath.Join(DirPath(fx.stateDir), epochSubdir)
+				dir := filepath.Join(dirPath(fx.stateDir), epochSubdir)
 				if err := os.Chmod(dir, 0o000); err != nil {
 					t.Fatalf("Chmod: %v", err)
 				}
@@ -675,6 +675,25 @@ func TestRequestLink_GenericAnswersAlike(t *testing.T) {
 				t.Errorf("mail sent %d times, want 1 (the unknown address sends none)", got)
 			}
 		})
+	}
+}
+
+// TestRequestLink_RefusalLogsTheNormalizerReason proves a refused
+// address logs the rule it broke, by code point, and never the address.
+func TestRequestLink_RefusalLogsTheNormalizerReason(t *testing.T) {
+	fx := newHandlerFixture(t, fixtureOptions{})
+	const address = "\"me\U0000200Bmber\"@example.com"
+	w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(address)))
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+	rec := fx.logs.waitFor(t, "auth link request refused")
+	const want = "invalid address: carries a control character or invisible character (U+200B)"
+	if got := rec["reason"]; got != want {
+		t.Errorf("reason = %q, want %q", got, want)
+	}
+	if strings.Contains(fx.logs.text(), "mber") {
+		t.Errorf("a log record carries the address:\n%s", fx.logs.text())
 	}
 }
 
@@ -1203,7 +1222,7 @@ func TestRequestLink_GenericOverLimitAnswersAsUnknown(t *testing.T) {
 // TestRequestLink_ClientChargedBeforeBodyParses holds n1: the
 // per-client limit is charged before the body is even read, so a body
 // that fails to parse still costs the client a request, matching
-// consumeLink's own AllowConsumption-before-readForm order. The body
+// consumeLink's own allowConsumption-before-readForm order. The body
 // carries an invalid percent-escape ("%zz"), which r.ParseForm
 // refuses, so readForm answers malformed.
 func TestRequestLink_ClientChargedBeforeBodyParses(t *testing.T) {

@@ -66,8 +66,8 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 		{"the last admin", func() error { return roster.DemoteMember(ctx, admin.ID, operator, logger) }, member.ErrNoAdmin},
 		{"a non-admin actor", func() error {
 			return roster.RemoveMember(ctx, admin.ID, identity.NetworkActor(identity.Identity{
-				Address: plain.Address, UserID: plain.ID, Principal: plain.Username,
-				Source: "magic-link", Channel: identity.ChannelCookie,
+				Address: plain.Address, UserID: plain.ID, Username: plain.Username,
+				Channel: identity.ChannelCookie,
 			}, time.Now(), "192.0.2.1"), logger)
 		}, member.ErrActorNotAdmin},
 		{"a duplicate address", add("Member@example.com", "Again", "again"), member.ErrDuplicateAddress},

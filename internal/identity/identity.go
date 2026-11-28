@@ -1,35 +1,30 @@
 // Package identity holds the verified identity a login proves and the
-// channel it arrived on. Its one internal import is internal/id, which
-// imports nothing, and it imports no third-party package:
-// internal/ops carries a verified identity without pulling in the
-// server package that verified it, and the address normalizer here is
-// the one place every other package keys, logs, or rate-limits a login
-// address the same way. Nothing in this package may gain a dependency
-// on config, auth, or any internal package beyond id; code that needs
-// one belongs elsewhere.
+// channel it arrived on.
 package identity
 
 import (
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"net/mail"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/glw907/dubplate/internal/id"
 )
 
-// MaxAddressLength is the byte length [NormalizeAddress] refuses to
+// maxAddressLength is the byte length [NormalizeAddress] refuses to
 // exceed: 254, the longest a reverse-path address may be end to end
 // under RFC 5321 section 4.5.3.1.3, and far beyond anything a login
 // page is meant to collect.
-const MaxAddressLength = 254
+const maxAddressLength = 254
 
-// ErrInvalidAddress reports that a value is not a normalizable login
+// errInvalidAddress reports that a value is not a normalizable login
 // address: [net/mail] cannot parse it as a single RFC 5322 address, it
-// exceeds [MaxAddressLength], or its normalized form is not itself an
+// exceeds [maxAddressLength], or its normalized form is not itself an
 // address [NormalizeAddress] would return unchanged.
-var ErrInvalidAddress = errors.New("invalid address")
+var errInvalidAddress = errors.New("invalid address")
 
 // NormalizeAddress parses value as a single RFC 5322 address and
 // returns the address portion lowercased. Every caller that keys,
@@ -42,31 +37,27 @@ var ErrInvalidAddress = errors.New("invalid address")
 // "a,b"@example.com parses to a,b@example.com, which it then refuses;
 // such an address is refused here, before any credential can name it,
 // rather than accepted once and refused by every later step. The
-// result also carries no control character; no rune in the Unicode
-// format, space-separator, line-separator, or paragraph-separator
-// categories; no rune in the derived Default_Ignorable_Code_Point set
-// ([isDefaultIgnorableCodePoint]); and no U+2800 (braille pattern
-// blank): a quoted local part can carry a byte-order mark, a bidi
-// override, or an invisible filler that renders differently from how
-// it compares, and every such rune is refused rather than enumerated
-// one at a time.
+// result also carries no rune [IsInvisibleRune] reports: a quoted
+// local part can carry a byte-order mark, a bidi override, or an
+// invisible filler that renders differently from how it compares.
 //
-// A returned error wraps [ErrInvalidAddress] and names the rule value
-// broke, a refused rune by its code point, and never quotes any part
-// of value, so a caller may log it.
+// A returned error names the rule value broke, a refused rune by its
+// code point, and never quotes any part of value, so a caller may log
+// it.
 func NormalizeAddress(value string) (string, error) {
-	if len(value) > MaxAddressLength {
-		return "", fmt.Errorf("%w: exceeds %d bytes", ErrInvalidAddress, MaxAddressLength)
+	if len(value) > maxAddressLength {
+		return "", fmt.Errorf("%w: exceeds %d bytes", errInvalidAddress, maxAddressLength)
 	}
 	normalized, err := parseLower(value)
 	if err != nil {
 		return "", err
 	}
-	if strings.ContainsFunc(normalized, IsInvisibleRune) {
-		return "", fmt.Errorf("%w: carries a control character or invisible character (%s)", ErrInvalidAddress, invisibleRune(normalized))
+	if i := strings.IndexFunc(normalized, IsInvisibleRune); i >= 0 {
+		r, _ := utf8.DecodeRuneInString(normalized[i:])
+		return "", fmt.Errorf("%w: carries a control character or invisible character (%U)", errInvalidAddress, r)
 	}
 	if again, err := parseLower(normalized); err != nil || again != normalized {
-		return "", fmt.Errorf("%w: normalized form does not parse to itself", ErrInvalidAddress)
+		return "", fmt.Errorf("%w: normalized form does not parse to itself", errInvalidAddress)
 	}
 	return normalized, nil
 }
@@ -77,12 +68,6 @@ func NormalizeAddress(value string) (string, error) {
 // or Zp (paragraph separator) categories, every rune in the derived
 // Default_Ignorable_Code_Point set, and U+2800 (braille pattern blank).
 // The ordinary space (U+0020, in Zs) is among them.
-//
-// [NormalizeAddress] refuses an address carrying any such rune. Every
-// other package that refuses invisible runes in a name it records or
-// shows calls this predicate rather than keeping a copy, and admits by
-// name any rune its own field needs, such as the space in a display
-// name.
 func IsInvisibleRune(r rune) bool {
 	return unicode.IsControl(r) || unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp) ||
 		isDefaultIgnorableCodePoint(r) || r == brailleBlankRune
@@ -100,11 +85,7 @@ const brailleBlankRune = '⠀'
 // Other_Default_Ignorable_Code_Point + Cf (Format characters) +
 // Variation_Selector - White_Space - FFF9..FFFB (Interlinear annotation
 // format characters) - 13430..13440 (Egyptian hieroglyph format
-// characters) - Prepended_Concatenation_Mark". The standard library
-// exposes every input the formula names (identity_test.go pins the
-// derived set's size against the file's own "Total code points: 4174"
-// and unicode.Version, so a toolchain move to a later Unicode version
-// fails loudly rather than silently widening or narrowing the set).
+// characters) - Prepended_Concatenation_Mark".
 func isDefaultIgnorableCodePoint(r rune) bool {
 	if !unicode.Is(unicode.Other_Default_Ignorable_Code_Point, r) &&
 		!unicode.Is(unicode.Cf, r) &&
@@ -126,42 +107,19 @@ func isDefaultIgnorableCodePoint(r rune) bool {
 	return true
 }
 
-// invisibleRune returns the first rune in value that IsInvisibleRune
-// flags, formatted as its code point ("U+XXXX"), so a refusal can name
-// what it refused without quoting value itself. It returns "" when no
-// rune in value is refused, which never happens on the caller's own
-// path: NormalizeAddress calls it only after confirming
-// strings.ContainsFunc(value, IsInvisibleRune).
-func invisibleRune(value string) string {
-	for _, r := range value {
-		if IsInvisibleRune(r) {
-			return fmt.Sprintf("U+%04X", r)
-		}
-	}
-	return ""
-}
-
 // parseLower returns the address value parses to, lowercased. The
 // parse error is dropped rather than wrapped: [net/mail] quotes its
 // input, or the unparsed remainder of it, in several of its errors.
 func parseLower(value string) (string, error) {
 	addr, err := mail.ParseAddress(value)
 	if err != nil {
-		return "", fmt.Errorf("%w: does not parse as a single address", ErrInvalidAddress)
+		return "", fmt.Errorf("%w: does not parse as a single address", errInvalidAddress)
 	}
 	return strings.ToLower(addr.Address), nil
 }
 
-// Channel identifies how an identity reached the code acting on it,
-// and travels with the identity rather than being inferred later from
-// the request.
-//
-// [ChannelCookie] is an assertion: a verifier emits it for a login a
-// signed session cookie proves. [ChannelCommandLine] is not. It names
-// an operating-system user, established by owning the process that
-// invokes the command, and it exists so an audit record can say where
-// a change came from. No verifier emits it, and [Identity.Valid]
-// refuses an identity that carries it.
+// Channel names how the caller acting on a change reached the server,
+// for an audit record.
 type Channel int
 
 const (
@@ -201,6 +159,18 @@ func (c Channel) Valid() bool {
 // change of address or username. Per-member records key on it.
 type UserID id.ID
 
+// String returns u in [id.ID.String]'s form.
+func (u UserID) String() string { return id.ID(u).String() }
+
+// IsZero reports whether u is the zero UserID, which names no member.
+func (u UserID) IsZero() bool { return id.ID(u).IsZero() }
+
+// Value implements [driver.Valuer] as [id.ID.Value] does.
+func (u UserID) Value() (driver.Value, error) { return id.ID(u).Value() }
+
+// Scan implements [database/sql.Scanner] as [id.ID.Scan] does.
+func (u *UserID) Scan(src any) error { return (*id.ID)(u).Scan(src) }
+
 // Identity is a verified login. The zero value is not a valid
 // Identity; call [Identity.Valid] before trusting one.
 type Identity struct {
@@ -210,26 +180,17 @@ type Identity struct {
 	// zero value means the identity was never resolved against the
 	// store.
 	UserID UserID
-	// Principal is the member's username: the readable name a log
-	// line or a music app knows the member by. It is never the durable
-	// key; UserID is, so an audit actor carries UserID and a renamed
-	// member keeps one actor.
-	Principal string
-	// DisplayName is the member's human-readable name.
-	DisplayName string
-	// Source names the identity source that asserted this identity,
-	// for example "magic-link".
-	Source string
+	// Username is the readable name a log line or a music app knows the
+	// member by. It is never the durable key; UserID is, so an audit
+	// actor carries UserID and a renamed member keeps one actor.
+	Username string
 	// Channel is how this identity was asserted.
 	Channel Channel
 }
 
-// Valid reports whether id carries a non-empty address, a non-zero
-// UserID, a non-empty principal, a non-empty source, and a recognized
-// channel other than [ChannelCommandLine], which names an
-// operating-system user and never a verified login. The zero value
-// fails on every one of these.
-func (id Identity) Valid() bool {
-	return id.Address != "" && id.UserID != (UserID{}) && id.Principal != "" && id.Source != "" &&
-		id.Channel.Valid() && id.Channel != ChannelCommandLine
+// Valid reports whether i is a complete verified login. An identity on
+// [ChannelCommandLine] never is.
+func (i Identity) Valid() bool {
+	return i.Address != "" && !i.UserID.IsZero() && i.Username != "" &&
+		i.Channel.Valid() && i.Channel != ChannelCommandLine
 }
