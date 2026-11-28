@@ -163,7 +163,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		if err := checkVariantCSP(d.name, variants, csps[i]); err != nil {
 			return Routes{}, err
 		}
-		handlers[cfg.Prefix+d.route] = newDocument(documentConfig{
+		handlers[cfg.Prefix+d.route] = documentHandler(documentConfig{
 			variants:       variants,
 			defaultPalette: cfg.Palette,
 			cacheControl:   d.cacheControl,
@@ -171,7 +171,7 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 			logger:         cfg.Logger,
 		})
 	}
-	notFound := documentNotFound(cfg.Logger)
+	notFound := documentNotFoundHandler(cfg.Logger)
 	membersPath := cfg.Prefix + "/" + cfg.Names.Members
 	members := exactPaths(map[string]http.Handler{membersPath: handlers[membersPath]}, notFound)
 	delete(handlers, membersPath)
@@ -188,11 +188,11 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	if err != nil {
 		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
-	fontsRoute, err := newFontsRoute(fontsFS, cfg.Prefix+"/"+cfg.Names.Fonts)
+	fontsRoute, err := fontsHandler(fontsFS, cfg.Prefix+"/"+cfg.Names.Fonts)
 	if err != nil {
 		return Routes{}, err
 	}
-	iconsRoute, err := newIconsRoute(build, cfg.Prefix, cfg.Names)
+	iconsRoute, err := iconsHandler(build, cfg.Prefix, cfg.Names)
 	if err != nil {
 		return Routes{}, err
 	}
@@ -200,13 +200,13 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		Login:          login,
 		Members:        members,
 		ServerSettings: serverSettings,
-		Assets:         newAssets(assetsFS, cfg.Prefix+"/"+cfg.Names.Assets),
+		Assets:         assetsHandler(assetsFS, cfg.Prefix+"/"+cfg.Names.Assets),
 		Fonts:          fontsRoute,
 		Icons:          iconsRoute,
-		Branding:       stylesheetRoute(cfg.Prefix+"/"+cfg.Names.Branding, cfg.Branding),
+		Branding:       stylesheetHandler(cfg.Prefix+"/"+cfg.Names.Branding, cfg.Branding),
 	}
 	if hasOperatorCSS {
-		routes.OperatorCSS = stylesheetRoute(cfg.Prefix+"/"+cfg.Names.OperatorCSS, cfg.OperatorCSS)
+		routes.OperatorCSS = stylesheetHandler(cfg.Prefix+"/"+cfg.Names.OperatorCSS, cfg.OperatorCSS)
 	}
 	return routes, nil
 }

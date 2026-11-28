@@ -15,7 +15,7 @@ import (
 
 // captureDefaultLogger swaps slog.Default() for a logger writing to
 // the returned buffer, restoring the prior default when t ends.
-// newDocument writes its own records to the logger it is handed, so a
+// documentHandler writes its own records to the logger it is handed, so a
 // mutant logging the theme cookie's value could reach that logger or
 // slog.Default; a test watching for the value reads both. The caller
 // must not run this test in parallel with another that reads or writes
@@ -312,7 +312,7 @@ func TestBuildDocumentVariants_Head(t *testing.T) {
 }
 
 // documentVariantFixture is the three-palette variant set every
-// TestNewDocument_* case selects from: each body is the palette's own
+// TestDocumentHandler_* case selects from: each body is the palette's own
 // name, so a case asserts on the palette selected rather than on
 // literal markup.
 func documentVariantFixture() map[string][]byte {
@@ -323,7 +323,7 @@ func documentVariantFixture() map[string][]byte {
 	}
 }
 
-func TestNewDocument_CookieSelectsVariant(t *testing.T) {
+func TestDocumentHandler_CookieSelectsVariant(t *testing.T) {
 	tests := []struct {
 		name           string
 		defaultPalette string
@@ -432,7 +432,7 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defaultLogs.Reset()
 			var handlerLogs bytes.Buffer
-			handler := newDocument(documentConfig{
+			handler := documentHandler(documentConfig{
 				variants:       documentVariantFixture(),
 				defaultPalette: tt.defaultPalette,
 				logger:         slog.New(slog.NewTextHandler(&handlerLogs, nil)),
@@ -453,7 +453,7 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 			if set := rec.Header().Values("Set-Cookie"); len(set) != 0 {
 				t.Errorf("Set-Cookie = %v, want none", set)
 			}
-			// newDocument's own doc comment promises it "logs
+			// documentHandler's own doc comment promises it "logs
 			// nothing about the cookie's value"; a mutant that
 			// logs cookie.Value through slog.Default makes this
 			// buffer non-empty, and one that logs it through the
@@ -468,7 +468,7 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 	}
 }
 
-func TestNewDocument_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
+func TestDocumentHandler_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
 	tests := []struct {
 		name  string
 		value string
@@ -479,7 +479,7 @@ func TestNewDocument_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
+			handler := documentHandler(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			r.Header.Set("Cookie", tt.value)
 			rec := httptest.NewRecorder()
@@ -491,11 +491,11 @@ func TestNewDocument_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
 	}
 }
 
-func TestNewDocument_MethodNotAllowed(t *testing.T) {
+func TestDocumentHandler_MethodNotAllowed(t *testing.T) {
 	tests := []string{http.MethodPost, http.MethodPut, http.MethodDelete}
 	for _, method := range tests {
 		t.Run(method, func(t *testing.T) {
-			handler := newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
+			handler := documentHandler(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
 			r := httptest.NewRequest(method, "/login", nil)
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, r)
@@ -509,13 +509,13 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 	}
 }
 
-// TestNewDocument_HEADWritesNoBody proves the real behavior over an
+// TestDocumentHandler_HEADWritesNoBody proves the real behavior over an
 // actual round trip rather than httptest.NewRecorder, which records
 // whatever bytes a handler writes regardless of method: it is
 // net/http's own server, not this handler, that discards a written
 // body for a HEAD request while still reporting Content-Length.
-func TestNewDocument_HEADWritesNoBody(t *testing.T) {
-	handler := newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
+func TestDocumentHandler_HEADWritesNoBody(t *testing.T) {
+	handler := documentHandler(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
@@ -539,13 +539,13 @@ func TestNewDocument_HEADWritesNoBody(t *testing.T) {
 	}
 }
 
-// TestNewDocument_ResponseHeaders proves a served document carries the
+// TestDocumentHandler_ResponseHeaders proves a served document carries the
 // configured Cache-Control and CSP beside Vary: Cookie, on GET and
 // HEAD, and that a 405 carries none of the three: a refusal is no
 // document, so it caches and varies like any other refusal.
-func TestNewDocument_ResponseHeaders(t *testing.T) {
+func TestDocumentHandler_ResponseHeaders(t *testing.T) {
 	const csp = "default-src 'self'; script-src 'self'"
-	handler := newDocument(documentConfig{
+	handler := documentHandler(documentConfig{
 		variants:       documentVariantFixture(),
 		defaultPalette: "system",
 		cacheControl:   "private, no-cache",
@@ -817,13 +817,13 @@ func TestDocumentRequestLog_BoundsMethod(t *testing.T) {
 	}
 }
 
-func TestNewDocument_PanicsOnMissingDefaultVariant(t *testing.T) {
+func TestDocumentHandler_PanicsOnMissingDefaultVariant(t *testing.T) {
 	defer func() {
 		if recover() == nil {
-			t.Fatal("newDocument: want a panic when defaultPalette has no variant")
+			t.Fatal("documentHandler: want a panic when defaultPalette has no variant")
 		}
 	}()
-	newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "gruvbox", logger: discardLogger()})
+	documentHandler(documentConfig{variants: documentVariantFixture(), defaultPalette: "gruvbox", logger: discardLogger()})
 }
 
 func TestStylesheetHrefs(t *testing.T) {
