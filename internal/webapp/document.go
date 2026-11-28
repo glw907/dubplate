@@ -30,14 +30,16 @@ const authRobots = "noindex, nofollow"
 
 // document is one document the routes serve: its path inside the build
 // tree, the path under the owned prefix it answers at, its
-// Cache-Control value, and whether it carries the robots meta. raw and
-// csp are empty in the [documents] table; [New] fills them with the
-// build's bytes for the document and the CSP header built from them.
+// Cache-Control value, whether it carries the robots meta, and the
+// [Routes] field whose router serves it. raw and csp are empty in the
+// [documents] table; [New] fills them with the build's bytes for the
+// document and the CSP header built from them.
 type document struct {
 	name         string
 	route        string
 	cacheControl string
 	noIndex      bool
+	dest         func(*Routes) *http.Handler
 	raw          []byte
 	csp          string
 }
@@ -50,11 +52,14 @@ type document struct {
 // no-store because they answer only behind the admin gate, as the API
 // they read from does.
 func documents(names RouteNames) []document {
+	login := func(r *Routes) *http.Handler { return &r.Login }
+	members := func(r *Routes) *http.Handler { return &r.Members }
+	serverSettings := func(r *Routes) *http.Handler { return &r.ServerSettings }
 	return []document{
-		{name: "login.html", route: "/" + names.Login, cacheControl: "no-cache", noIndex: true},
-		{name: "login/link.html", route: "/" + names.Login + "/link", cacheControl: "no-store", noIndex: true},
-		{name: "members.html", route: "/" + names.Members, cacheControl: "no-store"},
-		{name: "server-settings.html", route: "/" + names.ServerSettings, cacheControl: "no-store"},
+		{name: "login.html", route: "/" + names.Login, cacheControl: "no-cache", noIndex: true, dest: login},
+		{name: "login/link.html", route: "/" + names.Login + "/link", cacheControl: "no-store", noIndex: true, dest: login},
+		{name: "members.html", route: "/" + names.Members, cacheControl: "no-store", dest: members},
+		{name: "server-settings.html", route: "/" + names.ServerSettings, cacheControl: "no-store", dest: serverSettings},
 	}
 }
 

@@ -139,7 +139,8 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		{href: cfg.Prefix + "/" + cfg.Names.FaviconSVG, contentType: "image/svg+xml"},
 		{href: cfg.Prefix + "/" + cfg.Names.FaviconPNG, contentType: "image/png", sizes: "32x32"},
 	}
-	handlers := make(map[string]http.Handler, len(docs))
+	var routes Routes
+	groups := make(map[*http.Handler]map[string]http.Handler)
 	for _, d := range docs {
 		vc := variantConfig{
 			placeholder: themePlaceholder,
@@ -160,7 +161,11 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		if err := checkVariantCSP(d.name, variants, d.csp); err != nil {
 			return Routes{}, err
 		}
-		handlers[cfg.Prefix+d.route] = documentHandler(documentConfig{
+		dst := d.dest(&routes)
+		if groups[dst] == nil {
+			groups[dst] = make(map[string]http.Handler)
+		}
+		groups[dst][cfg.Prefix+d.route] = documentHandler(documentConfig{
 			variants:       variants,
 			defaultPalette: cfg.Palette,
 			cacheControl:   d.cacheControl,
@@ -169,13 +174,9 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		})
 	}
 	notFound := documentNotFoundHandler(cfg.Logger)
-	membersPath := cfg.Prefix + "/" + cfg.Names.Members
-	members := exactPaths(map[string]http.Handler{membersPath: handlers[membersPath]}, notFound)
-	delete(handlers, membersPath)
-	serverSettingsPath := cfg.Prefix + "/" + cfg.Names.ServerSettings
-	serverSettings := exactPaths(map[string]http.Handler{serverSettingsPath: handlers[serverSettingsPath]}, notFound)
-	delete(handlers, serverSettingsPath)
-	login := exactPaths(handlers, notFound)
+	for dst, group := range groups {
+		*dst = exactPaths(group, notFound)
+	}
 
 	assetsFS, err := fs.Sub(build, "_app")
 	if err != nil {
@@ -185,23 +186,16 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	if err != nil {
 		return Routes{}, fmt.Errorf("webapp: %w", err)
 	}
-	fontsRoute, err := fontsHandler(fontsFS, cfg.Prefix+"/"+cfg.Names.Fonts)
+	routes.Fonts, err = fontsHandler(fontsFS, cfg.Prefix+"/"+cfg.Names.Fonts)
 	if err != nil {
 		return Routes{}, err
 	}
-	iconsRoute, err := iconsHandler(build, cfg.Prefix, cfg.Names)
+	routes.Icons, err = iconsHandler(build, cfg.Prefix, cfg.Names)
 	if err != nil {
 		return Routes{}, err
 	}
-	routes := Routes{
-		Login:          login,
-		Members:        members,
-		ServerSettings: serverSettings,
-		Assets:         assetsHandler(assetsFS, cfg.Prefix+"/"+cfg.Names.Assets),
-		Fonts:          fontsRoute,
-		Icons:          iconsRoute,
-		Branding:       stylesheetHandler(cfg.Prefix+"/"+cfg.Names.Branding, cfg.Branding),
-	}
+	routes.Assets = assetsHandler(assetsFS, cfg.Prefix+"/"+cfg.Names.Assets)
+	routes.Branding = stylesheetHandler(cfg.Prefix+"/"+cfg.Names.Branding, cfg.Branding)
 	if hasOperatorCSS {
 		routes.OperatorCSS = stylesheetHandler(cfg.Prefix+"/"+cfg.Names.OperatorCSS, cfg.OperatorCSS)
 	}
