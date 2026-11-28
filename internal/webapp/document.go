@@ -79,50 +79,50 @@ func rewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
 // html.EscapeString as it is written, so a quote, an angle bracket, or
 // an ampersand in an operator's value cannot leave its attribute.
 type variantConfig struct {
-	// Placeholder is the token the build left on <html data-theme>.
-	Placeholder string
+	// placeholder is the token the build left on <html data-theme>.
+	placeholder string
 
-	// Match names the theme group; each palette's composed theme name
-	// is Match+"-"+palette.
-	Match string
+	// match names the theme group; each palette's composed theme name
+	// is match+"-"+palette.
+	match string
 
-	// Palettes names one variant each.
-	Palettes []string
+	// palettes names one variant each.
+	palettes []string
 
-	// TierHrefs are the stylesheet links that follow the build's own,
+	// tierHrefs are the stylesheet links that follow the build's own,
 	// in order.
-	TierHrefs []string
+	tierHrefs []string
 
-	// SiteName is the content of the dubplate-site-name meta every
+	// siteName is the content of the dubplate-site-name meta every
 	// variant carries.
-	SiteName string
+	siteName string
 
-	// Robots is the content of the robots meta every variant carries,
+	// robots is the content of the robots meta every variant carries,
 	// or "" for none.
-	Robots string
+	robots string
 
-	// ThemeColors holds each palette's theme-color metas. A palette
+	// themeColors holds each palette's theme-color metas. A palette
 	// with no entry carries none.
-	ThemeColors map[string][]themeColor
+	themeColors map[string][]themeColor
 
-	// Icons are the icon links every variant carries, in order.
-	Icons []icon
+	// icons are the icon links every variant carries, in order.
+	icons []icon
 }
 
 // icon is one <link rel="icon">: its href, its MIME type, and its
 // sizes attribute, "" to omit it.
 type icon struct {
-	Href  string
-	Type  string
-	Sizes string
+	href        string
+	contentType string
+	sizes       string
 }
 
-// buildDocumentVariants rewrites raw once per entry in cfg.Palettes and
+// buildDocumentVariants rewrites raw once per entry in cfg.palettes and
 // returns one body per palette. The rewrite makes two edits and no
-// other. It substitutes cfg.Placeholder with the composed theme name,
+// other. It substitutes cfg.placeholder with the composed theme name,
 // and it inserts the head block directly after the last stylesheet
 // link the build wrote: one <link rel="stylesheet"> per tier href, the
-// site-name meta, the robots meta when cfg.Robots is set, the
+// site-name meta, the robots meta when cfg.robots is set, the
 // palette's own theme-color metas, and the icon links, in that order.
 // Anchoring on the last link keeps every tier after all of the
 // bundle's own CSS however many stylesheets a page links, so a tier
@@ -142,41 +142,41 @@ type icon struct {
 // name identifies the document in a returned error.
 func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[string][]byte, error) {
 	var shared bytes.Buffer
-	for _, href := range cfg.TierHrefs {
+	for _, href := range cfg.tierHrefs {
 		fmt.Fprintf(&shared, `<link href="%s" rel="stylesheet">`, html.EscapeString(href))
 	}
-	fmt.Fprintf(&shared, `<meta name="dubplate-site-name" content="%s">`, html.EscapeString(cfg.SiteName))
-	if cfg.Robots != "" {
-		fmt.Fprintf(&shared, `<meta name="robots" content="%s">`, html.EscapeString(cfg.Robots))
+	fmt.Fprintf(&shared, `<meta name="dubplate-site-name" content="%s">`, html.EscapeString(cfg.siteName))
+	if cfg.robots != "" {
+		fmt.Fprintf(&shared, `<meta name="robots" content="%s">`, html.EscapeString(cfg.robots))
 	}
 	var icons bytes.Buffer
-	for _, icon := range cfg.Icons {
-		fmt.Fprintf(&icons, `<link rel="icon" href="%s" type="%s"`, html.EscapeString(icon.Href), html.EscapeString(icon.Type))
-		if icon.Sizes != "" {
-			fmt.Fprintf(&icons, ` sizes="%s"`, html.EscapeString(icon.Sizes))
+	for _, icon := range cfg.icons {
+		fmt.Fprintf(&icons, `<link rel="icon" href="%s" type="%s"`, html.EscapeString(icon.href), html.EscapeString(icon.contentType))
+		if icon.sizes != "" {
+			fmt.Fprintf(&icons, ` sizes="%s"`, html.EscapeString(icon.sizes))
 		}
 		icons.WriteString(">")
 	}
 
-	variants := make(map[string][]byte, len(cfg.Palettes))
-	for _, palette := range cfg.Palettes {
+	variants := make(map[string][]byte, len(cfg.palettes))
+	for _, palette := range cfg.palettes {
 		var head bytes.Buffer
 		head.Write(shared.Bytes())
-		for _, tc := range cfg.ThemeColors[palette] {
+		for _, tc := range cfg.themeColors[palette] {
 			head.WriteString(`<meta name="theme-color"`)
-			if tc.Scheme != "" {
-				fmt.Fprintf(&head, ` media="(prefers-color-scheme: %s)"`, html.EscapeString(tc.Scheme))
+			if tc.scheme != "" {
+				fmt.Fprintf(&head, ` media="(prefers-color-scheme: %s)"`, html.EscapeString(tc.scheme))
 			}
-			fmt.Fprintf(&head, ` content="%s">`, html.EscapeString(tc.Color))
+			fmt.Fprintf(&head, ` content="%s">`, html.EscapeString(tc.color))
 		}
 		head.Write(icons.Bytes())
 
-		stamped, err := rewriteDocument(name, raw, cfg.Placeholder, cfg.Match+"-"+palette)
+		stamped, err := rewriteDocument(name, raw, cfg.placeholder, cfg.match+"-"+palette)
 		if err != nil {
 			return nil, err
 		}
-		if bytes.Contains(head.Bytes(), []byte(cfg.Placeholder)) {
-			return nil, fmt.Errorf("webapp: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
+		if bytes.Contains(head.Bytes(), []byte(cfg.placeholder)) {
+			return nil, fmt.Errorf("webapp: document %q: an inserted head value carries the theme placeholder %q", name, cfg.placeholder)
 		}
 		anchor, err := headAnchor(name, stamped)
 		if err != nil {
@@ -266,65 +266,65 @@ func isStylesheetLink(tag []byte) bool {
 
 // documentConfig is what [newDocument] serves a document from.
 type documentConfig struct {
-	// Variants holds one rewritten body per stampable palette, as
+	// variants holds one rewritten body per stampable palette, as
 	// [buildDocumentVariants] returns them.
-	Variants map[string][]byte
+	variants map[string][]byte
 
-	// DefaultPalette names the variant a request without a usable theme
-	// cookie is answered with. It must be a key of Variants.
-	DefaultPalette string
+	// defaultPalette names the variant a request without a usable theme
+	// cookie is answered with. It must be a key of variants.
+	defaultPalette string
 
-	// CacheControl is the document's Cache-Control value.
-	CacheControl string
+	// cacheControl is the document's Cache-Control value.
+	cacheControl string
 
-	// CSP is the document's Content-Security-Policy value, as
+	// csp is the document's Content-Security-Policy value, as
 	// [documentCSP] builds it.
-	CSP string
+	csp string
 
-	// Logger takes the record [logDocumentRequest] writes for each
+	// logger takes the record [logDocumentRequest] writes for each
 	// answer.
-	Logger *slog.Logger
+	logger *slog.Logger
 }
 
 // newDocument returns an http.Handler serving GET and HEAD only,
 // answering the variant named by the [themeCookieName] cookie when its
-// value is an exact key of cfg.Variants, and the default variant
-// otherwise. cfg.DefaultPalette must be a key of cfg.Variants: that
+// value is an exact key of cfg.variants, and the default variant
+// otherwise. cfg.defaultPalette must be a key of cfg.variants: that
 // pairing is the caller's own startup wiring, never a per-request
 // condition, so a mismatch panics rather than serving an empty body.
 //
-// A served document carries cfg.CacheControl, cfg.CSP, and Vary:
+// A served document carries cfg.cacheControl, cfg.csp, and Vary:
 // Cookie, since the variant depends on the theme cookie and a shared
 // cache must not answer one visitor with another's. A 405 carries
 // none of them. Each answer, the 405 included, writes one record to
-// cfg.Logger.
+// cfg.logger.
 //
 // The handler writes no Set-Cookie, on any of these paths, and logs
 // nothing about the cookie's value: every response is byte-identical
 // to one of the bodies [buildDocumentVariants] computed at startup, so
 // no request byte reaches a served document.
 func newDocument(cfg documentConfig) http.Handler {
-	if _, ok := cfg.Variants[cfg.DefaultPalette]; !ok {
-		panic(fmt.Sprintf("webapp: newDocument: default palette %q has no variant", cfg.DefaultPalette))
+	if _, ok := cfg.variants[cfg.defaultPalette]; !ok {
+		panic(fmt.Sprintf("webapp: newDocument: default palette %q has no variant", cfg.defaultPalette))
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !allowGetHead(w, r) {
-			logDocumentRequest(cfg.Logger, r, http.StatusMethodNotAllowed)
+			logDocumentRequest(cfg.logger, r, http.StatusMethodNotAllowed)
 			return
 		}
-		palette := cfg.DefaultPalette
+		palette := cfg.defaultPalette
 		if cookie, err := r.Cookie(themeCookieName); err == nil {
-			if _, ok := cfg.Variants[cookie.Value]; ok {
+			if _, ok := cfg.variants[cookie.Value]; ok {
 				palette = cookie.Value
 			}
 		}
 		h := w.Header()
 		h.Set("Content-Type", "text/html; charset=utf-8")
-		h.Set("Cache-Control", cfg.CacheControl)
-		h.Set("Content-Security-Policy", cfg.CSP)
+		h.Set("Cache-Control", cfg.cacheControl)
+		h.Set("Content-Security-Policy", cfg.csp)
 		h.Set("Vary", "Cookie")
-		_, _ = w.Write(cfg.Variants[palette])
-		logDocumentRequest(cfg.Logger, r, http.StatusOK)
+		_, _ = w.Write(cfg.variants[palette])
+		logDocumentRequest(cfg.logger, r, http.StatusOK)
 	})
 }
 

@@ -98,10 +98,10 @@ func TestRewriteDocument(t *testing.T) {
 func TestBuildDocumentVariants(t *testing.T) {
 	raw := []byte(`<html data-theme="TOKEN"><link href="./a.css" rel="stylesheet"></head>`)
 	variants, err := buildDocumentVariants("doc.html", raw, variantConfig{
-		Placeholder: "TOKEN",
-		Match:       "dubplate",
-		Palettes:    []string{"label", "label-night", "system"},
-		SiteName:    "Group",
+		placeholder: "TOKEN",
+		match:       "dubplate",
+		palettes:    []string{"label", "label-night", "system"},
+		siteName:    "Group",
 	})
 	if err != nil {
 		t.Fatalf("buildDocumentVariants: %v", err)
@@ -123,7 +123,7 @@ func TestBuildDocumentVariants(t *testing.T) {
 
 func TestBuildDocumentVariants_PropagatesRewriteError(t *testing.T) {
 	raw := []byte(`<link href="./a.css" rel="stylesheet"></head>no token here`)
-	if _, err := buildDocumentVariants("doc.html", raw, variantConfig{Placeholder: "TOKEN", Match: "dubplate", Palettes: []string{"label"}}); err == nil {
+	if _, err := buildDocumentVariants("doc.html", raw, variantConfig{placeholder: "TOKEN", match: "dubplate", palettes: []string{"label"}}); err == nil {
 		t.Fatal("buildDocumentVariants: got nil error, want the missing-placeholder refusal")
 	}
 }
@@ -144,26 +144,26 @@ func TestBuildDocumentVariants_PlaceholderInValue(t *testing.T) {
 		{
 			name:       "the build lost its placeholder, the site name carries one",
 			raw:        `<html data-theme="x"><head><link href="./0.css" rel="stylesheet"></head></html>`,
-			cfg:        variantConfig{SiteName: "Group " + token},
+			cfg:        variantConfig{siteName: "Group " + token},
 			wantErrHas: `placeholder "__DUBPLATE_THEME__" not found`,
 		},
 		{
 			name:       "the site name carries the placeholder",
 			raw:        `<html data-theme="` + token + `"><head><link href="./0.css" rel="stylesheet"></head></html>`,
-			cfg:        variantConfig{SiteName: "Group " + token},
+			cfg:        variantConfig{siteName: "Group " + token},
 			wantErrHas: `an inserted head value carries the theme placeholder`,
 		},
 		{
 			name:       "a tier href carries the placeholder",
 			raw:        `<html data-theme="` + token + `"><head><link href="./0.css" rel="stylesheet"></head></html>`,
-			cfg:        variantConfig{SiteName: "Group", TierHrefs: []string{"/" + token + "/branding.css"}},
+			cfg:        variantConfig{siteName: "Group", tierHrefs: []string{"/" + token + "/branding.css"}},
 			wantErrHas: `an inserted head value carries the theme placeholder`,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := tt.cfg
-			cfg.Placeholder, cfg.Match, cfg.Palettes = token, "dubplate", []string{"label"}
+			cfg.placeholder, cfg.match, cfg.palettes = token, "dubplate", []string{"label"}
 			_, err := buildDocumentVariants("login.html", []byte(tt.raw), cfg)
 			if err == nil || !strings.Contains(err.Error(), tt.wantErrHas) {
 				t.Fatalf("buildDocumentVariants error = %v, want one containing %q", err, tt.wantErrHas)
@@ -232,11 +232,11 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			variants, err := buildDocumentVariants("members.html", []byte(tt.raw), variantConfig{
-				Placeholder: "T",
-				Match:       "dubplate",
-				Palettes:    []string{"label"},
-				TierHrefs:   tt.tiers,
-				SiteName:    "S",
+				placeholder: "T",
+				match:       "dubplate",
+				palettes:    []string{"label"},
+				tierHrefs:   tt.tiers,
+				siteName:    "S",
 			})
 			if tt.wantErrHas != "" {
 				if err == nil {
@@ -265,19 +265,19 @@ func TestBuildDocumentVariants_TierLinkAnchor(t *testing.T) {
 func TestBuildDocumentVariants_Head(t *testing.T) {
 	raw := `<html data-theme="T"><head><link href="./0.css" rel="stylesheet"></head><body><script>s</script></body></html>`
 	cfg := variantConfig{
-		Placeholder: "T",
-		Match:       "dubplate",
-		Palettes:    []string{"label", "label-night", "system"},
-		TierHrefs:   []string{"./branding.css"},
-		SiteName:    `A "B" <C> & D`,
-		Robots:      "noindex, nofollow",
-		ThemeColors: map[string][]themeColor{
-			"label":  {{Color: "#1f1b16"}},
-			"system": {{Scheme: "light", Color: "#1f1b16"}, {Scheme: "dark", Color: "#110f0d"}},
+		placeholder: "T",
+		match:       "dubplate",
+		palettes:    []string{"label", "label-night", "system"},
+		tierHrefs:   []string{"./branding.css"},
+		siteName:    `A "B" <C> & D`,
+		robots:      "noindex, nofollow",
+		themeColors: map[string][]themeColor{
+			"label":  {{color: "#1f1b16"}},
+			"system": {{scheme: "light", color: "#1f1b16"}, {scheme: "dark", color: "#110f0d"}},
 		},
-		Icons: []icon{
-			{Href: "/p/favicon.svg", Type: "image/svg+xml"},
-			{Href: "/p/favicon.png", Type: "image/png", Sizes: "32x32"},
+		icons: []icon{
+			{href: "/p/favicon.svg", contentType: "image/svg+xml"},
+			{href: "/p/favicon.png", contentType: "image/png", sizes: "32x32"},
 		},
 	}
 	shared := `<link href="./branding.css" rel="stylesheet">` +
@@ -433,9 +433,9 @@ func TestNewDocument_CookieSelectsVariant(t *testing.T) {
 			defaultLogs.Reset()
 			var handlerLogs bytes.Buffer
 			handler := newDocument(documentConfig{
-				Variants:       documentVariantFixture(),
-				DefaultPalette: tt.defaultPalette,
-				Logger:         slog.New(slog.NewTextHandler(&handlerLogs, nil)),
+				variants:       documentVariantFixture(),
+				defaultPalette: tt.defaultPalette,
+				logger:         slog.New(slog.NewTextHandler(&handlerLogs, nil)),
 			})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			if tt.cookieHeader != "" {
@@ -479,7 +479,7 @@ func TestNewDocument_ControlByteAndNonASCIICookiesAreSkipped(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "system", Logger: discardLogger()})
+			handler := newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
 			r := httptest.NewRequest(http.MethodGet, "/login", nil)
 			r.Header.Set("Cookie", tt.value)
 			rec := httptest.NewRecorder()
@@ -495,7 +495,7 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 	tests := []string{http.MethodPost, http.MethodPut, http.MethodDelete}
 	for _, method := range tests {
 		t.Run(method, func(t *testing.T) {
-			handler := newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "system", Logger: discardLogger()})
+			handler := newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
 			r := httptest.NewRequest(method, "/login", nil)
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, r)
@@ -515,7 +515,7 @@ func TestNewDocument_MethodNotAllowed(t *testing.T) {
 // net/http's own server, not this handler, that discards a written
 // body for a HEAD request while still reporting Content-Length.
 func TestNewDocument_HEADWritesNoBody(t *testing.T) {
-	handler := newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "system", Logger: discardLogger()})
+	handler := newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "system", logger: discardLogger()})
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
@@ -546,11 +546,11 @@ func TestNewDocument_HEADWritesNoBody(t *testing.T) {
 func TestNewDocument_ResponseHeaders(t *testing.T) {
 	const csp = "default-src 'self'; script-src 'self'"
 	handler := newDocument(documentConfig{
-		Variants:       documentVariantFixture(),
-		DefaultPalette: "system",
-		CacheControl:   "private, no-cache",
-		CSP:            csp,
-		Logger:         discardLogger(),
+		variants:       documentVariantFixture(),
+		defaultPalette: "system",
+		cacheControl:   "private, no-cache",
+		csp:            csp,
+		logger:         discardLogger(),
 	})
 	tests := []struct {
 		method    string
@@ -820,10 +820,10 @@ func TestDocumentRequestLog_BoundsMethod(t *testing.T) {
 func TestNewDocument_PanicsOnMissingDefaultVariant(t *testing.T) {
 	defer func() {
 		if recover() == nil {
-			t.Fatal("newDocument: want a panic when DefaultPalette has no variant")
+			t.Fatal("newDocument: want a panic when defaultPalette has no variant")
 		}
 	}()
-	newDocument(documentConfig{Variants: documentVariantFixture(), DefaultPalette: "gruvbox", Logger: discardLogger()})
+	newDocument(documentConfig{variants: documentVariantFixture(), defaultPalette: "gruvbox", logger: discardLogger()})
 }
 
 func TestStylesheetHrefs(t *testing.T) {
