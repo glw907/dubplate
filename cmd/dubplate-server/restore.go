@@ -180,9 +180,9 @@ func runRestore(ctx context.Context, environ []string, reg *config.Registry, f r
 	switch {
 	case err == nil:
 	case ctx.Err() != nil:
-		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("restore interrupted: %w", err)}
+		return &exitError{code: exitInterrupted, err: fmt.Errorf("restore interrupted: %w", err)}
 	case errors.Is(err, store.ErrLockBusy):
-		return &exitCodeErr{code: exitTempFail, err: err}
+		return &exitError{code: exitTempFail, err: err}
 	default:
 		return err
 	}
