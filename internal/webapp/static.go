@@ -83,7 +83,7 @@ func newStaticFiles(files map[string]staticFile) http.Handler {
 func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
 	faces, err := readStaticDir(fontsFS, ".", ".woff2", "font/woff2", routePrefix)
 	if err != nil {
-		return nil, fmt.Errorf("web: fonts: %w", err)
+		return nil, fmt.Errorf("webapp: fonts: %w", err)
 	}
 	if len(faces) == 0 {
 		return nil, errors.New("no .woff2 file embedded under web/build/fonts/")
@@ -100,7 +100,7 @@ func newFontsRoute(fontsFS fs.FS, routePrefix string) (http.Handler, error) {
 func newIconsRoute(build fs.FS, prefix string, names RouteNames) (http.Handler, error) {
 	files, err := readStaticDir(build, names.Mark, ".svg", "image/svg+xml", prefix+"/"+names.Mark)
 	if err != nil {
-		return nil, fmt.Errorf("web: mark: %w", err)
+		return nil, fmt.Errorf("webapp: mark: %w", err)
 	}
 	if len(files) == 0 {
 		return nil, errors.New("no .svg file embedded under web/build/mark/")
@@ -111,7 +111,7 @@ func newIconsRoute(build fs.FS, prefix string, names RouteNames) (http.Handler, 
 	} {
 		data, err := fs.ReadFile(build, favicon.name)
 		if err != nil {
-			return nil, fmt.Errorf("web: favicon: %w", err)
+			return nil, fmt.Errorf("webapp: favicon: %w", err)
 		}
 		files[prefix+"/"+favicon.name] = newStaticFile(data, favicon.contentType)
 	}

@@ -204,6 +204,12 @@ func TestBindAddrsStatus(t *testing.T) {
 			wantStatus: "127.0.0.2 present",
 		},
 		{
+			name:       "an IPv6 address is named in its canonical form",
+			environ:    []string{"DUBPLATE_SERVE_BIND_ADDRS=0:0:0:0:0:0:0:1"},
+			addrs:      []net.Addr{ipNet("127.0.0.1/8")},
+			wantStatus: "::1 present",
+		},
+		{
 			name:       "an absent address",
 			environ:    []string{"DUBPLATE_SERVE_BIND_ADDRS=192.0.2.1"},
 			addrs:      []net.Addr{ipNet("198.51.100.4/24")},
@@ -350,7 +356,7 @@ func TestDoctorBoundaryProbe_ListenerAnswers(t *testing.T) {
 				w.WriteHeader(tt.status)
 				_, _ = io.WriteString(w, tt.body)
 			})
-			status, failed := boundaryProbeStatus(t.Context(), environ, configRegistry(), loadRowConfig(t, environ))
+			status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 			if status != tt.wantStatus {
 				t.Errorf("status = %q, want %q", status, tt.wantStatus)
 			}
@@ -383,7 +389,7 @@ func TestDoctorBoundaryProbe_WedgedListener(t *testing.T) {
 	cfg := loadRowConfig(t, environ)
 
 	start := time.Now()
-	status, failed := boundaryProbeStatus(t.Context(), environ, configRegistry(), cfg)
+	status, failed := boundaryProbeStatus(t.Context(), environ, cfg)
 	elapsed := time.Since(start)
 	if want := "127.0.0.1 unexpected answer: timeout"; status != want {
 		t.Errorf("status = %q, want %q", status, want)
@@ -406,7 +412,7 @@ func TestBoundaryProbeStatus_ParentDeadlineBoundsTheAnswer(t *testing.T) {
 	defer cancel()
 
 	start := time.Now()
-	status, _ := boundaryProbeStatus(ctx, environ, configRegistry(), cfg)
+	status, _ := boundaryProbeStatus(ctx, environ, cfg)
 	elapsed := time.Since(start)
 	if want := "127.0.0.1 unexpected answer: timeout"; status != want {
 		t.Errorf("status = %q, want %q", status, want)
@@ -416,55 +422,10 @@ func TestBoundaryProbeStatus_ParentDeadlineBoundsTheAnswer(t *testing.T) {
 	}
 }
 
-// TestboundaryProbeStatus_UndeclaredPortNeverDials covers a
-// registry that does not declare the serve port: the row reads "not
-// probed" naming the key, adds no failure, and never dials. The
-// environ names a listener's port so a dial, were one made, lands on a
-// socket this test watches rather than the default 8080. Load refuses
-// the port key as unknown on such a registry, so cfg comes from the
-// wall alone; the row reads the environ it is handed.
-func TestBoundaryProbeStatus_UndeclaredPortNeverDials(t *testing.T) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = l.Close() }()
-	var accepted atomic.Int32
-	go func() {
-		for {
-			conn, err := l.Accept()
-			if err != nil {
-				return
-			}
-			accepted.Add(1)
-			_ = conn.Close()
-		}
-	}()
-
-	reg := config.NewRegistry()
-	cfg, err := config.Load(wallEnviron(), reg)
-	if err != nil {
-		t.Fatalf("fixture state: config.Load on a fresh registry: %v", err)
-	}
-	environ := rowEnviron("DUBPLATE_SERVE_PORT=" + strconv.Itoa(listenerPort(t, l)))
-
-	status, failed := boundaryProbeStatus(t.Context(), environ, reg, cfg)
-	if want := "not probed: DUBPLATE_SERVE_PORT is not registered"; status != want {
-		t.Errorf("status = %q, want %q", status, want)
-	}
-	if failed {
-		t.Error("failed = true, want no failure")
-	}
-	if n := accepted.Load(); n != 0 {
-		t.Errorf("the row dialed the listener %d time(s), want none", n)
-	}
-}
-
-// TestboundaryProbeStatus_NoFailureOfItsOwn pins the states in
+// TestBoundaryProbeStatus_NoFailureOfItsOwn pins the states in
 // which the row reports why it did not probe and leaves the failure to
 // the row that owns the cause.
 func TestBoundaryProbeStatus_NoFailureOfItsOwn(t *testing.T) {
-	reg := configRegistry()
 	baseline := probeEnviron()
 	cfg := loadRowConfig(t, baseline)
 	// Load accepts a network as the trusted proxy value, so cfg is
@@ -515,7 +476,7 @@ func TestBoundaryProbeStatus_NoFailureOfItsOwn(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			status, failed := boundaryProbeStatus(t.Context(), tt.environ, reg, tt.cfg)
+			status, failed := boundaryProbeStatus(t.Context(), tt.environ, tt.cfg)
 			if status != tt.wantStatus {
 				t.Errorf("status = %q, want %q", status, tt.wantStatus)
 			}
@@ -539,7 +500,7 @@ func TestBoundaryProbeStatus_MixedTrustedBind(t *testing.T) {
 		"DUBPLATE_TRUSTED_PROXY_HEADER=X-Forwarded-For",
 		"DUBPLATE_SERVE_BIND_ADDRS=127.0.0.1,127.0.0.2",
 	)
-	status, failed := boundaryProbeStatus(t.Context(), environ, configRegistry(), loadRowConfig(t, environ))
+	status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 	if want := "127.0.0.1 no listener (a trusted proxy, identity only), 127.0.0.2 no listener"; status != want {
 		t.Errorf("status = %q, want %q", status, want)
 	}
@@ -583,7 +544,7 @@ func TestDoctorBoundaryProbe_TrustedAnswers(t *testing.T) {
 			environ := cannedRoute(t, func(w http.ResponseWriter) {
 				_, _ = io.WriteString(w, tt.body)
 			}, trustedLoopback...)
-			status, failed := boundaryProbeStatus(t.Context(), environ, configRegistry(), loadRowConfig(t, environ))
+			status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 			if status != tt.wantStatus {
 				t.Errorf("status = %q, want %q", status, tt.wantStatus)
 			}
@@ -613,7 +574,7 @@ func TestDoctorBoundaryProbe_SendsTheConfiguredHeader(t *testing.T) {
 		"DUBPLATE_TRUSTED_PROXY_HEADER=X-House-Client-Address",
 		"DUBPLATE_SERVE_PORT="+strconv.Itoa(listenerPort(t, srv.Listener)),
 	)
-	status, failed := boundaryProbeStatus(t.Context(), environ, configRegistry(), loadRowConfig(t, environ))
+	status, failed := boundaryProbeStatus(t.Context(), environ, loadRowConfig(t, environ))
 	if failed {
 		t.Fatalf("failed = true (status %q), want the strip's refusal to pass", status)
 	}

@@ -98,9 +98,11 @@ var brandingRefusedSequences = []string{
 	"{", "}", "<", ">", `"`, "'", `\`, "@", "url(", "var(", "expression(",
 }
 
-// BrandingStylesheet renders decls, the operator's branding value, as
-// one :root block. decls is a ";"-separated list of "name: value"
-// declarations; an empty decls renders an empty stylesheet.
+// renderBranding renders decls, the operator's branding value, as
+// one :root block, and returns the value it declares for
+// --color-neutral, or "" when it declares none. decls is a
+// ";"-separated list of "name: value" declarations; an empty decls
+// renders an empty stylesheet.
 //
 // Every name must be one of the theme variables and appear once, and
 // every value must match its name's grammar and hold none of the
@@ -109,9 +111,9 @@ var brandingRefusedSequences = []string{
 // CSS carries the operator's text into the stylesheet all the same. A
 // returned error names the declaration's position, its name when the
 // name is the fault, and the rule broken, but never the refused value.
-func BrandingStylesheet(decls string) ([]byte, error) {
+func renderBranding(decls string) (css []byte, neutral string, err error) {
 	if decls == "" {
-		return []byte{}, nil
+		return []byte{}, "", nil
 	}
 
 	// The block stays outside any cascade layer on purpose. The bundle
@@ -129,25 +131,28 @@ func BrandingStylesheet(decls string) ([]byte, error) {
 		value := strings.TrimSpace(rawValue)
 		switch {
 		case strings.TrimSpace(decl) == "":
-			return nil, fmt.Errorf(`declaration %d: empty; remove the doubled or trailing ";"`, pos)
+			return nil, "", fmt.Errorf(`declaration %d: empty; remove the doubled or trailing ";"`, pos)
 		case !ok:
-			return nil, fmt.Errorf(`declaration %d: no ":" between name and value`, pos)
+			return nil, "", fmt.Errorf(`declaration %d: no ":" between name and value`, pos)
 		}
 		kind, known := brandingKinds[name]
 		if !known {
-			return nil, fmt.Errorf("declaration %d: %q is not a theme variable", pos, name)
+			return nil, "", fmt.Errorf("declaration %d: %q is not a theme variable", pos, name)
 		}
 		if seen[name] {
-			return nil, fmt.Errorf("declaration %d: %q is declared more than once", pos, name)
+			return nil, "", fmt.Errorf("declaration %d: %q is declared more than once", pos, name)
 		}
 		seen[name] = true
 		if err := checkBrandingValue(kind, value); err != nil {
-			return nil, fmt.Errorf("declaration %d: %s: %w", pos, name, err)
+			return nil, "", fmt.Errorf("declaration %d: %s: %w", pos, name, err)
+		}
+		if name == "--color-neutral" {
+			neutral = value
 		}
 		fmt.Fprintf(&buf, "\t%s: %s;\n", name, value)
 	}
 	buf.WriteString("}\n")
-	return buf.Bytes(), nil
+	return buf.Bytes(), neutral, nil
 }
 
 // checkBrandingValue reports why value is refused for a name of kind,

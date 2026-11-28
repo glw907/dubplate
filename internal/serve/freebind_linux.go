@@ -5,20 +5,17 @@ package serve
 import "syscall"
 
 // freebindControl is a net.ListenConfig.Control hook that sets
-// IP_FREEBIND on the listening socket before bind(2) runs, so Listen can
+// IP_FREEBIND on the listening socket before bind(2) runs, so listen can
 // bind an address the host has not configured on any interface yet.
-// syscall.IP_FREEBIND is the stdlib's own constant: its source is
-// Linux's <linux/in.h>, and on this toolchain (go1.27.1, linux/amd64)
-// it measures 15 (0xf), confirmed against a live bind. The option is
-// set at IPPROTO_IP for both address families rather than at IPV6_FREEBIND for
-// AF_INET6, measured working on an AF_INET6 listener; no IPV6_FREEBIND
-// constant exists for this architecture, so none is referenced.
+// The option is set at IPPROTO_IP for both address families: Linux
+// honors it on an AF_INET6 socket, and syscall defines no
+// IPV6_FREEBIND.
 //
-// IP_FREEBIND's residual: it suppresses the boot-time error a
-// misconfigured or not-yet-present address would otherwise raise. It
-// does not make the address reachable, so a listener bound this way to
-// an address nothing routes to accepts no traffic; surfacing that state
-// is 5d's doctor row, not this package's concern.
+// IP_FREEBIND suppresses the boot-time error a misconfigured or
+// not-yet-present address would otherwise raise. It does not make the
+// address reachable, so a listener bound this way to an address nothing
+// routes to accepts no traffic; the doctor's bind row surfaces that
+// state.
 func freebindControl(_, _ string, c syscall.RawConn) error {
 	var sockErr error
 	if err := c.Control(func(fd uintptr) {

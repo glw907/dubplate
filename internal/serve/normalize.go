@@ -17,7 +17,7 @@ import (
 // measuring exactly 2048 bytes is admitted, and 2049 is refused.
 const maxPathBytes = 2048
 
-// Normalize returns a handler that answers every request breaking one
+// normalize returns a handler that answers every request breaking one
 // of six path rules and hands every other request to next untouched.
 // It is a gate, never a rewriter: an admitted request reaches next
 // with the path it arrived on, byte for byte.
@@ -26,7 +26,7 @@ const maxPathBytes = 2048
 // decision sees a refused request, which is what makes the rules a
 // boundary rather than a filter.
 //
-// Normalize wraps the mux and is never registered as a route on one.
+// normalize wraps the mux and is never registered as a route on one.
 // http.ServeMux cleans a path and redirects before any route runs, so
 // a check registered as a route would run after the decision it exists
 // to guard. TestServeMuxCleansBeforeARouteRuns measures that redirect.
@@ -75,11 +75,10 @@ const maxPathBytes = 2048
 // Every rule but the length bound refuses with 400, so a client cannot tell which
 // smuggling rule refused it. The length bound answers 414, a shape
 // already distinguishable from outside by its own size.
-func Normalize(next http.Handler) http.Handler {
+func normalize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if status, refused := pathRefusal(r.URL); refused {
-			markRefusal(r, status)
-			http.Error(w, http.StatusText(status), status)
+			refuse(w, r, status)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -106,22 +105,26 @@ func pathRefusal(u *url.URL) (int, bool) {
 		return http.StatusBadRequest, true
 	}
 
-	// The leading separator opens the path rather than closing a
-	// segment, so it is trimmed before the split. What remains is one
-	// element per segment, and an empty element in any position but
-	// the last is a doubled separator; an empty element in the last
-	// position is the trailing separator rule 3 admits.
-	segments := strings.Split(strings.TrimPrefix(u.Path, "/"), "/")
+	if dot, doubled := segmentFault(u.Path); dot || doubled {
+		return http.StatusBadRequest, true
+	}
+	return 0, false
+}
+
+// segmentFault reports the first segment fault in path, which begins
+// with a separator: a "." or ".." segment, or a doubled separator. A
+// single trailing separator is no fault.
+func segmentFault(path string) (dot, doubled bool) {
+	segments := strings.Split(strings.TrimPrefix(path, "/"), "/")
 	for i, segment := range segments {
 		switch segment {
 		case ".", "..":
-			return http.StatusBadRequest, true
+			return true, false
 		case "":
 			if i != len(segments)-1 {
-				return http.StatusBadRequest, true
+				return false, true
 			}
 		}
 	}
-
-	return 0, false
+	return false, false
 }

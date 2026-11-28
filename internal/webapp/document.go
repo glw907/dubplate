@@ -13,12 +13,12 @@ import (
 	"time"
 )
 
-// ThemeCookieName is the theme preference cookie's name, following
+// themeCookieName is the theme preference cookie's name, following
 // __Host-dubplate_session (internal/auth/session.go): its __Host-
 // prefix is enforced by the browser rather than by this server, so the
 // cookie is stored only when it carries Path=/, no Domain, and Secure.
 // The web app's theme toggle writes it; this package only reads it.
-const ThemeCookieName = "__Host-dubplate_theme"
+const themeCookieName = "__Host-dubplate_theme"
 
 // rewriteDocument returns raw with the exactly-one occurrence of
 // placeholder replaced by composed, the theme stamp's whole edit: no
@@ -32,11 +32,11 @@ func rewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
 	needle := []byte(placeholder)
 	switch n := bytes.Count(raw, needle); n {
 	case 0:
-		return nil, fmt.Errorf("web: document %q: placeholder %q not found", name, placeholder)
+		return nil, fmt.Errorf("webapp: document %q: placeholder %q not found", name, placeholder)
 	case 1:
 		return bytes.Replace(raw, needle, []byte(composed), 1), nil
 	default:
-		return nil, fmt.Errorf("web: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
+		return nil, fmt.Errorf("webapp: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
 	}
 }
 
@@ -151,7 +151,7 @@ func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[stri
 			return nil, err
 		}
 		if bytes.Contains(head.Bytes(), []byte(cfg.Placeholder)) {
-			return nil, fmt.Errorf("web: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
+			return nil, fmt.Errorf("webapp: document %q: an inserted head value carries the theme placeholder %q", name, cfg.Placeholder)
 		}
 		anchor, err := headAnchor(name, stamped)
 		if err != nil {
@@ -176,10 +176,10 @@ func headAnchor(name string, raw []byte) (int, error) {
 		}
 	}
 	if anchor < 0 {
-		return 0, fmt.Errorf("web: document %q: no stylesheet link to place the tier links after", name)
+		return 0, fmt.Errorf("webapp: document %q: no stylesheet link to place the tier links after", name)
 	}
 	if end := bytes.Index(raw, []byte("</head>")); end < anchor {
-		return 0, fmt.Errorf("web: document %q: the last stylesheet link sits outside <head>", name)
+		return 0, fmt.Errorf("webapp: document %q: the last stylesheet link sits outside <head>", name)
 	}
 	return anchor, nil
 }
@@ -214,7 +214,7 @@ type documentConfig struct {
 	CacheControl string
 
 	// CSP is the document's Content-Security-Policy value, as
-	// [DocumentCSP] builds it.
+	// [documentCSP] builds it.
 	CSP string
 
 	// Logger takes the record [logDocumentRequest] writes for each
@@ -223,7 +223,7 @@ type documentConfig struct {
 }
 
 // newDocument returns an http.Handler serving GET and HEAD only,
-// answering the variant named by the [ThemeCookieName] cookie when its
+// answering the variant named by the [themeCookieName] cookie when its
 // value is an exact key of cfg.Variants, and the default variant
 // otherwise. cfg.DefaultPalette must be a key of cfg.Variants: that
 // pairing is the caller's own startup wiring, never a per-request
@@ -241,7 +241,7 @@ type documentConfig struct {
 // no request byte reaches a served document.
 func newDocument(cfg documentConfig) http.Handler {
 	if _, ok := cfg.Variants[cfg.DefaultPalette]; !ok {
-		panic(fmt.Sprintf("web: newDocument: default palette %q has no variant", cfg.DefaultPalette))
+		panic(fmt.Sprintf("webapp: newDocument: default palette %q has no variant", cfg.DefaultPalette))
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !allowGetHead(w, r) {
@@ -249,7 +249,7 @@ func newDocument(cfg documentConfig) http.Handler {
 			return
 		}
 		palette := cfg.DefaultPalette
-		if cookie, err := r.Cookie(ThemeCookieName); err == nil {
+		if cookie, err := r.Cookie(themeCookieName); err == nil {
 			if _, ok := cfg.Variants[cookie.Value]; ok {
 				palette = cookie.Value
 			}
@@ -281,7 +281,7 @@ func documentNotFound(logger *slog.Logger) http.Handler {
 // it is one net/http names and as "other" otherwise, since a client may
 // send any token as a method, up to the header size limit.
 func logDocumentRequest(logger *slog.Logger, r *http.Request, status int) {
-	logger.Info("serve: document request",
+	logger.Info("webapp: document request",
 		"method", loggedMethod(r.Method),
 		"path", boundedPath(r.URL.Path),
 		"status", status,
@@ -384,11 +384,11 @@ var (
 	relAttrRE  = regexp.MustCompile(`(?i)\brel\s*=\s*"([^"]*)"`)
 )
 
-// StylesheetHrefs returns the href of every <link rel="stylesheet">
+// stylesheetHrefs returns the href of every <link rel="stylesheet">
 // tag in doc, in document order. It reads the built bundle's own
 // attribute-quoting shape (kit always double-quotes), the fixture
 // state every caller of this function runs against.
-func StylesheetHrefs(doc []byte) []string {
+func stylesheetHrefs(doc []byte) []string {
 	var hrefs []string
 	for _, tag := range linkTagRE.FindAll(doc, -1) {
 		if !isStylesheetLink(tag) {

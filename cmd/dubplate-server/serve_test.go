@@ -100,11 +100,11 @@ func buildServeShellContext(t *testing.T, ctx context.Context, environ []string,
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, logger)
+	srv, err := newServeShell(ctx, environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 // validates the wall and resolves configuration, refusing before ever
 // calling serve.Run: an unsatisfied owned wall, an invalid prefix, or
 // an unparseable bind list each surfaces through RunE with the
-// underlying sentinel intact, and no case opens a listener, since all
+// underlying refusal intact, and no case opens a listener, since all
 // three refusals precede resolution's own return.
 //
 // Each case runs under an already-canceled context so a regression
@@ -175,24 +175,24 @@ func TestRegisterServeConfig_ClaimsThreeKeysAndRetiresReservedClass(t *testing.T
 // gate's own timeout.
 func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 	tests := []struct {
-		name    string
-		environ []string
-		wantErr error
+		name     string
+		environ  []string
+		wantText string
 	}{
 		{
-			name:    "unsatisfied owned wall",
-			environ: dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
-			wantErr: config.ErrMissing,
+			name:     "unsatisfied owned wall",
+			environ:  dropKey(baseEnviron(), "DUBPLATE_ADMIN_EMAIL"),
+			wantText: "required setting unset",
 		},
 		{
-			name:    "invalid prefix",
-			environ: append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
-			wantErr: serve.ErrInvalidPrefix,
+			name:     "invalid prefix",
+			environ:  append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator"),
+			wantText: "invalid serve prefix",
 		},
 		{
-			name:    "unparseable bind list",
-			environ: append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
-			wantErr: serve.ErrInvalidBindAddr,
+			name:     "unparseable bind list",
+			environ:  append(authEnviron(t), "DUBPLATE_SERVE_BIND_ADDRS=not-an-address"),
+			wantText: "invalid bind address",
 		},
 	}
 
@@ -205,8 +205,8 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 			cancel()
 
 			err := cmd.ExecuteContext(ctx)
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Execute() error = %v, want it to wrap %v", err, tt.wantErr)
+			if err == nil || !strings.Contains(err.Error(), tt.wantText) {
+				t.Fatalf("Execute() error = %v, want it to carry %q", err, tt.wantText)
 			}
 		})
 	}
@@ -221,8 +221,8 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // The second half proves the wiring carries the production registry
 // and the process environment rather than a construction that only
 // looks right: dispatching "serve" through the root command with an
-// invalid prefix in the environment refuses with the resolution
-// sentinel, which can only happen if the added command resolved
+// invalid prefix in the environment refuses with the prefix refusal,
+// which can only happen if the added command resolved
 // configuration. No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	var serveCmd, doctorCmd bool
@@ -263,8 +263,8 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
 
-	if err := root.Execute(); !errors.Is(err, serve.ErrInvalidPrefix) {
-		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want it to wrap %v", err, serve.ErrInvalidPrefix)
+	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "invalid serve prefix") {
+		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want the prefix refusal", err)
 	}
 }
 
@@ -316,10 +316,11 @@ func TestNewServeShell_MountsTheThreeAuthRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	handler := shell.Handler()
 
 	for _, tt := range []struct {
@@ -532,11 +533,12 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
-			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
+			prefix := listen.Prefix
+			srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger())
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}
@@ -778,10 +780,11 @@ func TestNewServeShell_APIPOSTWithoutOriginSignalIsDenied(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	before := userAddresses(t, stateDir)
@@ -806,8 +809,7 @@ const validAddMember = `{"address":"new@example.com","display_name":"New Member"
 // captureDefaultLogger swaps slog.Default() for a logger writing JSON
 // lines to the returned buffer, restoring the prior default when t
 // ends. [newServeShell] builds every shell through [serve.NewShell]
-// with a nil logger, which falls back to slog.Default
-// (internal/serve/serve.go:43-48), so this is the seam this package has
+// with a nil logger, which falls back to slog.Default, so this is the seam this package has
 // to read a shell's own log line without widening newServeShell's own
 // signature.
 func captureDefaultLogger(t *testing.T) *bytes.Buffer {
@@ -836,10 +838,11 @@ func TestNewServeShell_APISameOriginPOSTAddsMemberAndAudits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	session := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	req := jsonRequest(http.MethodPost, prefix.String()+"/api/v1/add_member", session, "same-origin", validAddMember)
@@ -887,10 +890,11 @@ func TestNewServeShell_RosterRouteIsGone(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	admin := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 	handler := shell.Handler()
 
@@ -931,10 +935,11 @@ func TestNewServeShell_RosterAndMemberVerbShareStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	adminSession := mintServeSession(t, environ, rosterAdminAddress, time.Now())
 
 	apiBody := `{"address":"api-added@example.com","display_name":"API Added","username":"apiadded"}`
@@ -1003,10 +1008,11 @@ func TestNewServeShell_RequestLinkRefusesDefaultIgnorableAddress(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 	handler := shell.Handler()
 
 	plainBody := "address=" + url.QueryEscape(`"ab"@example.com`)
@@ -1079,17 +1085,17 @@ func TestSendsHSTS(t *testing.T) {
 func firstImmutableAsset(t *testing.T) string {
 	t.Helper()
 	var found string
-	err := fs.WalkDir(web.Assets, "build/_app/immutable", func(p string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(web.Build, "_app/immutable", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if found == "" && !d.IsDir() {
-			found = strings.TrimPrefix(p, "build/_app/")
+			found = strings.TrimPrefix(p, "_app/")
 		}
 		return nil
 	})
 	if err != nil || found == "" {
-		t.Fatalf("no file under build/_app/immutable (err %v); run `npm run build` in web/", err)
+		t.Fatalf("no file under _app/immutable (err %v); run `npm run build` in web/", err)
 	}
 	return found
 }
@@ -1238,7 +1244,7 @@ func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	shell := serve.NewShell(prefix, serve.NewStrip(serve.TrustedProxyConfig{}), discardTestLogger())
+	shell := serve.NewShell(prefix, serve.TrustedProxyConfig{}, discardTestLogger())
 	registerWebRoutes(shell, routes)
 	shell.Register(membersRouteName, routes.Members)
 	shell.Register(serverSettingsRouteName, routes.ServerSettings)
@@ -1389,10 +1395,7 @@ func placeholderOnlyBuild() fstest.MapFS {
 }
 
 func TestServedDocuments_CSPCoversEveryInlineScript(t *testing.T) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	for _, failure := range checkServedCSP(buildFS) {
 		t.Error(failure)
 	}
@@ -1455,10 +1458,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 			failures = append(failures, fmt.Sprintf("%s: status %d, want 200", name, rec.Code))
 			continue
 		}
-		var hrefs []string
-		for _, m := range stylesheetLinkRE.FindAllSubmatch(rec.Body.Bytes(), -1) {
-			hrefs = append(hrefs, string(m[1]))
-		}
+		hrefs := stylesheetHrefs(rec.Body.Bytes())
 		root := "./"
 		if strings.Contains(name, "/") {
 			root = "../"
@@ -1513,10 +1513,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 }
 
 func TestServedDocuments_TierOrderAndCache(t *testing.T) {
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	for _, failure := range checkServedTiersAndCache(t, buildFS) {
 		t.Error(failure)
 	}
@@ -1753,10 +1750,11 @@ func TestNewServeShell_TrustedProxyKeysTheLinkLimiter(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell() error = %v, want nil", err)
 			}
-			prefix, _, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 			}
+			prefix := listen.Prefix
 			publicURL := environValue(environ, "DUBPLATE_PUBLIC_URL")
 			handler := shell.Handler()
 
@@ -1789,10 +1787,11 @@ func TestNewServeShell_StripsIdentityFromTheTrustedProxy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildServeShell() error = %v, want nil", err)
 	}
-	prefix, _, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig() error = %v, want nil", err)
 	}
+	prefix := listen.Prefix
 
 	var reached bool
 	var got http.Header
@@ -1901,12 +1900,12 @@ func startServeShell(t *testing.T, ctx context.Context, environ []string) (*serv
 	if err != nil {
 		t.Fatalf("config.Load: %v", err)
 	}
-	prefix, addrs, _, err := serve.ParseConfig(environ)
+	listen, err := serve.ParseConfig(environ)
 	if err != nil {
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, discardTestLogger())
-	return srv, prefix, cfg, err
+	srv, err := newServeShell(ctx, environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, discardTestLogger())
+	return srv, listen.Prefix, cfg, err
 }
 
 // writeAdminRows writes each of values as an admin-sourced settings row
@@ -2190,10 +2189,11 @@ func TestNewServeShell_RequestReadsTheSeededAnswer(t *testing.T) {
 			if err != nil {
 				t.Fatalf("buildServeShell: %v", err)
 			}
-			prefix, _, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
+			prefix := listen.Prefix
 			rec := authRoutePOST(shell.Handler(), prefix.String()+"/"+requestLinkRouteName, "address=stranger%40example.com")
 			var got struct {
 				Outcome string `json:"outcome"`
@@ -2282,11 +2282,12 @@ func TestNewServeShell_UnreadableSettingFailsTheRequest(t *testing.T) {
 			if err != nil {
 				t.Fatalf("config.Load: %v", err)
 			}
-			prefix, addrs, _, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				t.Fatalf("serve.ParseConfig: %v", err)
 			}
-			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, addrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
+			prefix := listen.Prefix
+			srv, err := newServeShell(ctx, environ, productionRegistry(), prefix, listen.BindAddrs, cfg, slog.New(slog.NewJSONHandler(&logs, nil)))
 			if err != nil {
 				t.Fatalf("newServeShell: %v", err)
 			}

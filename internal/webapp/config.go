@@ -3,15 +3,9 @@ package webapp
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
 )
-
-// ThemePaletteKey is the setting that names the theme a visitor without
-// a theme cookie sees. The caller of [New] names it when the bundle
-// carries no selector for the value ([ErrNoThemeSelector]).
-const ThemePaletteKey = "DUBPLATE_THEME_PALETTE"
 
 // acceptedThemeMatch is the one value themeMatchThreshold accepts: the
 // match axis names a group of themes rather than a single one, and
@@ -48,7 +42,7 @@ var themeMatchThreshold = config.Threshold{
 // without a theme cookie sees. Its Doc string is the operator-facing
 // text this key's own doctor row and the config wall report.
 var themePaletteThreshold = config.Threshold{
-	Key:         ThemePaletteKey,
+	Key:         "DUBPLATE_THEME_PALETTE",
 	Kind:        config.KindString,
 	Default:     "system",
 	Doc:         `The theme a visitor without a theme cookie sees. "system" follows the device's light or dark preference between "label" and "label-night", and falls back to "label"; a palette name pins that palette.`,
@@ -68,7 +62,7 @@ var brandingThreshold = config.Threshold{
 }
 
 // operatorCSSFileThreshold is DUBPLATE_OPERATOR_CSS_FILE: the
-// operator's own stylesheet, read once at startup by [ReadOperatorCSS].
+// operator's own stylesheet, read once at startup by [readOperatorCSS].
 var operatorCSSFileThreshold = config.Threshold{
 	Key:         "DUBPLATE_OPERATOR_CSS_FILE",
 	Kind:        config.KindString,
@@ -139,25 +133,11 @@ func resolveBranding(environ []string) ([]byte, string, error) {
 	if decls == notConfigured {
 		decls = ""
 	}
-	css, err := BrandingStylesheet(decls)
+	css, neutral, err := renderBranding(decls)
 	if err != nil {
 		return nil, "", fmt.Errorf("%s: %w", brandingThreshold.Key, err)
 	}
-	return css, brandingNeutral(decls), nil
-}
-
-// brandingNeutral returns the value decls declares for
-// --color-neutral, or "" when it declares none. decls must already
-// have passed [BrandingStylesheet], which fixes every declaration's
-// shape and admits each name once.
-func brandingNeutral(decls string) string {
-	for decl := range strings.SplitSeq(decls, ";") {
-		name, value, _ := strings.Cut(decl, ":")
-		if strings.TrimSpace(name) == "--color-neutral" {
-			return strings.TrimSpace(value)
-		}
-	}
-	return ""
+	return css, neutral, nil
 }
 
 // resolveOperatorCSS reads the file DUBPLATE_OPERATOR_CSS_FILE names,
@@ -170,7 +150,7 @@ func resolveOperatorCSS(environ []string, stateDir string) ([]byte, error) {
 	if path == notConfigured {
 		return nil, nil
 	}
-	css, err := ReadOperatorCSS(path, stateDir)
+	css, err := readOperatorCSS(path, stateDir)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", operatorCSSFileThreshold.Key, err)
 	}

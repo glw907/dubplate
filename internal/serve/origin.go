@@ -40,12 +40,9 @@ import "net/http"
 // session cookie cannot be forged by a third-party page, which can make
 // a browser attach cookies but never a bearer credential. Such a path
 // is exempted through [originCheck.addBearerBypass], keyed on its
-// path. No route registers a bypass today. The first consumer will be
-// the 0.8 OpenSubsonic API or the bearer admin mount, and that consumer
-// must add a shell-level test that a bypassed route never reads the
-// session cookie. The exemption carries a contract
-// every handler behind a bypassed pattern keeps: it must not read the
-// session cookie to authenticate a request. A bypassed handler that
+// path. The exemption carries a contract every handler behind a
+// bypassed pattern keeps: it must not read the session cookie to
+// authenticate a request. A bypassed handler that
 // fell back to the cookie would turn the exemption into exactly the
 // forgery this check refuses.
 type originCheck struct {
@@ -77,8 +74,7 @@ func newOriginCheck() *originCheck {
 		protection: http.NewCrossOriginProtection(),
 		bypass:     http.NewServeMux(),
 		deny: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			markRefusal(r, http.StatusForbidden)
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			refuse(w, r, http.StatusForbidden)
 		}),
 	}
 }

@@ -1,11 +1,9 @@
-package serve
+package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -19,31 +17,17 @@ import (
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/intake"
+	"github.com/glw907/dubplate/internal/member"
+	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/store"
 )
-
-// onlyAdmin stands in for member.EarliestAdmin, which this package's tests
-// cannot import: auth imports serve for the port check. seedUpload
-// creates the one admin, so the first live admin row is the answer.
-func onlyAdmin(ctx context.Context, tx *store.Tx) (identity.UserID, bool, error) {
-	var raw []byte
-	err := tx.QueryRow(ctx, `SELECT id FROM users WHERE admin = 1 AND tombstoned_at IS NULL
-		ORDER BY created_at, id LIMIT 1`).Scan(&raw)
-	if errors.Is(err, sql.ErrNoRows) {
-		return identity.UserID{}, false, nil
-	}
-	if err != nil {
-		return identity.UserID{}, false, err
-	}
-	return identity.UserID(raw), true, nil
-}
 
 // seedUpload writes one member with an uploading submission of one
 // file of size bytes, and returns the member, the submission id, and
 // the file id.
 func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byte, []byte) {
 	t.Helper()
-	member, coll, submission, file := id.New(), id.New(), id.New(), id.New()
+	uploader, coll, submission, file := id.New(), id.New(), id.New(), id.New()
 	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 	defer cancel()
 	err := h.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
@@ -52,12 +36,12 @@ func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byt
 			args  []any
 		}{
 			{`INSERT INTO users (id, address, display_name, username, admin, created_at, updated_at)
-				VALUES (?, 'member@example.invalid', 'Member', 'member', 1, 1, 1)`, []any{member}},
+				VALUES (?, 'member@example.invalid', 'Member', 'member', 1, 1, 1)`, []any{uploader}},
 			{`INSERT INTO collections (id, name, root_path, user_id, visibility, writer)
-				VALUES (?, 'Library', ?, ?, 'group', 'server')`, []any{coll, []byte(coll.String()), member}},
+				VALUES (?, 'Library', ?, ?, 'group', 'server')`, []any{coll, []byte(coll.String()), uploader}},
 			{`INSERT INTO submissions (id, user_id, collection_id, verdict_unit, container, state, source,
 				declared_bytes, reserved_bytes, created_at, updated_at)
-				VALUES (?, ?, ?, 'album', 'files', 'uploading', 'cd', ?, ?, 1, 1)`, []any{submission, member, coll, size, size}},
+				VALUES (?, ?, ?, 'album', 'files', 'uploading', 'cd', ?, ?, 1, 1)`, []any{submission, uploader, coll, size, size}},
 			{`INSERT INTO submission_files (id, submission_id, rel_path, size, role)
 				VALUES (?, ?, ?, ?, 'audio')`, []any{file, submission, []byte("01.flac"), size}},
 		} {
@@ -70,13 +54,13 @@ func seedUpload(t *testing.T, h *store.Handle, size int) (identity.UserID, []byt
 	if err != nil {
 		t.Fatalf("seed upload: %v", err)
 	}
-	return identity.UserID(member), submission[:], file[:]
+	return identity.UserID(uploader), submission[:], file[:]
 }
 
 // TestTusPatchOutlivesTheServerTimeouts is AC 9: a PATCH whose body
 // trickles in over longer than the server's read and write timeouts,
 // in reads spaced well under tusd's NetworkTimeout, completes through
-// the production server constructor and the shell's whole middleware.
+// the shell's whole middleware.
 // tusd extends both deadlines after each read through
 // http.ResponseController, which reaches the connection only while
 // every writer between it and net/http unwraps.
@@ -96,35 +80,40 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 		t.Fatalf("open store: %v", err)
 	}
 	t.Cleanup(func() { _ = h.Close() })
-	member, submission, file := seedUpload(t, h, size)
+	uploader, submission, file := seedUpload(t, h, size)
 
 	staging := t.TempDir()
 	logger := slog.New(slog.DiscardHandler)
-	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now, EarliestAdmin: onlyAdmin})
+	in, err := intake.New(intake.Config{Store: h, Log: logger, Staging: staging, Now: time.Now, EarliestAdmin: member.EarliestAdmin})
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = in.Close() })
+	const prefix = "/dubplate"
 	mount, err := in.TusMount(intake.TusConfig{
-		Prefix:    testPrefix,
+		Prefix:    prefix,
 		PublicURL: "https://music.example",
-		Verify:    func(http.ResponseWriter, *http.Request) (identity.UserID, error) { return member, nil },
+		Verify:    func(http.ResponseWriter, *http.Request) (identity.UserID, error) { return uploader, nil },
 		Floor:     func(context.Context) (int64, error) { return 0, nil },
 		TusLog:    io.Discard,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	shell := newTestShell(t)
+	shellPrefix, err := serve.NewPrefix(prefix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	shell := serve.NewShell(shellPrefix, serve.TrustedProxyConfig{}, logger)
 	shell.Register("tus", mount)
 
-	srv := httptest.NewUnstartedServer(nil)
-	srv.Config = newHTTPServer(shell.Handler(), logger, lowered)
+	srv := httptest.NewUnstartedServer(shell.Handler())
 	srv.Config.ReadTimeout = lowered
+	srv.Config.WriteTimeout = lowered
 	srv.Start()
 	t.Cleanup(srv.Close)
 
-	create, err := http.NewRequestWithContext(t.Context(), http.MethodPost, srv.URL+testPrefix+"/tus/", http.NoBody)
+	create, err := http.NewRequestWithContext(t.Context(), http.MethodPost, srv.URL+prefix+"/tus/", http.NoBody)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +141,7 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 		}
 		_ = trickle.Close()
 	}()
-	patch, err := http.NewRequestWithContext(t.Context(), http.MethodPatch, srv.URL+testPrefix+"/tus/"+hex.EncodeToString(file), body)
+	patch, err := http.NewRequestWithContext(t.Context(), http.MethodPatch, srv.URL+prefix+"/tus/"+hex.EncodeToString(file), body)
 	if err != nil {
 		t.Fatal(err)
 	}

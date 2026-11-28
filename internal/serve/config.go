@@ -9,13 +9,10 @@ import (
 	"github.com/glw907/dubplate/internal/config"
 )
 
-// BindAddrsThreshold is the comma-separated list of addresses the
-// serve verb binds. Its default, loopback only, is the salvage
-// configuration's own default. The registry has no list kind, so
-// this registers as KindString and [SplitBindAddrs] splits and
-// validates it in the package that binds, keeping the address grammar
-// with the code that uses it.
-var BindAddrsThreshold = config.Threshold{
+// bindAddrsThreshold is the comma-separated list of addresses the
+// serve verb binds, loopback only by default. The registry has no list
+// kind, so it registers as a string and [ParseConfig] parses the list.
+var bindAddrsThreshold = config.Threshold{
 	Key:         "DUBPLATE_SERVE_BIND_ADDRS",
 	Kind:        config.KindString,
 	Default:     "127.0.0.1",
@@ -24,10 +21,9 @@ var BindAddrsThreshold = config.Threshold{
 	Sensitivity: config.Sensitive,
 }
 
-// PortThreshold is the TCP port the serve verb binds on every
-// configured address. Its default, 8080, is the salvage configuration's
-// own default.
-var PortThreshold = config.Threshold{
+// portThreshold is the TCP port the serve verb binds on every
+// configured address.
+var portThreshold = config.Threshold{
 	Key:         "DUBPLATE_SERVE_PORT",
 	Kind:        config.KindInt,
 	Default:     "8080",
@@ -53,16 +49,16 @@ const (
 // ever binds. A value that does not parse returns [config.ParseInt]'s
 // [config.KeyError].
 func ValidatePort(environ []string) error {
-	port, err := config.ParseInt(environ, PortThreshold)
+	port, err := config.ParseInt(environ, portThreshold)
 	if err != nil {
 		return err
 	}
 	if port < portFloor {
-		return &config.KeyError{Key: PortThreshold.Key, Reason: fmt.Sprintf(
+		return &config.KeyError{Key: portThreshold.Key, Reason: fmt.Sprintf(
 			"%d is below %d: the serve unit withholds CAP_NET_BIND_SERVICE, so it cannot bind a privileged port", port, portFloor)}
 	}
 	if port > portCeiling {
-		return &config.KeyError{Key: PortThreshold.Key, Reason: fmt.Sprintf("%d is above %d", port, portCeiling)}
+		return &config.KeyError{Key: portThreshold.Key, Reason: fmt.Sprintf("%d is above %d", port, portCeiling)}
 	}
 	return nil
 }
@@ -85,57 +81,92 @@ var PrefixThreshold = config.Threshold{
 // every construction, so registering onto it can never collide with a
 // prior process's own registration.
 func Register(reg *config.Registry) {
-	reg.AddThreshold(BindAddrsThreshold)
-	reg.AddThreshold(PortThreshold)
+	reg.AddThreshold(bindAddrsThreshold)
+	reg.AddThreshold(portThreshold)
 	reg.AddThreshold(PrefixThreshold)
 }
 
-// ParseConfig reads the three thresholds against environ and
-// returns the values [Run] and its construction values take: the
-// validated owned prefix, the split and validated bind addresses, and
-// the port. It returns before any listener opens, so a caller can
-// refuse an invalid prefix or bind list without ever touching the
-// network.
-func ParseConfig(environ []string) (Prefix, []string, int, error) {
+// Config is the shell's listen configuration, read from the three
+// thresholds [Register] adds.
+type Config struct {
+	Prefix    Prefix
+	BindAddrs []netip.Addr
+	Port      int
+}
+
+// ParseConfig reads the three thresholds against environ. It opens no
+// listener, so a caller can refuse an invalid prefix or bind list
+// without touching the network.
+func ParseConfig(environ []string) (Config, error) {
 	prefixValue, err := config.ParseString(environ, PrefixThreshold)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 	prefix, err := NewPrefix(prefixValue)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 
-	bindRaw, err := config.ParseString(environ, BindAddrsThreshold)
+	bindRaw, err := config.ParseString(environ, bindAddrsThreshold)
 	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
-	addrs, err := SplitBindAddrs(bindRaw)
+	addrs, err := parseBindAddrs(bindRaw)
 	if err != nil {
-		return Prefix{}, nil, 0, err
-	}
-
-	port, err := config.ParseInt(environ, PortThreshold)
-	if err != nil {
-		return Prefix{}, nil, 0, err
+		return Config{}, err
 	}
 
-	return prefix, addrs, port, nil
+	port, err := config.ParseInt(environ, portThreshold)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return Config{Prefix: prefix, BindAddrs: addrs, Port: port}, nil
+}
+
+// errInvalidBindAddr is the sentinel [ParseConfig] wraps when an entry
+// of the bind address list is refused.
+var errInvalidBindAddr = errors.New("invalid bind address")
+
+// parseBindAddrs parses raw's comma-separated addresses, each trimmed of
+// surrounding space. An empty entry, an entry that is not an IP address,
+// and an entry carrying a zone are refused rather than dropped, since a
+// dropped entry would bind fewer interfaces than the operator named.
+// The unspecified addresses are refused too: each binds every
+// interface, which [listen] never does.
+func parseBindAddrs(raw string) ([]netip.Addr, error) {
+	parts := strings.Split(raw, ",")
+	addrs := make([]netip.Addr, 0, len(parts))
+	for _, part := range parts {
+		text := strings.TrimSpace(part)
+		if text == "" {
+			return nil, fmt.Errorf("%q: empty entry: %w", raw, errInvalidBindAddr)
+		}
+		addr, err := netip.ParseAddr(text)
+		if err != nil || addr.Zone() != "" {
+			return nil, fmt.Errorf("%q: %w", text, errInvalidBindAddr)
+		}
+		if addr.Unmap().IsUnspecified() {
+			return nil, fmt.Errorf("%q: the wildcard address binds every interface: %w", text, errInvalidBindAddr)
+		}
+		addrs = append(addrs, addr)
+	}
+	return addrs, nil
 }
 
 // The trusted proxy class's two Required keys.
 const (
-	TrustedProxyAddrsKey  = "DUBPLATE_TRUSTED_PROXY_ADDRS"
-	TrustedProxyHeaderKey = "DUBPLATE_TRUSTED_PROXY_HEADER"
+	trustedProxyAddrsKey  = "DUBPLATE_TRUSTED_PROXY_ADDRS"
+	trustedProxyHeaderKey = "DUBPLATE_TRUSTED_PROXY_HEADER"
 )
 
-// TrustedProxyClass is the trusted proxy integration: its
+// trustedProxyClass is the trusted proxy integration: its
 // enable flag, the comma-separated addresses of the fronts permitted
 // to report a client address, and the one header they report it in,
 // both required while it is on. With the flag unset or false the
 // server runs in direct mode, where the TCP peer is the client
 // address and no forwarded header is ever read.
-var TrustedProxyClass = config.IntegrationClass{
+var trustedProxyClass = config.IntegrationClass{
 	Name: "trusted proxy",
 	Flag: config.KeyDecl{
 		Key:         "DUBPLATE_TRUSTED_PROXY_ENABLED",
@@ -143,14 +174,14 @@ var TrustedProxyClass = config.IntegrationClass{
 		Sensitivity: config.Sensitive,
 	},
 	Required: []config.KeyDecl{
-		{Key: TrustedProxyAddrsKey, Description: "the addresses of the fronts permitted to report a client address, comma-separated", Sensitivity: config.Sensitive},
-		{Key: TrustedProxyHeaderKey, Description: "the header the trusted fronts report the client address in", Sensitivity: config.Sensitive},
+		{Key: trustedProxyAddrsKey, Description: "the addresses of the fronts permitted to report a client address, comma-separated", Sensitivity: config.Sensitive},
+		{Key: trustedProxyHeaderKey, Description: "the header the trusted fronts report the client address in", Sensitivity: config.Sensitive},
 	},
 }
 
-// RegisterTrustedProxy adds [TrustedProxyClass] to reg.
+// RegisterTrustedProxy adds [trustedProxyClass] to reg.
 func RegisterTrustedProxy(reg *config.Registry) {
-	reg.AddIntegrationClass(TrustedProxyClass)
+	reg.AddIntegrationClass(trustedProxyClass)
 }
 
 // ParseTrustedProxy builds the [TrustedProxyConfig] cfg
@@ -164,25 +195,25 @@ func RegisterTrustedProxy(reg *config.Registry) {
 // off. What is left is each value's own grammar: every address entry
 // that is empty, is not an IP address, is a network, carries a zone,
 // or is unspecified is refused by name, and so is a header
-// [ValidateProxyHeader] refuses. Every refusal is reported at once.
+// [validateProxyHeader] refuses. Every refusal is reported at once.
 func ParseTrustedProxy(cfg *config.Config) (TrustedProxyConfig, error) {
-	class := TrustedProxyClass.Name
+	class := trustedProxyClass.Name
 	if !cfg.IntegrationEnabled(class) {
 		return TrustedProxyConfig{}, nil
 	}
 
-	addrs, errs := ParseProxyAddrs(cfg.IntegrationValue(class, TrustedProxyAddrsKey))
-	header := strings.TrimSpace(cfg.IntegrationValue(class, TrustedProxyHeaderKey))
-	if err := ValidateProxyHeader(header); err != nil {
-		errs = append(errs, fmt.Errorf("%s %q: %w", TrustedProxyHeaderKey, header, err))
+	addrs, errs := parseProxyAddrs(cfg.IntegrationValue(class, trustedProxyAddrsKey))
+	header := strings.TrimSpace(cfg.IntegrationValue(class, trustedProxyHeaderKey))
+	if err := validateProxyHeader(header); err != nil {
+		errs = append(errs, fmt.Errorf("%s %q: %w", trustedProxyHeaderKey, header, err))
 	}
 	if len(errs) > 0 {
 		return TrustedProxyConfig{}, errors.Join(errs...)
 	}
-	return NewTrustedProxyConfig(addrs, header), nil
+	return newTrustedProxyConfig(addrs, header), nil
 }
 
-// ParseProxyAddrs parses value's comma-separated entries, each trimmed
+// parseProxyAddrs parses value's comma-separated entries, each trimmed
 // of surrounding space and unmapped, and returns one refusal per entry
 // it cannot accept.
 //
@@ -193,18 +224,18 @@ func ParseTrustedProxy(cfg *config.Config) (TrustedProxyConfig, error) {
 // refused rather than widened to every host in it. A zone names an
 // interface on this host, which no peer address carries, and an
 // unspecified address is a bind wildcard, never a peer.
-func ParseProxyAddrs(value string) ([]netip.Addr, []error) {
+func parseProxyAddrs(value string) ([]netip.Addr, []error) {
 	var addrs []netip.Addr
 	var errs []error
 	for i, entry := range strings.Split(value, ",") {
 		entry = strings.TrimSpace(entry)
 		if entry == "" {
-			errs = append(errs, fmt.Errorf("%s: entry %d is empty", TrustedProxyAddrsKey, i+1))
+			errs = append(errs, fmt.Errorf("%s: entry %d is empty", trustedProxyAddrsKey, i+1))
 			continue
 		}
 		addr, reason := parseProxyAddr(entry)
 		if reason != "" {
-			errs = append(errs, fmt.Errorf("%s %q: %s", TrustedProxyAddrsKey, entry, reason))
+			errs = append(errs, fmt.Errorf("%s %q: %s", trustedProxyAddrsKey, entry, reason))
 			continue
 		}
 		addrs = append(addrs, addr)

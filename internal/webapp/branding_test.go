@@ -28,7 +28,7 @@ var themeVariableNames = []string{
 	"--font-sans", "--font-serif", "--font-mono",
 }
 
-func TestBrandingStylesheet_Renders(t *testing.T) {
+func TestRenderBranding_Renders(t *testing.T) {
 	tests := []struct {
 		name  string
 		decls string
@@ -64,12 +64,12 @@ func TestBrandingStylesheet_Renders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := BrandingStylesheet(tt.decls)
+			got, _, err := renderBranding(tt.decls)
 			if err != nil {
-				t.Fatalf("BrandingStylesheet: %v", err)
+				t.Fatalf("renderBranding: %v", err)
 			}
 			if string(got) != tt.want {
-				t.Errorf("BrandingStylesheet =\n%q\nwant\n%q", got, tt.want)
+				t.Errorf("renderBranding =\n%q\nwant\n%q", got, tt.want)
 			}
 		})
 	}
@@ -82,7 +82,7 @@ const validPair = "--color-base-100: #ffffff"
 // value64 is a valid color exactly 64 bytes long, the bound's edge.
 var value64 = "oklch(45." + strings.Repeat("0", 46) + "% 0.24 1)"
 
-func TestBrandingStylesheet_Refusals(t *testing.T) {
+func TestRenderBranding_Refusals(t *testing.T) {
 	if len(value64) != 64 {
 		t.Fatalf("value64 is %d bytes, want 64", len(value64))
 	}
@@ -137,9 +137,9 @@ func TestBrandingStylesheet_Refusals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := BrandingStylesheet(validPair + "; " + tt.bad)
+			got, _, err := renderBranding(validPair + "; " + tt.bad)
 			if err == nil {
-				t.Fatalf("BrandingStylesheet: got nil error and %q, want a refusal containing %q", got, tt.wantErrHas)
+				t.Fatalf("renderBranding: got nil error and %q, want a refusal containing %q", got, tt.wantErrHas)
 			}
 			if !strings.Contains(err.Error(), tt.wantErrHas) {
 				t.Errorf("error = %q, want it to contain %q", err.Error(), tt.wantErrHas)
@@ -151,15 +151,15 @@ func TestBrandingStylesheet_Refusals(t *testing.T) {
 	}
 }
 
-// TestBrandingStylesheet_ValueAtTheBound pairs with the 65-byte row
+// TestRenderBranding_ValueAtTheBound pairs with the 65-byte row
 // above: a valid value of exactly the bound is admitted.
-func TestBrandingStylesheet_ValueAtTheBound(t *testing.T) {
+func TestRenderBranding_ValueAtTheBound(t *testing.T) {
 	if len(value64) != 64 {
 		t.Fatalf("value64 is %d bytes, want 64", len(value64))
 	}
-	got, err := BrandingStylesheet(validPair + "; --color-primary: " + value64)
+	got, _, err := renderBranding(validPair + "; --color-primary: " + value64)
 	if err != nil {
-		t.Fatalf("BrandingStylesheet: %v", err)
+		t.Fatalf("renderBranding: %v", err)
 	}
 	if want := "\t--color-primary: " + value64 + ";\n"; !strings.Contains(string(got), want) {
 		t.Errorf("stylesheet = %q, want it to carry %q", got, want)
@@ -170,17 +170,17 @@ func TestBrandingStylesheet_ValueAtTheBound(t *testing.T) {
 // stylesheet line.
 var declaredNameRE = regexp.MustCompile(`(?m)^\t([^:]+):`)
 
-// TestBrandingStylesheet_G8 is the design language's branding-surface
-// gate: the stylesheet declares only names from the theme-variable
-// set, every name in that set is accepted, and nothing configured
-// renders an empty file.
-func TestBrandingStylesheet_G8(t *testing.T) {
-	empty, err := BrandingStylesheet("")
+// TestRenderBranding_DeclaresExactlyTheThemeVariables proves the
+// stylesheet declares only names from the theme-variable set, every
+// name in that set is accepted, and nothing configured renders an
+// empty file.
+func TestRenderBranding_DeclaresExactlyTheThemeVariables(t *testing.T) {
+	empty, _, err := renderBranding("")
 	if err != nil {
-		t.Fatalf("BrandingStylesheet(\"\"): %v", err)
+		t.Fatalf("renderBranding(\"\"): %v", err)
 	}
 	if len(empty) != 0 {
-		t.Errorf("BrandingStylesheet(\"\") = %q, want empty", empty)
+		t.Errorf("renderBranding(\"\") = %q, want empty", empty)
 	}
 
 	// Every name in the set, with a value its kind admits.
@@ -202,9 +202,9 @@ func TestBrandingStylesheet_G8(t *testing.T) {
 	for _, name := range themeVariableNames {
 		decls = append(decls, name+": "+valueFor(name))
 	}
-	full, err := BrandingStylesheet(strings.Join(decls, "; "))
+	full, _, err := renderBranding(strings.Join(decls, "; "))
 	if err != nil {
-		t.Fatalf("BrandingStylesheet(every name): %v", err)
+		t.Fatalf("renderBranding(every name): %v", err)
 	}
 	var declared []string
 	for _, m := range declaredNameRE.FindAllStringSubmatch(string(full), -1) {
@@ -218,9 +218,9 @@ func TestBrandingStylesheet_G8(t *testing.T) {
 	// internal variables, a plain property, and a near miss.
 	for _, name := range []string{"--tab-radius", "--root-bg", "background", "color", "--color-base-400", "--font-display", "--radius"} {
 		t.Run(name, func(t *testing.T) {
-			got, err := BrandingStylesheet(validPair + "; " + name + ": " + valueFor(name))
+			got, _, err := renderBranding(validPair + "; " + name + ": " + valueFor(name))
 			if err == nil {
-				t.Fatalf("BrandingStylesheet admitted %q and rendered %q", name, got)
+				t.Fatalf("renderBranding admitted %q and rendered %q", name, got)
 			}
 			if want := `"` + name + `" is not a theme variable`; !strings.Contains(err.Error(), want) {
 				t.Errorf("error = %q, want it to contain %q", err.Error(), want)

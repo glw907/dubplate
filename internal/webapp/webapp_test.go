@@ -37,10 +37,7 @@ func TestStampablePalettes(t *testing.T) {
 // its cookie rows against.
 func TestStampablePalettes_RealBundle(t *testing.T) {
 	const loginDocumentName, loginLinkDocumentName = "login.html", "login/link.html"
-	buildFS, err := fs.Sub(web.Assets, "build")
-	if err != nil {
-		t.Fatalf("fs.Sub: %v", err)
-	}
+	buildFS := web.Build
 	loginRaw, err := fs.ReadFile(buildFS, loginDocumentName)
 	if err != nil {
 		t.Fatalf("fs.ReadFile(%q): %v", loginDocumentName, err)
@@ -77,9 +74,9 @@ func TestCheckVariantCSP_RefusesAPolicyUnlikeTheHeader(t *testing.T) {
 		return []byte(`<meta http-equiv="content-security-policy" content="script-src 'self' ` + sources + `"><script>boot();</script>`)
 	}
 	boot := source("boot();")
-	served, err := DocumentCSP("login.html", doc(boot))
+	served, err := documentCSP("login.html", doc(boot))
 	if err != nil {
-		t.Fatalf("fixture: DocumentCSP: %v", err)
+		t.Fatalf("fixture: documentCSP:%v", err)
 	}
 	if err := checkVariantCSP("login.html", map[string][]byte{"label": doc(boot)}, served); err != nil {
 		t.Fatalf("checkVariantCSP on a matching variant: %v", err)
