@@ -5,16 +5,16 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 "Done items every task carries" section says.
 
 - [x] 8c165d1 Repo-wide, low: "Two package comments for serve" (`internal/serve/clientaddr.go:1`).
-- [ ] P1, high: `cmd/dubplate-server/main.go:149` Every verb constructor takes `stdout, stderr io.Writer`, then repeats SilenceUsage/SilenceErrors and calls cmd.SetErr(stderr) (check.go:79, doctor.go:152, backup.go:51, restore.go:131, member.go:140,186,217, settings.go:60, unidec ...
-- [ ] P1, high: `cmd/dubplate-server/member.go:24` operatorVerbs exists, as its own doc says, 'so a test builds them with values of its choosing'.
-- [ ] P1, high: `cmd/dubplate-server/serve.go:158` newServeShellVia takes `mount func(*serve.Shell) registrar` and `buildFS fs.FS` only for tests.
+- [x] 9b002d62 P1, high: `cmd/dubplate-server/main.go:149` Every verb constructor takes `stdout, stderr io.Writer`, then repeats SilenceUsage/SilenceErrors and calls cmd.SetErr(stderr) (check.go:79, doctor.go:152, backup.go:51, restore.go:131, member.go:140,186,217, settings.go:60, unidec ...
+- [x] 5c5289bc P1, high: `cmd/dubplate-server/member.go:24` operatorVerbs exists, as its own doc says, 'so a test builds them with values of its choosing'.
+- [x] b8bf20c6 P1, high: `cmd/dubplate-server/serve.go:158` newServeShellVia takes `mount func(*serve.Shell) registrar` and `buildFS fs.FS` only for tests.
 - [x] 5a9b8c0 P1, high: `internal/auth/doctor.go:87` StoreRowOptions exists only to carry Geteuid, and its one production caller always passes os.Geteuid (cmd/dubplate-server/doctor.go:105).
 - [x] 706586f P1, high: `internal/auth/epoch.go:209` Subscribe, the subscribers slice (epoch.go:70), notifySubscriber with its goroutine, recover and 5s deadline (epoch.go:117-136), and the slices.Clone in advance (epoch.go:166) all serve a subscriber list that nothing subscribes to.
 - [x] 7f60e5a P1, high: `internal/notify/notify.go:60` Mailer.tlsConfig and Mailer.forceImplicitTLS are struct fields whose only writers are tests (notify_test.go:411, 412, 433, 472, 605, 636).
 - [x] 64c91f1 for admin; the jobs and intake copies are server-data's (`server-data.md:7`, `:112`): P1, high: `internal/ops/admin/admin.go:50` Config.Window is an injected function field whose only production caller (cmd/dubplate-server/serve.go:246) always fills it with this package's own export, admin.ReauthWindow(acc) (config.go:77).
 - [x] 411ee0e P1, high: `internal/ops/opshttp/authorize.go:19` The authorizer interface has one production implementation, contextAuthorizer{} (carrier.go:35), and NewMount always passes it along with identity.ChannelCookie (mount.go:54).
 - [x] 22236c3 P1, high: `internal/webapp/doctor.go:18` RowStatus takes `resolve func(*config.Config) error`, and its one production caller (cmd/dubplate-server/doctor.go:120) always passes webRowResolve(environ).
-- [ ] P1, medium: `cmd/dubplate-server/serve.go:363` authHandlersConfig has ten positional parameters.
+- [x] 48e9eb7f P1, medium: `cmd/dubplate-server/serve.go:363` authHandlersConfig has ten positional parameters.
 - [x] 607a0b5 P1, medium: `internal/auth/nonce.go:122` RunSweep takes the sweep function as a parameter, and its one production caller passes nonces.Sweep (cmd/dubplate-server/serve.go:423).
 - [x] done in vocabulary (507e342) P1, medium: `internal/auth/seam.go:38` Seam.Read has no caller anywhere.
 - [x] 901d107 P1, medium: `internal/identity/identity_test.go:453` TestIdentity_PrincipalDistinctFromAddress (453-469) and TestIdentity_AddressMatchesNormalizer (474-494) cannot fail.
@@ -46,13 +46,13 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 1ee649e P2, medium: `internal/webapp/document.go:21` ThemeCookieName is read only by cmd/dubplate-server/web_test.go:383, :526, and :1450.
 - [x] 1ee649e P2, medium: `internal/webapp/webapp.go:469` ExactPaths has one caller outside, and it is not about the web app: cmd/dubplate-server/serve.go:242 uses it to keep deeper paths off serve's probe route.
 - [x] 901d107 P2, low: `internal/identity/identity.go:159` Channel's doc spends a paragraph (159-164) explaining that ChannelCommandLine is not an identity channel, and Valid has to reject it by name (234).
-- [ ] P3, medium: `cmd/dubplate-server/doctorrows.go:1` The split follows deliverables, not concerns.
+- [x] done in 5a406f71 and 704b1076 (before the base); c3d267e2 splits serve.go the same way: P3, medium: `cmd/dubplate-server/doctorrows.go:1` The split follows deliverables, not concerns.
 - [x] 34ace8a, with 89e9232 and 81b9f38 P3, medium: `internal/auth/reads.go:19` Several files follow deliverables, not concerns.
 - [x] 411ee0e (ops.go split into jobs.go, Actor moved to identity; details.go kept as the file two gates parse by path): P3, medium: `internal/ops/ops.go:1` ops.go is named after the package but holds two unrelated concerns: the Actor (lines 12-88) and the job vocabulary (lines 90-177).
 - [x] 8c165d1, 93c2fd7, 67b0704 P3, medium: `internal/serve/clientaddr.go:1` The package has two package doc comments: doc.go:1 ('the root composition every request passes through') and clientaddr.go:1 (a different list of contents).
 - [x] 3d7c437 P3, medium: `internal/webapp/document.go:322` document.go is a grab bag.
 - [x] 411ee0e P3, low: `internal/ops/opshttp/carrier.go:1` carrier.go is a 43-line file with a coined name.
-- [ ] P4, medium: `cmd/dubplate-server/serve.go:91` Density is 0.297 against cmd/go/internal/modcmd at 0.141.
+- [x] 59a1bc5 P4, medium: `cmd/dubplate-server/serve.go:91` Density is 0.297 against cmd/go/internal/modcmd at 0.141.
 - [x] 19bde31 45a5af2 ad047f5 33b0837 (0.58 to 0.40) P4, medium: `internal/auth/config.go:422` The package has 1427 comment lines against 2270 code lines (0.63).
 - [x] 901d107 P4, medium: `internal/identity/identity.go:1` Density is 1.19 (118/99), against net/mail at 0.21, so more than five times the stdlib norm.
 - [x] 7f60e5a P4, medium: `internal/notify/notify.go:1` The package doc argues against an alternative nobody proposed ('born general rather than as a magic-link mailer'), and it names 'the upload reject copy and run notifications' as callers.
@@ -68,13 +68,13 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 411ee0e P4, low: `internal/ops/opshttp/opshttp.go:252` Two comments no longer match the code.
 - [x] 93c2fd7 P4, low: `internal/serve/serve.go:128` doc.go:7-37 and Handler's doc (serve.go:128-146) each describe the composition order at length, and both say 'six steps'.
 - [x] 6d7c7e3 P4, low: `internal/webapp/document.go:375` The aggregate density, 0.45, matches net/http/httputil's 0.45, but document.go runs at 0.62.
-- [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/backup.go:63` runBackup repeats openOperatorStore's body line for line (loadConfig, store.BusyTimeout, store.OpenWrite), and runRestore (restore.go:145-152) repeats its first two steps.
+- [x] 888117b for backup and member; restore keeps its own load, since backup.Restore takes the store lock itself: cmd/dubplate-server, medium: `cmd/dubplate-server/backup.go:63` runBackup repeats openOperatorStore's body line for line (loadConfig, store.BusyTimeout, store.OpenWrite), and runRestore (restore.go:145-152) repeats its first two steps.
 - [x] done in server-boundaries (5a406f7) cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:185` The doctor row-name constants follow no single scheme.
-- [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:283` thresholdStatus repeats config's kind table (ParseInt/ParseDuration/ParseFloat/ParseString per kind) in a switch whose default arm reports 'a registration bug'.
-- [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/web.go:71` newWebRoutes and newWebRoutesFromFS are twins that differ only in calling embeddedBuild.
-- [ ] cmd/dubplate-server, low: `cmd/dubplate-server/backup.go:239` backupExitCode returns an error, not a code.
-- [ ] cmd/dubplate-server, low: `cmd/dubplate-server/intake.go:73` tusVerifier and apiVerifier (api.go:32) share the same CheckRequest call and ErrNotSignedIn switch, with a different sentinel wrapped.
-- [ ] cmd/dubplate-server, low: `cmd/dubplate-server/web.go:45` privateFiles wraps one string, and every user unpacks it straight away (`webapp.FromEnviron(environ, private.stateDir)`, web.go:115).
+- [x] 2f20dde cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:283` thresholdStatus repeats config's kind table (ParseInt/ParseDuration/ParseFloat/ParseString per kind) in a switch whose default arm reports 'a registration bug'.
+- [x] 5912a102 cmd/dubplate-server, medium: `cmd/dubplate-server/web.go:71` newWebRoutes and newWebRoutesFromFS are twins that differ only in calling embeddedBuild.
+- [x] d6e7ec5 cmd/dubplate-server, low: `cmd/dubplate-server/backup.go:239` backupExitCode returns an error, not a code.
+- [x] done in 2293db14 (before the base): cmd/dubplate-server, low: `cmd/dubplate-server/intake.go:73` tusVerifier and apiVerifier (api.go:32) share the same CheckRequest call and ErrNotSignedIn switch, with a different sentinel wrapped.
+- [x] 39608d5a cmd/dubplate-server, low: `cmd/dubplate-server/web.go:45` privateFiles wraps one string, and every user unpacks it straight away (`webapp.FromEnviron(environ, private.stateDir)`, web.go:115).
 - [x] 89e9232 internal/auth, high: `internal/auth/request.go:31` CheckRequest (request.go:31-58) repeats RequireAdmin's body (admin.go:42-67): the clock read, the Sec-Fetch-Site test, VerifyIdentity, the reason/level switch through gateRefusalReason, the log line, and the refreshed-cookie write.
 - [x] done in vocabulary (2293db1) internal/auth, medium: `internal/auth/admin.go:12` AdminConfig configures CheckRequest, which admits any signed-in member, and the cmd verifiers for the API and tus mounts take it (cmd/dubplate-server/api.go:32, intake.go:73).
 - [x] ab9563d internal/auth, medium: `internal/auth/epoch.go:251` CheckLink (epoch.go:251-267) is CheckSession (epoch.go:225-241) with a different time field and a different sentinel.
