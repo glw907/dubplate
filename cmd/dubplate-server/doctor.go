@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -211,32 +210,11 @@ func thresholdStatus(environ []string, statuses map[string]string, t config.Thre
 	if status, ok := statuses[t.Key]; ok {
 		return status
 	}
-	var (
-		value string
-		err   error
-	)
-	switch t.Kind {
-	case config.KindInt:
-		var v int
-		v, err = config.ParseInt(environ, t)
-		value = strconv.Itoa(v)
-	case config.KindDuration:
-		var d time.Duration
-		d, err = config.ParseDuration(environ, t)
-		value = d.String()
-	case config.KindFloat:
-		var f float64
-		f, err = config.ParseFloat(environ, t)
-		value = strconv.FormatFloat(f, 'g', -1, 64)
-	case config.KindString:
-		value, err = config.ParseString(environ, t)
-	default:
-		return "invalid: registered with an unnamed threshold kind, a registration bug"
-	}
+	v, err := config.Resolve(environ, t)
 	if err != nil {
 		return invalidStatus(err)
 	}
-	return value
+	return fmt.Sprint(v)
 }
 
 // invalidStatus renders err as an "invalid: " status, giving a
