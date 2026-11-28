@@ -160,7 +160,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, err
 	}
-	nonces, err := openNonceStore(ctx, authDir, authConfig.NonceRetention, time.Now())
+	nonces, _, err := auth.OpenNonceStore(ctx, authDir, authConfig.NonceRetention, auth.MagicLinkExpiryCeiling, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +183,27 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		authConfig.SessionLifetime, authConfig.SessionAbsoluteCap)
 
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
-	handlersConfig := authHandlersConfig(prefix, authConfig, roster, nonces, epoch, limiter, mailer, clientIP, shell.Logger())
-	handlers := auth.NewHandlers(handlersConfig)
+	handlers := auth.NewHandlers(auth.HandlersConfig{
+		Roster:             roster,
+		Nonces:             nonces,
+		Epoch:              epoch,
+		Limiter:            limiter,
+		Send:               mailer.Send,
+		ClientIP:           clientIP,
+		Now:                time.Now,
+		Logger:             shell.Logger(),
+		LinkSecret:         authConfig.LinkSecret,
+		PreviousLinkSecret: authConfig.PreviousLinkSecret,
+		SessionSecret:      authConfig.SessionSecret,
+		LinkExpiry:         authConfig.LinkExpiry,
+		SessionLifetime:    authConfig.SessionLifetime,
+		SessionAbsoluteCap: authConfig.SessionAbsoluteCap,
+		PublicOrigin:       authConfig.PublicOrigin,
+		Prefix:             prefix.String(),
+		BodyCap:            authConfig.BodyCap,
+		BodyCapCeiling:     auth.RequestBodyCapCeiling,
+		GenericAnswer:      authConfig.GenericAnswer,
+	})
 
 	// The auth handlers apply no method check of their own; mounting
 	// each behind methodOnly is what fixes the one method it accepts.
@@ -339,43 +358,6 @@ func sendsHSTS(publicURL string) bool {
 		return false
 	}
 	return u.Scheme == "https" && !auth.IsLoopbackHost(u.Hostname())
-}
-
-// openNonceStore opens the consumed-nonce store under authDir, with
-// its retention read through retention, and sweeps it once at now. A
-// test opens the store the way newServeShell does and reads the
-// retention it was wired with.
-func openNonceStore(ctx context.Context, authDir *auth.Dir, retention settings.Reader[time.Duration], now time.Time) (*auth.NonceStore, error) {
-	nonces, _, err := auth.OpenNonceStore(ctx, authDir, retention, auth.MagicLinkExpiryCeiling, now)
-	return nonces, err
-}
-
-// authHandlersConfig builds the [auth.HandlersConfig] the auth handlers
-// mount from, its secrets, origin, and readers taken from ac. A test
-// reads the config it returns, the only proof that no caller loses a
-// wired value.
-func authHandlersConfig(prefix serve.Prefix, ac auth.Config, roster *member.Roster, nonces *auth.NonceStore, epoch *auth.EpochStore, limiter *auth.Limiter, mailer *notify.Mailer, clientIP func(r *http.Request) string, logger *slog.Logger) auth.HandlersConfig {
-	return auth.HandlersConfig{
-		Roster:             roster,
-		Nonces:             nonces,
-		Epoch:              epoch,
-		Limiter:            limiter,
-		Send:               mailer.Send,
-		ClientIP:           clientIP,
-		Now:                time.Now,
-		Logger:             logger,
-		LinkSecret:         ac.LinkSecret,
-		PreviousLinkSecret: ac.PreviousLinkSecret,
-		SessionSecret:      ac.SessionSecret,
-		LinkExpiry:         ac.LinkExpiry,
-		SessionLifetime:    ac.SessionLifetime,
-		SessionAbsoluteCap: ac.SessionAbsoluteCap,
-		PublicOrigin:       ac.PublicOrigin,
-		Prefix:             prefix.String(),
-		BodyCap:            ac.BodyCap,
-		BodyCapCeiling:     auth.RequestBodyCapCeiling,
-		GenericAnswer:      ac.GenericAnswer,
-	}
 }
 
 // methodOnly wraps h, answering 405 with an Allow header naming method
