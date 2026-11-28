@@ -14,20 +14,17 @@
 //     a 404 included, carries them. A document's
 //     Content-Security-Policy is set by the handler that serves it.
 //  2. The refusal record: one log record for each request a later
-//     layer refused, naming whether an identity header arrived with it.
-//  3. The direct-mode warning: logged once, the first time a loopback
-//     or private peer sends a forwarded-address header while no trusted
-//     proxy is configured.
+//     layer refused.
+//  3. The direct-mode warning, logged once, the first time a loopback
+//     or private peer sends a forwarded-address header.
 //  4. The ingress strip, which removes every identity header, every
 //     forwarded-address header from an untrusted peer, and every header
 //     the request's Connection header lists.
-//  5. Path normalization, which refuses an unsafe path shape before any
-//     routing.
+//  5. Path normalization, which refuses an unsafe path shape.
 //  6. The echo-method refusal: TRACE and TRACK answer 405, before the
 //     origin check can answer them 403.
 //  7. The origin check, which refuses a cross-site state-changing
-//     request on every registered subtree and every path outside the
-//     prefix alike.
+//     request.
 //  8. Subtree dispatch. A path a registered subtree claims, on a
 //     segment boundary, reaches that subtree; every other path answers
 //     404.

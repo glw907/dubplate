@@ -6,75 +6,43 @@ import (
 	"strings"
 )
 
-// maxPathBytes bounds the request path rule 5 admits, measured on the
-// bytes the client sent. It is a constant rather than a threshold with
-// a default because a threshold nobody tunes is a configuration
-// surface for nothing. The value leaves room for a deep
-// catalog path under the owned prefix while keeping an oversized path
-// away from the prefix match.
-//
-// 2048 bytes is the stated bound, and the bound is inclusive: a path
-// measuring exactly 2048 bytes is admitted, and 2049 is refused.
+// maxPathBytes bounds the request path rule 5 admits, inclusive and
+// measured on the bytes the client sent: room for a deep catalog path
+// under the prefix, while an oversized path never reaches the prefix
+// match.
 const maxPathBytes = 2048
 
-// normalize returns a handler that answers every request breaking one
-// of six path rules and hands every other request to next untouched.
-// It is a gate, never a rewriter: an admitted request reaches next
-// with the path it arrived on, byte for byte.
+// normalize returns a handler that refuses every request breaking one
+// of six path rules and hands every other request to next untouched. It
+// is a gate, never a rewriter: an admitted request reaches next with
+// the path it arrived on, byte for byte, and no route or prefix
+// decision sees a refused one.
 //
-// A refusal is answered here and nowhere else. No route and no prefix
-// decision sees a refused request, which is what makes the rules a
-// boundary rather than a filter.
-//
-// normalize wraps the mux and is never registered as a route on one.
-// http.ServeMux cleans a path and redirects before any route runs, so
-// a check registered as a route would run after the decision it exists
-// to guard. TestServeMuxCleansBeforeARouteRuns measures that redirect.
+// normalize wraps the mux and is never registered on it, since
+// [http.ServeMux] cleans a path and redirects before any route runs.
 //
 // The six rules:
 //
-//  1. No percent-encoding in the path. The predicate is
-//     r.URL.EscapedPath() != r.URL.Path, and RawPath is never the comparison basis:
-//     net/url populates RawPath only when the escaped form differs
-//     from the default encoding of Path, so a path needing no escaping
-//     carries an empty RawPath and a RawPath-based test would admit
-//     the very shapes this rule exists to refuse. EscapedPath is
-//     defined for every request, returning RawPath when it is a valid
-//     encoding of Path and re-deriving the escaped form otherwise.
-//     The rule closes %2F, %5C, and %2E%2E, and it refuses a benign
-//     encoded byte such as /%E2%98%83 too. That blanket refusal is the
-//     stated policy rather than a side effect: the shell owns no path
-//     needing an encoded byte, every route declares its path as a
-//     literal, and a rule admitting some encodings has to decide
-//     which at the one place in the shell where a wrong decision is
-//     invisible.
-//  2. No "." or ".." segment, refused rather than cleaned. Cleaning is
-//     what http.ServeMux does, and a handler behind the shell may
-//     normalize differently again.
-//  3. No doubled separator anywhere. The leading separator is not a
-//     segment and a single trailing separator is admitted, so "/",
-//     "/dubplate/", and "/dubplate/x/" pass while "//dubplate" and
-//     "/dubplate//x" are refused.
-//  4. No backslash, which a handler's own router may read as a
-//     separator. This rule is defense in depth
-//     behind rule 1 rather than the first line against a backslash:
-//     net/url escapes a backslash in a path, so a request carrying one
-//     normally has EscapedPath differ from Path and rule 1 refuses it
-//     first. Rule 4 is what still refuses one should a future net/url
-//     stop escaping it, or should rule 1's strictness ever be relaxed.
+//  1. No percent-encoding: r.URL.EscapedPath() must equal r.URL.Path.
+//     RawPath is never the basis, since net/url leaves it empty for a
+//     path needing no escaping. The rule refuses %2F, %5C, and %2E%2E,
+//     and a benign encoded byte such as /%E2%98%83 too, by policy: every
+//     route is a literal path, and admitting some encodings means
+//     choosing which at the one place a wrong choice is invisible.
+//  2. No "." or ".." segment, refused rather than cleaned, since a
+//     handler behind the shell may clean differently.
+//  3. No doubled separator. A single trailing separator is admitted, so
+//     "/dubplate/x/" passes and "/dubplate//x" is refused.
+//  4. No backslash, which a handler's router may read as a separator.
+//     net/url escapes one today, so rule 1 refuses it first; this rule
+//     holds should that change.
 //  5. No path past maxPathBytes.
-//  6. No request target whose path fails to begin with a separator.
-//     A CONNECT
-//     request arrives with an empty URL.Path and a populated URL.Host,
-//     so every other rule passes over it vacuously. An absolute-form
-//     target is a different shape and is admitted: it arrives with its
-//     path intact and routes like any origin-form request. OPTIONS *
-//     reaches no rule here, since net/http answers it from
-//     globalOptionsHandler unless DisableGeneralOptionsHandler is set.
+//  6. No path that fails to begin with a separator. A CONNECT request
+//     has an empty path, which every other rule passes vacuously. An
+//     absolute-form target arrives with its path and routes normally.
 //
-// Every rule but the length bound refuses with 400, so a client cannot tell which
-// smuggling rule refused it. The length bound answers 414, a shape
-// already distinguishable from outside by its own size.
+// Rule 5 answers 414 and every other rule 400, so a client cannot tell
+// which smuggling rule refused it.
 func normalize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if status, refused := pathRefusal(r.URL); refused {
@@ -87,8 +55,8 @@ func normalize(next http.Handler) http.Handler {
 
 // pathRefusal reports the status u is refused with, and whether it is
 // refused at all. Rule 6 runs first, since an empty path passes every
-// later rule vacuously, and the length bound runs before the content
-// rules so an oversized path is answered by its own status.
+// later rule, and the length bound before the content rules, so an
+// oversized path gets its own status.
 func pathRefusal(u *url.URL) (int, bool) {
 	escaped := u.EscapedPath()
 
@@ -112,8 +80,7 @@ func pathRefusal(u *url.URL) (int, bool) {
 }
 
 // segmentFault reports the first segment fault in path, which begins
-// with a separator: a "." or ".." segment, or a doubled separator. A
-// single trailing separator is no fault.
+// with a separator: a "." or ".." segment, or a doubled separator.
 func segmentFault(path string) (dot, doubled bool) {
 	segments := strings.Split(strings.TrimPrefix(path, "/"), "/")
 	for i, segment := range segments {

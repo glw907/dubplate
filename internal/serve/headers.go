@@ -2,23 +2,19 @@ package serve
 
 import "net/http"
 
-// hstsValue is the Strict-Transport-Security value the shell sends
-// when HSTS is enabled: one year, and no other directive. RFC 6797's
-// includeSubDomains would reach sibling hosts an operator runs under
-// the same domain, and preload is a decision only the domain's owner
-// can make.
+// hstsValue is one year and no other directive: includeSubDomains would
+// reach sibling hosts under the same domain, and preload is the domain
+// owner's decision.
 const hstsValue = "max-age=31536000"
 
 // EnableHSTS makes every response the shell answers carry
-// Strict-Transport-Security. The caller decides from the public URL
-// browsers reach the server at, never from the request, because the
-// shell itself speaks plain HTTP to the proxy or tunnel in front of it.
-// RFC 6797 matches a known HSTS host by name alone, so a caller must
-// not enable it for a loopback host: one response would pin every port
-// on that host to https in the browser for the full max-age.
+// Strict-Transport-Security. The caller decides from the public URL,
+// never the request, since the shell speaks plain HTTP to whatever is
+// in front of it. A caller must not enable it for a loopback host: RFC
+// 6797 matches a host by name alone, so one response would pin every
+// port on that host to https for the full max-age.
 //
-// Like [Shell.Register], a call after [Shell.Handler] has composed the
-// chain panics, since the composed chain has already read the setting.
+// Like [Shell.Register], a call after [Shell.Handler] panics.
 func (s *Shell) EnableHSTS() {
 	if s.handlerBuilt {
 		panic("serve: EnableHSTS called after Handler; it belongs to construction")
@@ -26,11 +22,9 @@ func (s *Shell) EnableHSTS() {
 	s.hsts = true
 }
 
-// securityHeaders sets the headers every response the shell answers
-// carries, whichever step answers it: X-Content-Type-Options: nosniff,
-// Referrer-Policy: no-referrer, and, once [Shell.EnableHSTS] is called,
-// Strict-Transport-Security. It sets them before next runs, so a
-// handler that answers by [http.Error] or [http.NotFound] keeps them.
+// securityHeaders sets the package's security headers before next
+// runs, so a handler that answers by [http.Error] or [http.NotFound]
+// keeps them.
 func (s *Shell) securityHeaders(next http.Handler) http.Handler {
 	hsts := s.hsts
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
