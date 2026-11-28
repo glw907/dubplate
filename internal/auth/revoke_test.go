@@ -18,11 +18,11 @@ import (
 // revokeFixture is a roster over a fresh store whose revoker is a real
 // epoch store, with the verifier that reads the same epochs.
 type revokeFixture struct {
-	roster *member.Roster
-	h      *store.Handle
-	leaf   *Dir
-	epoch  *EpochStore
-	clock  *revokeClock
+	roster  *member.Roster
+	h       *store.Handle
+	authDir *Dir
+	epoch   *EpochStore
+	clock   *revokeClock
 }
 
 // revokeClock is a clock a test moves by hand while the roster reads it.
@@ -56,12 +56,12 @@ func newRevokeFixture(t *testing.T) revokeFixture {
 		userRow{id: adminID, address: "admin@example.com", displayName: "Admin", username: "groupadmin", admin: true, createdAt: 100},
 		userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "alice", createdAt: 110},
 	)
-	leaf, err := Open(t.TempDir())
+	authDir, err := Open(t.TempDir())
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	fx.leaf = leaf
-	fx.epoch = NewEpochStore(leaf)
+	fx.authDir = authDir
+	fx.epoch = NewEpochStore(authDir)
 	fx.roster = member.NewRoster(fx.h, fx.epoch, fx.clock.now)
 	return fx
 }
@@ -109,7 +109,7 @@ func TestRosterRemoval_RevokesSessions(t *testing.T) {
 		t.Errorf("pre-removal session after removal: %v, want ErrSessionRevoked", err)
 	}
 
-	path, err := fx.leaf.epochPath(recordID(epochSubdir, "alice@example.com"))
+	path, err := fx.authDir.epochPath(recordID(epochSubdir, "alice@example.com"))
 	if err != nil {
 		t.Fatalf("EpochPath: %v", err)
 	}
@@ -150,7 +150,7 @@ func TestEpochStoreRevoke(t *testing.T) {
 	later := rosterNow.Add(5 * time.Hour)
 	tests := []struct {
 		name      string
-		prepare   func(t *testing.T, leaf *Dir, epoch *EpochStore)
+		prepare   func(t *testing.T, authDir *Dir, epoch *EpochStore)
 		wantErr   bool
 		wantEpoch time.Time
 		wantWarn  bool
@@ -168,8 +168,8 @@ func TestEpochStoreRevoke(t *testing.T) {
 		},
 		{
 			name: "an unwritable epoch subdirectory",
-			prepare: func(t *testing.T, leaf *Dir, _ *EpochStore) {
-				dir := leaf.subdir(epochSubdir)
+			prepare: func(t *testing.T, authDir *Dir, _ *EpochStore) {
+				dir := authDir.subdir(epochSubdir)
 				if err := os.Chmod(dir, 0o500); err != nil {
 					t.Fatalf("chmod the epoch subdirectory: %v", err)
 				}
@@ -184,12 +184,12 @@ func TestEpochStoreRevoke(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			leaf, err := Open(t.TempDir())
+			authDir, err := Open(t.TempDir())
 			if err != nil {
 				t.Fatalf("Open: %v", err)
 			}
-			epoch := NewEpochStore(leaf)
-			tt.prepare(t, leaf, epoch)
+			epoch := NewEpochStore(authDir)
+			tt.prepare(t, authDir, epoch)
 
 			var logBuf bytes.Buffer
 			err = epoch.Revoke(t.Context(), "alice@example.com", rosterNow, slog.New(slog.NewJSONHandler(&logBuf, nil)))

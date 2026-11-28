@@ -150,11 +150,11 @@ func TestRosterResetServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWrite: %v", err)
 	}
-	leaf, err := auth.Open(stateDir)
+	authDir, err := auth.Open(stateDir)
 	if err != nil {
-		t.Fatalf("open the auth leaf: %v", err)
+		t.Fatalf("open the auth dir: %v", err)
 	}
-	roster := member.NewRoster(h, auth.NewEpochStore(leaf), time.Now)
+	roster := member.NewRoster(h, auth.NewEpochStore(authDir), time.Now)
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	for _, m := range []member.Member{

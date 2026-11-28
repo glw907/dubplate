@@ -43,7 +43,7 @@ func discardTestLogger() *slog.Logger {
 
 // serveAuthEnviron returns authEnviron with DUBPLATE_STATE_DIR pointed
 // at a fresh t.TempDir(): authEnviron's own fixed path is not one a
-// test process may create the auth leaf's directories under. It points
+// test process may create the auth dir's directories under. It points
 // the library root and staging at two directories it creates under one
 // t.TempDir(), so they share a filesystem and a mount.
 func serveAuthEnviron(t *testing.T) []string {

@@ -155,7 +155,7 @@ type Roster struct {
 // revoker and now serve the writes alone: a removal and a re-add
 // revoke the address through revoker at the time now returns, and every
 // write stamps its row with it. A roster that only reads, such as
-// member list's, passes nil for both and so opens no auth leaf.
+// member list's, passes nil for both and so opens no auth dir.
 func NewRoster(h *store.Handle, revoker Revoker, now func() time.Time) *Roster {
 	return &Roster{users: h, revoker: revoker, now: now}
 }

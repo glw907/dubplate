@@ -53,35 +53,35 @@ func TestOpen_CreatesDirectoriesWithPermissions(t *testing.T) {
 	}
 }
 
-// TestOpen_RefusesWideLeaf proves the review m3 fix: a leaf directory
+// TestOpen_RefusesWideDir proves the review m3 fix: an auth dir
 // created wide before Open ever runs is refused rather than silently
 // admitted, because os.MkdirAll is a no-op on an existing directory
 // whatever its mode.
-func TestOpen_RefusesWideLeaf(t *testing.T) {
+func TestOpen_RefusesWideDir(t *testing.T) {
 	stateDir := t.TempDir()
 	if err := os.MkdirAll(dirPath(stateDir), 0o755); err != nil {
-		t.Fatalf("pre-create wide leaf: %v", err)
+		t.Fatalf("pre-create a wide auth dir: %v", err)
 	}
 
 	_, err := Open(stateDir)
 	if err == nil {
-		t.Fatal("Open() error = nil, want a refusal on a leaf wider than 0700")
+		t.Fatal("Open() error = nil, want a refusal on an auth dir wider than 0700")
 	}
 	if !strings.Contains(err.Error(), dirPath(stateDir)) {
-		t.Errorf("error = %q, want it to name the leaf path", err.Error())
+		t.Errorf("error = %q, want it to name the auth dir's path", err.Error())
 	}
 }
 
-// TestOpen_AdmitsNarrowerLeaf proves the refusal is one-sided: a leaf
-// already at exactly dirPerm, the mode Open itself would have created
-// it at, starts cleanly.
-func TestOpen_AdmitsNarrowerLeaf(t *testing.T) {
+// TestOpen_AdmitsNarrowerDir proves the refusal is one-sided: an auth
+// dir already at exactly dirPerm, the mode Open itself would have
+// created it at, starts cleanly.
+func TestOpen_AdmitsNarrowerDir(t *testing.T) {
 	stateDir := t.TempDir()
 	if err := os.MkdirAll(dirPath(stateDir), 0o700); err != nil {
-		t.Fatalf("pre-create leaf: %v", err)
+		t.Fatalf("pre-create the auth dir: %v", err)
 	}
 	if _, err := Open(stateDir); err != nil {
-		t.Errorf("Open() error = %v, want nil for a leaf already at dirPerm", err)
+		t.Errorf("Open() error = %v, want nil for an auth dir already at dirPerm", err)
 	}
 }
 

@@ -453,25 +453,25 @@ func TestNewRootCmd_RegistersMemberCommand(t *testing.T) {
 	t.Error(`newRootCmd().Commands() does not include "member"`)
 }
 
-// TestMemberAddCmd_WideAuthLeafRefused proves member add opens the auth
-// leaf for the re-add bump and refuses a leaf wider than 0700, naming the
-// verb and the leaf, before writing any row. Fixture state: an auth leaf
-// created at 0755 under a current store holding no member.
-func TestMemberAddCmd_WideAuthLeafRefused(t *testing.T) {
+// TestMemberAddCmd_WideAuthDirRefused proves member add opens the auth
+// dir for the re-add bump and refuses one wider than 0700, naming the
+// verb and the auth dir, before writing any row. Fixture state: an auth
+// dir created at 0755 under a current store holding no member.
+func TestMemberAddCmd_WideAuthDirRefused(t *testing.T) {
 	environ, stateDir := memberEnviron(t)
-	leaf := filepath.Join(stateDir, "auth")
-	if err := os.Mkdir(leaf, 0o700); err != nil {
-		t.Fatalf("create the auth leaf: %v", err)
+	authDir := filepath.Join(stateDir, "auth")
+	if err := os.Mkdir(authDir, 0o700); err != nil {
+		t.Fatalf("create the auth dir: %v", err)
 	}
-	if err := os.Chmod(leaf, 0o755); err != nil {
-		t.Fatalf("widen the auth leaf: %v", err)
+	if err := os.Chmod(authDir, 0o755); err != nil {
+		t.Fatalf("widen the auth dir: %v", err)
 	}
 
 	_, _, err := runMember(t, environ, "add", "--admin", "--name", "Alice", "--username", "alice", "a@example.test")
 	if err == nil {
-		t.Fatal("add over a wide auth leaf error = nil, want a refusal")
+		t.Fatal("add over a wide auth dir error = nil, want a refusal")
 	}
-	for _, want := range []string{"member add", leaf} {
+	for _, want := range []string{"member add", authDir} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error = %q, want it to contain %q", err, want)
 		}
@@ -481,20 +481,20 @@ func TestMemberAddCmd_WideAuthLeafRefused(t *testing.T) {
 	}
 }
 
-// TestMemberListCmd_OpensNoAuthLeaf proves member list reads the roster
-// without opening the auth leaf: a store with no leaf still has none
-// after a list.
-func TestMemberListCmd_OpensNoAuthLeaf(t *testing.T) {
+// TestMemberListCmd_OpensNoAuthDir proves member list reads the roster
+// without opening the auth dir: a store with no auth dir still has
+// none after a list.
+func TestMemberListCmd_OpensNoAuthDir(t *testing.T) {
 	environ, stateDir := memberEnviron(t)
-	leaf := filepath.Join(stateDir, "auth")
-	if _, err := os.Stat(leaf); !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("Stat(auth leaf) before list = %v, want it absent", err)
+	authDir := filepath.Join(stateDir, "auth")
+	if _, err := os.Stat(authDir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat(auth dir) before list = %v, want it absent", err)
 	}
 	if _, _, err := runMember(t, environ, "list"); err != nil {
 		t.Fatalf("list: %v", err)
 	}
-	if _, err := os.Stat(leaf); !errors.Is(err, os.ErrNotExist) {
-		t.Errorf("Stat(auth leaf) after list = %v, want it still absent", err)
+	if _, err := os.Stat(authDir); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("Stat(auth dir) after list = %v, want it still absent", err)
 	}
 }
 
@@ -542,15 +542,15 @@ func countRows(t *testing.T, stateDir, query string) int {
 	return n
 }
 
-// hasEpoch reports whether the auth leaf under stateDir holds a
+// hasEpoch reports whether the auth dir under stateDir holds a
 // revocation epoch for address.
 func hasEpoch(t *testing.T, stateDir, address string) bool {
 	t.Helper()
-	leaf, err := auth.Open(stateDir)
+	authDir, err := auth.Open(stateDir)
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	_, ok, err := auth.NewEpochStore(leaf).Read(address)
+	_, ok, err := auth.NewEpochStore(authDir).Read(address)
 	if err != nil {
 		t.Fatalf("read the epoch of %s: %v", address, err)
 	}
@@ -687,28 +687,28 @@ func TestMemberCmd_LastAdminRefused(t *testing.T) {
 	}
 }
 
-// TestMemberCmd_WideAuthLeafRefusesRemoveAndDemote proves both verbs
-// open the auth leaf and refuse one wider than 0700, naming the verb
-// and the leaf, before writing. Fixture: a leaf created at 0755 under a
-// store holding two admins and a member.
-func TestMemberCmd_WideAuthLeafRefusesRemoveAndDemote(t *testing.T) {
+// TestMemberCmd_WideAuthDirRefusesRemoveAndDemote proves both verbs
+// open the auth dir and refuse one wider than 0700, naming the verb
+// and the auth dir, before writing. Fixture: an auth dir widened to
+// 0755 under a store holding two admins and a member.
+func TestMemberCmd_WideAuthDirRefusesRemoveAndDemote(t *testing.T) {
 	for _, tt := range []struct{ verb, address string }{
 		{"remove", "b@example.test"},
 		{"demote", "c@example.test"},
 	} {
 		t.Run(tt.verb, func(t *testing.T) {
 			environ, stateDir := rosterFixture(t)
-			leaf := filepath.Join(stateDir, "auth")
-			if err := os.Chmod(leaf, 0o755); err != nil {
-				t.Fatalf("widen the auth leaf the fixture's adds created: %v", err)
+			authDir := filepath.Join(stateDir, "auth")
+			if err := os.Chmod(authDir, 0o755); err != nil {
+				t.Fatalf("widen the auth dir the fixture's adds created: %v", err)
 			}
 
 			_, _, err := runMember(t, environ, tt.verb, tt.address)
 
 			if err == nil {
-				t.Fatalf("%s over a wide auth leaf error = nil, want a refusal", tt.verb)
+				t.Fatalf("%s over a wide auth dir error = nil, want a refusal", tt.verb)
 			}
-			for _, want := range []string{"member " + tt.verb, leaf} {
+			for _, want := range []string{"member " + tt.verb, authDir} {
 				if !strings.Contains(err.Error(), want) {
 					t.Errorf("error = %q, want it to contain %q", err, want)
 				}
