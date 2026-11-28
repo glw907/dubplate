@@ -415,3 +415,44 @@ func TestParseFloat_RefusesNonFinite(t *testing.T) {
 		})
 	}
 }
+
+// TestResolve proves Resolve reads each kind through its own parser,
+// returning the typed value, and refuses a kind no parser names.
+func TestResolve(t *testing.T) {
+	const key = "DUBPLATE_TEST_RESOLVE"
+	threshold := func(kind ThresholdKind, def string) Threshold {
+		return Threshold{Key: key, Description: testDescription, Sensitivity: NotSensitive, Kind: kind, Default: def, Doc: "a value"}
+	}
+	tests := []struct {
+		name    string
+		t       Threshold
+		environ []string
+		want    any
+		wantErr bool
+	}{
+		{name: "int default", t: threshold(KindInt, "7"), want: 7},
+		{name: "int set", t: threshold(KindInt, "7"), environ: []string{key + "=12"}, want: 12},
+		{name: "int invalid", t: threshold(KindInt, "7"), environ: []string{key + "=seven"}, wantErr: true},
+		{name: "duration", t: threshold(KindDuration, "90s"), want: 90 * time.Second},
+		{name: "float", t: threshold(KindFloat, "0.25"), want: 0.25},
+		{name: "string", t: threshold(KindString, "mono"), environ: []string{key + "=stereo"}, want: "stereo"},
+		{name: "unnamed kind", t: threshold(ThresholdKind(99), "x"), wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Resolve(tt.environ, tt.t)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("Resolve = %v, want an error", got)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Resolve: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("Resolve = %v (%T), want %v (%T)", got, got, tt.want, tt.want)
+			}
+		})
+	}
+}

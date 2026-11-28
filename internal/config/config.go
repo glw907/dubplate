@@ -444,7 +444,7 @@ func Load(environ []string, reg *Registry) (*Config, error) {
 
 	cfg := &Config{
 		LibraryRoot:  w.require("DUBPLATE_LIBRARY_ROOT"),
-		StateDir:     w.require("DUBPLATE_STATE_DIR"),
+		StateDir:     w.require(StateDirKey),
 		SiteName:     w.requireSiteName("DUBPLATE_SITE_NAME"),
 		AdminAddress: w.requireAddress("DUBPLATE_ADMIN_EMAIL"),
 		integrations: make(map[string]integrationResolution, len(reg.integrationClasses)),

@@ -199,7 +199,7 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newServeCmd(tt.environ, productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(tt.environ, productionRegistry(), &stdout, &stderr, "serve")
 
 			ctx, cancel := context.WithCancel(t.Context())
 			cancel()
@@ -218,15 +218,14 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // cobra dispatches, and root.Find alone would not tell the two apart
 // from a verb reachable only because some other command re-added it.
 //
-// The second half proves the wiring carries the production registry
-// and the process environment rather than a construction that only
-// looks right: dispatching "serve" through the root command with an
+// The second half proves the wiring carries the root's environment and
+// registry: dispatching "serve" through the root command with an
 // invalid prefix in the environment refuses with the prefix refusal,
-// which can only happen if the added command resolved
-// configuration. No listener opens, since resolution fails first.
+// which can only happen if the added command resolved configuration.
+// No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	var serveCmd, doctorCmd bool
-	for _, child := range newRootCmd().Commands() {
+	for _, child := range newRootCmd(nil, productionRegistry()).Commands() {
 		switch child.Use {
 		case "serve":
 			serveCmd = true
@@ -241,27 +240,9 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 		t.Fatal("newRootCmd().Commands() carries no doctor verb; the AddCommand block this test reads against has moved")
 	}
 
-	// newRootCmd reads os.Environ() at construction, so the process
-	// environment is this half's input. A developer's shell carries
-	// DUBPLATE_* names of its own, and the wall would refuse them
-	// before resolution ever ran; clearing each to the empty string is
-	// what the wall reads as unset (config.wall.get's own convention).
-	for _, kv := range os.Environ() {
-		if name, _, ok := strings.Cut(kv, "="); ok && strings.HasPrefix(name, "DUBPLATE_") {
-			t.Setenv(name, "")
-		}
-	}
-	for _, kv := range authEnviron(t) {
-		name, value, _ := strings.Cut(kv, "=")
-		t.Setenv(name, value)
-	}
-	t.Setenv("DUBPLATE_SERVE_PREFIX", "no-leading-separator")
-
-	root := newRootCmd()
-	root.SetArgs([]string{"serve"})
+	environ := append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator")
 	var stdout, stderr bytes.Buffer
-	root.SetOut(&stdout)
-	root.SetErr(&stderr)
+	root := rootFor(environ, productionRegistry(), &stdout, &stderr, "serve")
 
 	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "invalid serve prefix") {
 		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want the prefix refusal", err)
@@ -510,7 +491,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 
 // TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree holds
 // security review finding 2, R-5c9's routing test: a link minted
-// through the real handler config, the prefix and the public origin
+// from the prefix and the public origin
 // [newServeShell] itself resolves, lands on a path the owned prefix
 // owns and a registered "login" subtree answers. It runs for both
 // public-URL forms, a bare origin and one carrying a trailing
@@ -544,13 +525,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			}
 			t.Cleanup(func() { _ = srv.Close() })
 			shell := srv.shell
-			handlersConfig := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())), nil, nil, nil, nil, nil, nil, nil)
-			if handlersConfig.Prefix != prefix.String() {
-				t.Errorf("authHandlersConfig Prefix = %q, want %q", handlersConfig.Prefix, prefix.String())
-			}
-			if handlersConfig.BodyCapCeiling != 65536 {
-				t.Errorf("authHandlersConfig BodyCapCeiling = %d, want the registered ceiling 65536", handlersConfig.BodyCapCeiling)
-			}
+			handlersConfig := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())))
 
 			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
 			if err != nil {
@@ -580,6 +555,25 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 
 	if gotPaths[0] != gotPaths[1] {
 		t.Errorf("minted link path = %q for %q and %q for %q, want the same path for both origin forms", gotPaths[0], origins[0], gotPaths[1], origins[1])
+	}
+}
+
+// handlersConfigFor is the part of the handler config serve fills from
+// ac and prefix: the secrets, the setting readers, the public origin,
+// and the prefix.
+func handlersConfigFor(prefix serve.Prefix, ac auth.Config) auth.HandlersConfig {
+	return auth.HandlersConfig{
+		LinkSecret:         ac.LinkSecret,
+		PreviousLinkSecret: ac.PreviousLinkSecret,
+		SessionSecret:      ac.SessionSecret,
+		LinkExpiry:         ac.LinkExpiry,
+		SessionLifetime:    ac.SessionLifetime,
+		SessionAbsoluteCap: ac.SessionAbsoluteCap,
+		PublicOrigin:       ac.PublicOrigin,
+		Prefix:             prefix.String(),
+		BodyCap:            ac.BodyCap,
+		BodyCapCeiling:     auth.RequestBodyCapCeiling,
+		GenericAnswer:      ac.GenericAnswer,
 	}
 }
 
@@ -1232,7 +1226,7 @@ func checkDocumentSet(buildFS fs.FS) string {
 	return ""
 }
 
-// webFSHandler builds a shell over the routes newWebRoutesFromFS builds
+// webFSHandler builds a shell over the routes newWebRoutes builds
 // from buildFS, with the members document mounted with no gate, since
 // these checks read the document rather than the gate.
 func webFSHandler(environ []string, stateDir string, buildFS fs.FS) (http.Handler, error) {
@@ -1240,7 +1234,7 @@ func webFSHandler(environ []string, stateDir string, buildFS fs.FS) (http.Handle
 	if err != nil {
 		return nil, err
 	}
-	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{stateDir: stateDir}, discardTestLogger(), buildFS)
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, stateDir, discardTestLogger(), buildFS)
 	if err != nil {
 		return nil, err
 	}
@@ -2020,9 +2014,12 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
 		var mailed []string
-		hc := authHandlersConfig(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())), member.NewRoster(h, nil, nil), nil, nil,
-			auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10}),
-			nil, func(*http.Request) string { return "192.0.2.50" }, discardTestLogger())
+		hc := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())))
+		hc.Roster = member.NewRoster(h, nil, nil)
+		hc.Limiter = auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10})
+		hc.ClientIP = func(*http.Request) string { return "192.0.2.50" }
+		hc.Now = time.Now
+		hc.Logger = discardTestLogger()
 		hc.Send = func(_ context.Context, _, _, body string) error {
 			mailed = append(mailed, body)
 			return nil

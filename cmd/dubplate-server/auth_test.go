@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -16,7 +15,6 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 )
 
@@ -99,7 +97,7 @@ func TestRegisterAuthConfig_RetiresAuthAndIdentityReservedClass(t *testing.T) {
 func TestDoctorCmd_UnsetSelectorExitsNonzero(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	cmd.SetOut(&stdout)
 
 	if err := cmd.Execute(); err == nil {
@@ -185,22 +183,20 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		t.Fatalf("write roster fixture: %v", err)
 	}
 
-	operator := testOperatorVerbs()
 	verbs := []struct {
 		name string
 		args []string
-		cmd  func(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command
 	}{
-		{"check", []string{"check"}, newCheckCmd},
-		{"doctor", []string{"doctor"}, newDoctorCmd},
-		{"serve", []string{"serve"}, newServeCmd},
-		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, operator.newMemberCmd},
-		{"member remove", []string{"member", "remove", "a@example.test"}, operator.newMemberCmd},
-		{"member demote", []string{"member", "demote", "a@example.test"}, operator.newMemberCmd},
-		{"member list", []string{"member", "list"}, operator.newMemberCmd},
-		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}, operator.newSettingsCmd},
-		{"backup", []string{"backup"}, newBackupCmd},
-		{"restore", []string{"restore", "--snapshot", "latest"}, newRestoreCmd},
+		{"check", []string{"check"}},
+		{"doctor", []string{"doctor"}},
+		{"serve", []string{"serve"}},
+		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}},
+		{"member remove", []string{"member", "remove", "a@example.test"}},
+		{"member demote", []string{"member", "demote", "a@example.test"}},
+		{"member list", []string{"member", "list"}},
+		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}},
+		{"backup", []string{"backup"}},
+		{"restore", []string{"restore", "--snapshot", "latest"}},
 	}
 
 	for _, value := range []struct{ name, set string }{
@@ -213,10 +209,7 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 			for _, v := range verbs {
 				t.Run(v.name, func(t *testing.T) {
 					var stdout, stderr bytes.Buffer
-					root := &cobra.Command{Use: "dubplate-server", SilenceUsage: true, SilenceErrors: true}
-					root.AddCommand(v.cmd(environ, productionRegistry(), &stdout, &stderr))
-					root.SetArgs(v.args)
-					err := root.Execute()
+					err := rootFor(environ, productionRegistry(), &stdout, &stderr, v.args...).Execute()
 
 					if v.name == "doctor" {
 						// doctor prints the load error no row claims.
@@ -257,7 +250,7 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 				walk(sub)
 			}
 		}
-		walk(newRootCmd())
+		walk(newRootCmd(nil, productionRegistry()))
 		slices.Sort(leaves)
 
 		want := []string{"backup", "check", "doctor", "member add", "member demote", "member list", "member remove",
@@ -492,16 +485,14 @@ func TestPrepareServe_RefusesAuthCorrelatedRule(t *testing.T) {
 // seed table's second row once per auth key: with no stored row and the
 // environment naming a value other than the default, serve's start
 // seeds one env_seed row for the key alone, audits it, and the reader
-// serve wires for the key reads that value. The handler readers are
-// read from [authHandlersConfig]'s own return value, the limits through
-// [auth.ReadLimits], and the retention from [auth.ConfigFrom]'s
-// retention reader, the one serve opens the nonce store with. Each want
-// is a literal, so a reader wired to the wrong key fails its row.
+// serve wires for the key reads that value. The readers come from
+// [auth.ConfigFrom], whose fields serve hands the handlers and the
+// nonce store, and the limits through [auth.ReadLimits]. Each want is a
+// literal, so a reader wired to the wrong key fails its row.
 func TestAuthSettings_SeedFromEnv(t *testing.T) {
 	type readers struct {
-		handlers  auth.HandlersConfig
-		acc       *settings.Accessor
-		retention settings.Reader[time.Duration]
+		config auth.Config
+		acc    *settings.Accessor
 	}
 	limit := func(pick func(auth.Limits) int) func(context.Context, readers) (any, error) {
 		return func(ctx context.Context, r readers) (any, error) {
@@ -514,16 +505,16 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 		got        func(context.Context, readers) (any, error)
 		want       any
 	}{
-		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", func(ctx context.Context, r readers) (any, error) { return r.handlers.LinkExpiry(ctx) }, 20 * time.Minute},
-		{"DUBPLATE_SESSION_LIFETIME", "1h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionLifetime(ctx) }, time.Hour},
-		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(ctx context.Context, r readers) (any, error) { return r.handlers.SessionAbsoluteCap(ctx) }, 4000 * time.Hour},
-		{"DUBPLATE_NONCE_RETENTION", "2h", func(ctx context.Context, r readers) (any, error) { return r.retention(ctx) }, 2 * time.Hour},
+		{"DUBPLATE_MAGIC_LINK_EXPIRY", "20m", func(ctx context.Context, r readers) (any, error) { return r.config.LinkExpiry(ctx) }, 20 * time.Minute},
+		{"DUBPLATE_SESSION_LIFETIME", "1h", func(ctx context.Context, r readers) (any, error) { return r.config.SessionLifetime(ctx) }, time.Hour},
+		{"DUBPLATE_SESSION_ABSOLUTE_CAP", "4000h", func(ctx context.Context, r readers) (any, error) { return r.config.SessionAbsoluteCap(ctx) }, 4000 * time.Hour},
+		{"DUBPLATE_NONCE_RETENTION", "2h", func(ctx context.Context, r readers) (any, error) { return r.config.NonceRetention(ctx) }, 2 * time.Hour},
 		{"DUBPLATE_LINK_REQUESTS_PER_ADDRESS_PER_HOUR", "7", limit(func(l auth.Limits) int { return l.LinkRequestsPerAddress }), 7},
 		{"DUBPLATE_LINK_REQUESTS_PER_CLIENT_PER_HOUR", "22", limit(func(l auth.Limits) int { return l.LinkRequestsPerClient }), 22},
 		{"DUBPLATE_LINK_CONSUMPTION_ATTEMPTS_PER_CLIENT_PER_HOUR", "33", limit(func(l auth.Limits) int { return l.ConsumptionAttemptsPerClient }), 33},
 		{"DUBPLATE_LINK_MAIL_CEILING_PER_HOUR", "66", limit(func(l auth.Limits) int { return l.LinkMailCeiling }), 66},
-		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", func(ctx context.Context, r readers) (any, error) { return r.handlers.BodyCap(ctx) }, int64(8192)},
-		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", func(ctx context.Context, r readers) (any, error) { return r.handlers.GenericAnswer(ctx) }, true},
+		{"DUBPLATE_AUTH_REQUEST_BODY_CAP", "8192", func(ctx context.Context, r readers) (any, error) { return r.config.BodyCap(ctx) }, int64(8192)},
+		{"DUBPLATE_UNKNOWN_ADDRESS_ANSWER", "generic", func(ctx context.Context, r readers) (any, error) { return r.config.GenericAnswer(ctx) }, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.key, func(t *testing.T) {
@@ -544,8 +535,7 @@ func TestAuthSettings_SeedFromEnv(t *testing.T) {
 				t.Fatalf("config.Load: %v", err)
 			}
 			err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
-				ac := authConfigFor(t, cfg, acc)
-				r := readers{handlers: authHandlersConfig(serve.Prefix{}, ac, nil, nil, nil, nil, nil, nil, nil), acc: acc, retention: ac.NonceRetention}
+				r := readers{config: authConfigFor(t, cfg, acc), acc: acc}
 				got, err := tt.got(t.Context(), r)
 				if err != nil {
 					return err

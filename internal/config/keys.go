@@ -62,6 +62,9 @@ type WallRow struct {
 	Sensitivity Sensitivity
 }
 
+// StateDirKey is the owned wall row naming the state directory.
+const StateDirKey = "DUBPLATE_STATE_DIR"
+
 // ownedWall is the wall's required-now rows (spec, "The config wall,
 // derived"). The identity selector's owned-now row,
 // DUBPLATE_IDENTITY_SOURCE, is registered by internal/auth rather than
@@ -73,7 +76,7 @@ var ownedWall = []WallRow{
 		Sensitivity: Sensitive,
 	},
 	{
-		Key:         "DUBPLATE_STATE_DIR",
+		Key:         StateDirKey,
 		Description: "the directory that holds the server's persistent state: the store, the auth records, and the snapshots",
 		Sensitivity: Sensitive,
 	},

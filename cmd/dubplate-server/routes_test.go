@@ -12,7 +12,6 @@ import (
 
 	"github.com/glw907/dubplate/internal/config"
 	"github.com/glw907/dubplate/internal/serve"
-	"github.com/glw907/dubplate/web"
 )
 
 // A routeClass says who may reach a route: anyone, any signed-in
@@ -93,10 +92,12 @@ func TestRouteInventory(t *testing.T) {
 	}
 	prefix := listen.Prefix
 	var registered []string
-	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger(),
-		func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }, web.Build)
+	orig := mountRoutes
+	mountRoutes = func(s *serve.Shell) registrar { return recordingRegistrar{Shell: s, names: &registered} }
+	t.Cleanup(func() { mountRoutes = orig })
+	srv, err := newServeShell(t.Context(), environ, productionRegistry(), prefix, listen.BindAddrs, cfg, discardTestLogger())
 	if err != nil {
-		t.Fatalf("newServeShellVia: %v", err)
+		t.Fatalf("newServeShell: %v", err)
 	}
 	t.Cleanup(func() {
 		if err := srv.Close(); err != nil {
