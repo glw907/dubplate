@@ -41,25 +41,25 @@ var reauthWindowSetting = config.Setting{
 // window's floor, where raising the cap is the only one.
 var reauthWindowBelowCap = config.CorrelatedRule{
 	Name: "re-authentication window below the absolute cap",
-	Keys: []string{reauthWindowSetting.Key, auth.SessionAbsoluteCapSetting.Key},
+	Keys: []string{reauthWindowSetting.Key, auth.SessionAbsoluteCapKey},
 	Check: func(values map[string]string) error {
 		window, err := time.ParseDuration(values[reauthWindowSetting.Key])
 		if err != nil {
 			return fmt.Errorf("%s: %w", reauthWindowSetting.Key, err)
 		}
-		limit, err := time.ParseDuration(values[auth.SessionAbsoluteCapSetting.Key])
+		limit, err := time.ParseDuration(values[auth.SessionAbsoluteCapKey])
 		if err != nil {
-			return fmt.Errorf("%s: %w", auth.SessionAbsoluteCapSetting.Key, err)
+			return fmt.Errorf("%s: %w", auth.SessionAbsoluteCapKey, err)
 		}
 		if window < limit {
 			return nil
 		}
 		problem := fmt.Sprintf("%s %q is not below %s %q", reauthWindowSetting.Key, values[reauthWindowSetting.Key],
-			auth.SessionAbsoluteCapSetting.Key, values[auth.SessionAbsoluteCapSetting.Key])
+			auth.SessionAbsoluteCapKey, values[auth.SessionAbsoluteCapKey])
 		if limit <= reauthWindowFloor {
-			return fmt.Errorf("%s: raise %s above %s, the window's floor", problem, auth.SessionAbsoluteCapSetting.Key, reauthWindowFloor)
+			return fmt.Errorf("%s: raise %s above %s, the window's floor", problem, auth.SessionAbsoluteCapKey, reauthWindowFloor)
 		}
-		return fmt.Errorf("%s: lower %s below the cap, or raise %s", problem, reauthWindowSetting.Key, auth.SessionAbsoluteCapSetting.Key)
+		return fmt.Errorf("%s: lower %s below the cap, or raise %s", problem, reauthWindowSetting.Key, auth.SessionAbsoluteCapKey)
 	},
 }
 
