@@ -34,7 +34,7 @@ func TestActor_ZeroNamesNobody(t *testing.T) {
 	if got := zero.String(); got != "" {
 		t.Errorf("Actor{}.String() = %q, want the empty string", got)
 	}
-	if zero.Channel().Valid() {
+	if zero.Channel().valid() {
 		t.Errorf("Actor{}.Channel() = %v, want an invalid channel", zero.Channel())
 	}
 }
