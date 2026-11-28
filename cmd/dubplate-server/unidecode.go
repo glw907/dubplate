@@ -56,9 +56,9 @@ func newUnidecodeInstallCmd(environ []string) *cobra.Command {
 // into it, downloading over a client with unidecodeInstallTimeout when
 // from names no local wheel.
 func runUnidecodeInstall(ctx context.Context, environ []string, from string, stdout io.Writer) error {
-	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
+	stateDir, ok := config.Lookup(environ, config.StateDirKey)
 	if !ok {
-		return errors.New("DUBPLATE_STATE_DIR is not set")
+		return errors.New(config.StateDirKey + " is not set")
 	}
 	return unidecode.Install(ctx, stateDir, from, stdout, unidecode.InstallOptions{
 		Client:  &http.Client{Timeout: unidecodeInstallTimeout},
