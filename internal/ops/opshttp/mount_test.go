@@ -29,7 +29,7 @@ func TestMount_OtherAPIPathsAnswerJSONNotFound(t *testing.T) {
 		mountPrefix + "/apix",
 	} {
 		t.Run(path, func(t *testing.T) {
-			f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
+			f := newFixture(t, admitAnn())
 			rec := f.send(http.MethodPost, path, `{}`)
 			if rec.Code != http.StatusNotFound {
 				t.Fatalf("status = %d, want 404", rec.Code)
@@ -101,7 +101,7 @@ func TestMount_VerifierFailureAnswers500(t *testing.T) {
 // names, and that an admin operation reaches the admin seam and a
 // submission operation the submission seam.
 func TestMount_VerifiedCallerReachesTheOperation(t *testing.T) {
-	f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
+	f := newFixture(t, admitAnn())
 	rec := f.send(http.MethodPost, mountPrefix+"/api/v1/list_submissions", `{"actor":"member:ffffffffffffffffffffffffffffffff"}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("list_submissions status = %d, body %s", rec.Code, rec.Body)
@@ -178,7 +178,7 @@ func TestMount_BearerHeaderAdmitsNobody(t *testing.T) {
 // under v1 that is no operation answers not_found for a verified
 // caller.
 func TestMount_UnknownOperationAnswers404AfterVerification(t *testing.T) {
-	f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
+	f := newFixture(t, admitAnn())
 	rec := f.send(http.MethodPost, mountPrefix+"/api/v1/no_such_operation", `{}`)
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", rec.Code)

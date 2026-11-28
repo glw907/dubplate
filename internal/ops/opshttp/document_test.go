@@ -617,7 +617,7 @@ var sampleRejects = ops.Rejects{
 // an admin session, and returns the recorded answer.
 func exchange(t *testing.T, op ops.Op, body string, err error) *httptest.ResponseRecorder {
 	t.Helper()
-	f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
+	f := newFixture(t, admitAnn())
 	if err != nil {
 		switch {
 		case f.subs.answers[op] != fakeAnswer{}:
@@ -694,7 +694,7 @@ func TestDocument_EveryDeclaredExchangeValidates(t *testing.T) {
 func TestDocument_RefusalsTheMountMakesItselfValidate(t *testing.T) {
 	d := loadDocument(t, true)
 	errSchema := d.doc.Components.Schemas["ErrorBody"].Value
-	f := newFixture(t, grant(ann, ops.PrivilegeAdmin))
+	f := newFixture(t, admitAnn())
 	for name, rec := range map[string]*httptest.ResponseRecorder{
 		"a GET":                  f.send(http.MethodGet, mountPrefix+"/api/v1/list_members", ``),
 		"a query string":         f.send(http.MethodPost, mountPrefix+"/api/v1/list_members?x=1", `{}`),
