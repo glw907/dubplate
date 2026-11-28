@@ -18,7 +18,6 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
-	"github.com/spf13/cobra"
 )
 
 // The production settings these tests plant rows for.
@@ -35,15 +34,9 @@ const (
 // holds.
 func runSettings(t *testing.T, environ []string, args ...string) (stdout string, err error) {
 	t.Helper()
-	ov := testOperatorVerbs()
-	ov.LookupID = func(string) (*user.User, error) { return &user.User{Username: "operator"}, nil }
+	stubLookupUser(t, func(string) (*user.User, error) { return &user.User{Username: "operator"}, nil })
 	var out bytes.Buffer
-	root := &cobra.Command{Use: "dubplate-server", SilenceUsage: true, SilenceErrors: true}
-	root.AddCommand(ov.newSettingsCmd(environ, productionRegistry()))
-	root.SetOut(&out)
-	root.SetErr(io.Discard)
-	root.SetArgs(append([]string{"settings"}, args...))
-	err = root.Execute()
+	err = rootFor(environ, productionRegistry(), &out, io.Discard, append([]string{"settings"}, args...)...).Execute()
 	return out.String(), err
 }
 

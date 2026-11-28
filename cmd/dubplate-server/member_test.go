@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -29,30 +30,26 @@ func memberEnviron(t *testing.T) (environ []string, stateDir string) {
 	return environ, stateDir
 }
 
-// testOperatorVerbs returns the values main gives the verbs: a 30
-// second wait and the system's user lookup. A test that varies one
-// overrides that field on the result.
-func testOperatorVerbs() operatorVerbs {
-	return operatorVerbs{WriteWait: 30 * time.Second, LookupID: user.LookupId}
+// stubLookupUser swaps lookupUser for fn until the test ends.
+func stubLookupUser(t *testing.T, fn func(uid string) (*user.User, error)) {
+	t.Helper()
+	orig := lookupUser
+	lookupUser = fn
+	t.Cleanup(func() { lookupUser = orig })
 }
 
 // runMember runs the member verb with args against environ and returns
 // what it wrote to stdout and stderr beside its error.
 func runMember(t *testing.T, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
-	return runMemberWith(t, testOperatorVerbs(), environ, args...)
+	return runMemberContext(t, t.Context(), environ, args...)
 }
 
-// runMemberWith is runMember over verbs built from ov.
-func runMemberWith(t *testing.T, ov operatorVerbs, environ []string, args ...string) (stdout, stderr string, err error) {
+// runMemberContext is runMember under ctx.
+func runMemberContext(t *testing.T, ctx context.Context, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
 	var out, errOut bytes.Buffer
-	root := &cobra.Command{Use: "dubplate-server", SilenceUsage: true, SilenceErrors: true}
-	root.AddCommand(ov.newMemberCmd(environ, productionRegistry()))
-	root.SetOut(&out)
-	root.SetErr(&errOut)
-	root.SetArgs(append([]string{"member"}, args...))
-	err = root.Execute()
+	err = rootFor(environ, productionRegistry(), &out, &errOut, append([]string{"member"}, args...)...).ExecuteContext(ctx)
 	return out.String(), errOut.String(), err
 }
 
@@ -343,10 +340,11 @@ func TestResolveActor(t *testing.T) {
 	euid := os.Geteuid()
 	t.Run("names the user the lookup returns for the effective uid", func(t *testing.T) {
 		var asked string
-		got := resolveActor(func(uid string) (*user.User, error) {
+		stubLookupUser(t, func(uid string) (*user.User, error) {
 			asked = uid
 			return &user.User{Username: "operator"}, nil
 		})
+		got := resolveActor()
 		if got != "operator" {
 			t.Errorf("resolveActor = %q, want %q", got, "operator")
 		}
@@ -355,7 +353,8 @@ func TestResolveActor(t *testing.T) {
 		}
 	})
 	t.Run("falls back to uid:<n> when the lookup fails", func(t *testing.T) {
-		got := resolveActor(func(string) (*user.User, error) { return nil, errors.New("no such user") })
+		stubLookupUser(t, func(string) (*user.User, error) { return nil, errors.New("no such user") })
+		got := resolveActor()
 		if want := fmt.Sprintf("uid:%d", euid); got != want {
 			t.Errorf("resolveActor = %q, want %q", got, want)
 		}
@@ -363,13 +362,12 @@ func TestResolveActor(t *testing.T) {
 }
 
 func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
-	ov := testOperatorVerbs()
-	ov.LookupID = func(string) (*user.User, error) {
+	stubLookupUser(t, func(string) (*user.User, error) {
 		return nil, errors.New("no such user")
-	}
+	})
 	environ, _ := memberEnviron(t)
 
-	_, stderr, err := runMemberWith(t, ov, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
+	_, stderr, err := runMember(t, environ, "add", "--admin", "--name", "A", "--username", "a", "a@example.test")
 	if err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stderr = %q", err, stderr)
 	}
@@ -381,11 +379,8 @@ func TestMemberAddCmd_NoPasswdEntryFallsBackToUID(t *testing.T) {
 
 // TestMemberAddCmd_LockHeldPastDeadlineRefuses holds the store's lock
 // exclusively, as a restore would, and proves the verb gives up once its
-// own wait ends rather than waiting on the holder.
+// context ends rather than waiting on the holder.
 func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
-	ov := testOperatorVerbs()
-	ov.WriteWait = 200 * time.Millisecond
-
 	environ, stateDir := memberEnviron(t)
 	lock, err := os.Open(filepath.Join(stateDir, "store", "store.lock"))
 	if err != nil {
@@ -397,7 +392,9 @@ func TestMemberAddCmd_LockHeldPastDeadlineRefuses(t *testing.T) {
 	}
 
 	start := time.Now()
-	_, _, err = runMemberWith(t, ov, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
+	ctx, cancel := context.WithTimeout(t.Context(), 200*time.Millisecond)
+	defer cancel()
+	_, _, err = runMemberContext(t, ctx, environ, "add", "--admin", "--name", "B", "--username", "b", "b@example.test")
 	elapsed := time.Since(start)
 	if !errors.Is(err, store.ErrLockBusy) {
 		t.Fatalf("Execute() error = %v, want it to wrap store.ErrLockBusy", err)
