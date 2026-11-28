@@ -1107,7 +1107,7 @@ func fontsFixtureBuildFS() fstest.MapFS {
 	return buildFS
 }
 
-// fontsFaceETag returns the strong ETag [newFontsRoute] computes for
+// fontsFaceETag returns the strong ETag webapp's fonts handler computes for
 // data: a quoted hex SHA-256, independent of that function's own
 // hashing so a change to one cannot go unnoticed by the other.
 func fontsFaceETag(data []byte) string {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"maps"
 	"regexp"
 	"slices"
 	"strings"
@@ -75,6 +76,27 @@ func documentCSP(name string, doc []byte) (string, error) {
 		scriptSrc.WriteString(" '" + h + "'")
 	}
 	return strings.Join([]string{cspDefaultSrc, scriptSrc.String(), cspStyleSrc, cspImgSrc, cspHardening}, "; "), nil
+}
+
+// checkVariantCSP refuses when any served variant of the document
+// name holds an inline script the build's own CSP meta does not hash,
+// or yields a policy other than served, the header computed over the
+// build's document. The rewrite is meant to touch no script and no
+// meta, but a placeholder or a stylesheet-link anchor the build left
+// inside a script body would change that script's hash, and the
+// header would then block it in a browser; checking each served body
+// turns that into a startup refusal.
+func checkVariantCSP(name string, variants map[string][]byte, served string) error {
+	for _, palette := range slices.Sorted(maps.Keys(variants)) {
+		csp, err := documentCSP(name, variants[palette])
+		if err != nil {
+			return fmt.Errorf("webapp: the %q variant: %w", palette, err)
+		}
+		if csp != served {
+			return fmt.Errorf("webapp: the %q variant of document %q: its CSP differs from the served header", palette, name)
+		}
+	}
+	return nil
 }
 
 // metaScriptHashes returns the sha256 sources, unquoted, that the
