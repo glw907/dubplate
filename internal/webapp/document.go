@@ -64,22 +64,22 @@ func documents(names RouteNames) []document {
 }
 
 // rewriteDocument returns raw with the exactly-one occurrence of
-// placeholder replaced by composed, the theme stamp's whole edit: no
-// other byte, an inline <script> body included, changes. name
+// themePlaceholder replaced by composed, the theme stamp's whole edit:
+// no other byte, an inline <script> body included, changes. name
 // identifies the document in the two states the rewrite refuses:
 // placeholder absent, and placeholder present more than once. Either
 // shape is a build defect a caller must refuse startup on, never guess
 // past, since a second occurrence could sit inside a script body a
 // blind replace would then corrupt.
-func rewriteDocument(name string, raw []byte, placeholder, composed string) ([]byte, error) {
-	needle := []byte(placeholder)
+func rewriteDocument(name string, raw []byte, composed string) ([]byte, error) {
+	needle := []byte(themePlaceholder)
 	switch n := bytes.Count(raw, needle); n {
 	case 0:
-		return nil, fmt.Errorf("webapp: document %q: placeholder %q not found", name, placeholder)
+		return nil, fmt.Errorf("webapp: document %q: placeholder %q not found", name, themePlaceholder)
 	case 1:
 		return bytes.Replace(raw, needle, []byte(composed), 1), nil
 	default:
-		return nil, fmt.Errorf("webapp: document %q: placeholder %q appears %d times, want exactly 1", name, placeholder, n)
+		return nil, fmt.Errorf("webapp: document %q: placeholder %q appears %d times, want exactly 1", name, themePlaceholder, n)
 	}
 }
 
@@ -88,8 +88,6 @@ func rewriteDocument(name string, raw []byte, placeholder, composed string) ([]b
 // html.EscapeString as it is written, so a quote, an angle bracket, or
 // an ampersand in an operator's value cannot leave its attribute.
 type variantConfig struct {
-	// placeholder is the token the build left on <html data-theme>.
-	placeholder string
 
 	// match names the theme group; each palette's composed theme name
 	// is match+"-"+palette.
@@ -127,7 +125,7 @@ type icon struct {
 }
 
 // buildDocumentVariants returns one body per entry in cfg.palettes,
-// keyed by palette. Each body is raw with cfg.placeholder replaced by
+// keyed by palette. Each body is raw with themePlaceholder replaced by
 // the composed theme name and, after the last stylesheet link, the
 // tier links, the site-name meta, the robots meta when cfg.robots is
 // set, the palette's theme-color metas, and the icon links. The block
@@ -166,12 +164,12 @@ func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[stri
 		}
 		head.Write(icons.Bytes())
 
-		stamped, err := rewriteDocument(name, raw, cfg.placeholder, cfg.match+"-"+palette)
+		stamped, err := rewriteDocument(name, raw, cfg.match+"-"+palette)
 		if err != nil {
 			return nil, err
 		}
-		if bytes.Contains(head.Bytes(), []byte(cfg.placeholder)) {
-			return nil, fmt.Errorf("webapp: document %q: an inserted head value carries the theme placeholder %q", name, cfg.placeholder)
+		if bytes.Contains(head.Bytes(), []byte(themePlaceholder)) {
+			return nil, fmt.Errorf("webapp: document %q: an inserted head value carries the theme placeholder %q", name, themePlaceholder)
 		}
 		anchor, err := headAnchor(name, stamped)
 		if err != nil {

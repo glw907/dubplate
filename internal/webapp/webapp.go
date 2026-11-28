@@ -144,7 +144,6 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	groups := make(map[*http.Handler]map[string]http.Handler)
 	for _, d := range docs {
 		vc := variantConfig{
-			placeholder: themePlaceholder,
 			match:       cfg.Match,
 			palettes:    palettes,
 			tierHrefs:   tierHrefs(d.name, cfg.Names, hasOperatorCSS),
