@@ -63,11 +63,11 @@ func ValidatePort(environ []string) error {
 	return nil
 }
 
-// PrefixThreshold is the one owned path prefix: every route the
+// prefixThreshold is the one owned path prefix: every route the
 // shell registers lives under it, and every path outside it answers
 // 404. Its default, /dubplate, is one segment so the segment-aware
 // match has a boundary to find, and carries no estate value.
-var PrefixThreshold = config.Threshold{
+var prefixThreshold = config.Threshold{
 	Key:         "DUBPLATE_SERVE_PREFIX",
 	Kind:        config.KindString,
 	Default:     "/dubplate",
@@ -83,7 +83,17 @@ var PrefixThreshold = config.Threshold{
 func Register(reg *config.Registry) {
 	reg.AddThreshold(bindAddrsThreshold)
 	reg.AddThreshold(portThreshold)
-	reg.AddThreshold(PrefixThreshold)
+	reg.AddThreshold(prefixThreshold)
+}
+
+// ParsePrefix reads DUBPLATE_SERVE_PREFIX against environ and returns
+// the [Prefix] it names, for a caller that needs the prefix alone.
+func ParsePrefix(environ []string) (Prefix, error) {
+	value, err := config.ParseString(environ, prefixThreshold)
+	if err != nil {
+		return Prefix{}, err
+	}
+	return NewPrefix(value)
 }
 
 // Config is the shell's listen configuration, read from the three
@@ -98,11 +108,7 @@ type Config struct {
 // listener, so a caller can refuse an invalid prefix or bind list
 // without touching the network.
 func ParseConfig(environ []string) (Config, error) {
-	prefixValue, err := config.ParseString(environ, PrefixThreshold)
-	if err != nil {
-		return Config{}, err
-	}
-	prefix, err := NewPrefix(prefixValue)
+	prefix, err := ParsePrefix(environ)
 	if err != nil {
 		return Config{}, err
 	}

@@ -93,11 +93,7 @@ func webDoctorRows(environ []string, cfg *config.Config) []doctor.Row {
 }
 
 func checkWebRoutes(environ []string, cfg *config.Config) error {
-	prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
-	if err != nil {
-		return err
-	}
-	prefix, err := serve.NewPrefix(prefixValue)
+	prefix, err := serve.ParsePrefix(environ)
 	if err != nil {
 		return err
 	}
