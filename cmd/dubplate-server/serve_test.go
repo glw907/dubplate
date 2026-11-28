@@ -680,7 +680,7 @@ func mintServeSession(t *testing.T, environ []string, address string, issued tim
 		if lifetime, err = acc.Duration(t.Context(), registeredSetting("DUBPLATE_SESSION_LIFETIME")); err != nil {
 			return err
 		}
-		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), registeredSetting(auth.SessionAbsoluteCapKey))
 		return err
 	})
 	if err != nil {
@@ -2132,7 +2132,7 @@ func TestNewServeShell_AdminRowRaisesTheCapThroughARefresh(t *testing.T) {
 	var absoluteCap time.Duration
 	err = withStoreAccessor(t.Context(), environ, func(acc *settings.Accessor) error {
 		var err error
-		absoluteCap, err = acc.Duration(t.Context(), auth.SessionAbsoluteCapSetting)
+		absoluteCap, err = acc.Duration(t.Context(), registeredSetting(auth.SessionAbsoluteCapKey))
 		return err
 	})
 	if err != nil {

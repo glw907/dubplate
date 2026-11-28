@@ -83,8 +83,12 @@ const secretLengthFloor = 32
 // It is [magicLinkExpirySetting]'s registered ceiling.
 const magicLinkExpiryCeiling = time.Hour
 
+// SessionAbsoluteCapKey names the session absolute cap, which the
+// admin gate's reauthentication window must stay below.
+const SessionAbsoluteCapKey = "DUBPLATE_SESSION_ABSOLUTE_CAP"
+
 // magicLinkExpirySetting, sessionLifetimeSetting,
-// SessionAbsoluteCapSetting, and nonceRetentionSetting are the four
+// sessionAbsoluteCapSetting, and nonceRetentionSetting are the four
 // auth durations.
 //
 // Every duration takes a positive floor, since zero or a negative
@@ -124,8 +128,8 @@ var (
 		Description: "how long a session stays valid before the member signs in again, unless it is refreshed",
 		Sensitivity: config.Sensitive,
 	}
-	SessionAbsoluteCapSetting = config.Setting{
-		Key:         "DUBPLATE_SESSION_ABSOLUTE_CAP",
+	sessionAbsoluteCapSetting = config.Setting{
+		Key:         SessionAbsoluteCapKey,
 		Kind:        config.KindDuration,
 		Default:     "4320h",
 		Doc:         "a Go duration string, for example 4320h (180 days)",
@@ -250,8 +254,8 @@ var (
 	}
 	sessionLifetimeWithinCap = config.CorrelatedRule{
 		Name:  "session lifetime within the absolute cap",
-		Keys:  []string{sessionLifetimeSetting.Key, SessionAbsoluteCapSetting.Key},
-		Check: durationAtLeast(SessionAbsoluteCapSetting.Key, sessionLifetimeSetting.Key),
+		Keys:  []string{sessionLifetimeSetting.Key, sessionAbsoluteCapSetting.Key},
+		Check: durationAtLeast(sessionAbsoluteCapSetting.Key, sessionLifetimeSetting.Key),
 	}
 )
 
@@ -300,7 +304,7 @@ func Register(reg *config.Registry) {
 	for _, s := range []config.Setting{
 		magicLinkExpirySetting,
 		sessionLifetimeSetting,
-		SessionAbsoluteCapSetting,
+		sessionAbsoluteCapSetting,
 		nonceRetentionSetting,
 		linkRequestsPerAddressSetting,
 		linkRequestsPerClientSetting,
@@ -507,7 +511,7 @@ func ConfigFrom(cfg *config.Config, acc *settings.Accessor) (Config, error) {
 		PublicOrigin:          cfg.IdentitySourceValue(publicURLKey),
 		LinkExpiry:            acc.DurationReader(magicLinkExpirySetting),
 		SessionLifetime:       acc.DurationReader(sessionLifetimeSetting),
-		SessionAbsoluteCap:    acc.DurationReader(SessionAbsoluteCapSetting),
+		SessionAbsoluteCap:    acc.DurationReader(sessionAbsoluteCapSetting),
 		NonceRetention:        acc.DurationReader(nonceRetentionSetting),
 		BodyCap:               bodyCap(acc),
 		GenericAnswer:         genericAnswer(acc),
