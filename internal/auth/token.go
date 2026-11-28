@@ -108,8 +108,13 @@ func VerifyLink(current, previous []byte, value string, now time.Time) (LinkToke
 // linkURL builds the link a member receives. publicOrigin is the
 // configured public URL, never a request header: a link built from a
 // request's Host would mail a token to an attacker's origin. prefix is
-// the owned prefix's String form.
+// the owned prefix's String form. An empty or "/" prefix is refused:
+// the server owns only its subtree of the origin, so a link outside it
+// would hand the token to whatever else answers there.
 func linkURL(publicOrigin, prefix, token string) (string, error) {
+	if prefix == "" || prefix == "/" {
+		return "", errors.New("magic link prefix: empty or root, must name a subtree")
+	}
 	u, err := url.Parse(publicOrigin)
 	if err != nil {
 		return "", fmt.Errorf("magic link origin: %w", err)
