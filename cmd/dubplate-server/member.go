@@ -72,14 +72,14 @@ func withStore(ctx context.Context, environ []string, reg *config.Registry, fn f
 }
 
 // writingRoster returns a roster over h that may write, opening the
-// auth leaf under stateDir for the epochs a removal and a re-add bump.
-// Only a writing verb calls it, so member list opens no auth leaf.
+// auth dir under stateDir for the epochs a removal and a re-add bump.
+// Only a writing verb calls it, so member list opens no auth dir.
 func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, error) {
-	leaf, err := auth.Open(stateDir)
+	authDir, err := auth.Open(stateDir)
 	if err != nil {
 		return nil, fmt.Errorf("member %s: %w", verb, err)
 	}
-	return member.NewRoster(h, auth.NewEpochStore(leaf), time.Now), nil
+	return member.NewRoster(h, auth.NewEpochStore(authDir), time.Now), nil
 }
 
 // newMemberAddCmd builds "member add <address>". cobra's required-flag

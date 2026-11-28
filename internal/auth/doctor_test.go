@@ -24,19 +24,19 @@ func TestDirStatus(t *testing.T) {
 
 	tests := []struct {
 		name string
-		// setup shapes the leaf under stateDir and returns the status
+		// setup shapes the auth dir under stateDir and returns the status
 		// text the row must carry, and the euid it runs with.
 		setup      func(t *testing.T, stateDir string) (want string, euid int)
 		wantFailed bool
 	}{
 		{
-			name: "an absent leaf under a writable state directory",
+			name: "an absent auth dir under a writable state directory",
 			setup: func(*testing.T, string) (string, int) {
 				return "absent; serve creates it", own
 			},
 		},
 		{
-			name: "a leaf Open built",
+			name: "an auth dirOpen built",
 			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
@@ -45,25 +45,25 @@ func TestDirStatus(t *testing.T) {
 			},
 		},
 		{
-			name: "a leaf at mode 0750",
+			name: "an auth dir at mode 0750",
 			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
-				leaf := filepath.Join(stateDir, "auth")
-				chmodRestoring(t, leaf, 0o750)
-				return leaf + " has mode 750, want at most 700", own
+				authDir := filepath.Join(stateDir, "auth")
+				chmodRestoring(t, authDir, 0o750)
+				return authDir + " has mode 750, want at most 700", own
 			},
 			wantFailed: true,
 		},
 		{
-			name: "a leaf another uid owns",
+			name: "an auth dir another uid owns",
 			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
-				leaf := filepath.Join(stateDir, "auth")
-				return leaf + " is owned by uid " + strconv.Itoa(own) + ", want uid " + strconv.Itoa(own+1), own + 1
+				authDir := filepath.Join(stateDir, "auth")
+				return authDir + " is owned by uid " + strconv.Itoa(own) + ", want uid " + strconv.Itoa(own+1), own + 1
 			},
 			wantFailed: true,
 		},
@@ -80,22 +80,22 @@ func TestDirStatus(t *testing.T) {
 			wantFailed: true,
 		},
 		{
-			name: "an absent epoch subdirectory under a leaf the process may not write",
+			name: "an absent epoch subdirectory under an auth dir the process may not write",
 			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
 				}
-				leaf := filepath.Join(stateDir, "auth")
-				if err := os.Remove(filepath.Join(leaf, "epoch")); err != nil {
+				authDir := filepath.Join(stateDir, "auth")
+				if err := os.Remove(filepath.Join(authDir, "epoch")); err != nil {
 					t.Fatalf("fixture state: remove epoch: %v", err)
 				}
-				chmodRestoring(t, leaf, 0o500)
-				return filepath.Join(leaf, "epoch") + " is absent, and " + leaf + " is not writable: permission denied", own
+				chmodRestoring(t, authDir, 0o500)
+				return filepath.Join(authDir, "epoch") + " is absent, and " + authDir + " is not writable: permission denied", own
 			},
 			wantFailed: true,
 		},
 		{
-			name: "an absent leaf under a state directory the process may not write",
+			name: "an absent auth dir under a state directory the process may not write",
 			setup: func(t *testing.T, stateDir string) (string, int) {
 				chmodRestoring(t, stateDir, 0o500)
 				return "absent, and serve cannot create it: " + stateDir + " is not writable: permission denied", own
@@ -103,13 +103,13 @@ func TestDirStatus(t *testing.T) {
 			wantFailed: true,
 		},
 		{
-			name: "a leaf that is a file",
+			name: "an auth dir that is a file",
 			setup: func(t *testing.T, stateDir string) (string, int) {
-				leaf := filepath.Join(stateDir, "auth")
-				if err := os.WriteFile(leaf, nil, 0o600); err != nil {
+				authDir := filepath.Join(stateDir, "auth")
+				if err := os.WriteFile(authDir, nil, 0o600); err != nil {
 					t.Fatalf("fixture state: %v", err)
 				}
-				return leaf + " is not a directory", own
+				return authDir + " is not a directory", own
 			},
 			wantFailed: true,
 		},
