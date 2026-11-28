@@ -48,12 +48,12 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 901d107 P2, low: `internal/identity/identity.go:159` Channel's doc spends a paragraph (159-164) explaining that ChannelCommandLine is not an identity channel, and Valid has to reject it by name (234).
 - [ ] P3, medium: `cmd/dubplate-server/doctorrows.go:1` The split follows deliverables, not concerns.
 - [x] 34ace8a, with 89e9232 and 81b9f38 P3, medium: `internal/auth/reads.go:19` Several files follow deliverables, not concerns.
-- [ ] P3, medium: `internal/ops/ops.go:1` ops.go is named after the package but holds two unrelated concerns: the Actor (lines 12-88) and the job vocabulary (lines 90-177).
+- [x] 411ee0e (ops.go split into jobs.go, Actor moved to identity; details.go kept as the file two gates parse by path): P3, medium: `internal/ops/ops.go:1` ops.go is named after the package but holds two unrelated concerns: the Actor (lines 12-88) and the job vocabulary (lines 90-177).
 - [x] 8c165d1, 93c2fd7, 67b0704 P3, medium: `internal/serve/clientaddr.go:1` The package has two package doc comments: doc.go:1 ('the root composition every request passes through') and clientaddr.go:1 (a different list of contents).
-- [ ] P3, medium: `internal/webapp/document.go:322` document.go is a grab bag.
+- [x] 3d7c437 P3, medium: `internal/webapp/document.go:322` document.go is a grab bag.
 - [x] 411ee0e P3, low: `internal/ops/opshttp/carrier.go:1` carrier.go is a 43-line file with a coined name.
 - [ ] P4, medium: `cmd/dubplate-server/serve.go:91` Density is 0.297 against cmd/go/internal/modcmd at 0.141.
-- [ ] P4, medium: `internal/auth/config.go:422` The package has 1427 comment lines against 2270 code lines (0.63).
+- [x] 19bde31 45a5af2 ad047f5 33b0837 (0.58 to 0.40) P4, medium: `internal/auth/config.go:422` The package has 1427 comment lines against 2270 code lines (0.63).
 - [x] 901d107 P4, medium: `internal/identity/identity.go:1` Density is 1.19 (118/99), against net/mail at 0.21, so more than five times the stdlib norm.
 - [x] 7f60e5a P4, medium: `internal/notify/notify.go:1` The package doc argues against an alternative nobody proposed ('born general rather than as a magic-link mailer'), and it names 'the upload reject copy and run notifications' as callers.
 - [x] 411ee0e P4, medium: `internal/ops/opshttp/doc.go:17` The package doc says "Nothing here is exported: the package has no caller until a server mounts it".
@@ -67,7 +67,7 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 64c91f1 P4, low: `internal/ops/admin/settings.go:72` The closure `environment` is a noun naming a function that dedupes and appends an entry.
 - [x] 411ee0e P4, low: `internal/ops/opshttp/opshttp.go:252` Two comments no longer match the code.
 - [x] 93c2fd7 P4, low: `internal/serve/serve.go:128` doc.go:7-37 and Handler's doc (serve.go:128-146) each describe the composition order at length, and both say 'six steps'.
-- [ ] P4, low: `internal/webapp/document.go:375` The aggregate density, 0.45, matches net/http/httputil's 0.45, but document.go runs at 0.62.
+- [x] 6d7c7e3 P4, low: `internal/webapp/document.go:375` The aggregate density, 0.45, matches net/http/httputil's 0.45, but document.go runs at 0.62.
 - [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/backup.go:63` runBackup repeats openOperatorStore's body line for line (loadConfig, store.BusyTimeout, store.OpenWrite), and runRestore (restore.go:145-152) repeats its first two steps.
 - [x] done in server-boundaries (5a406f7) cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:185` The doctor row-name constants follow no single scheme.
 - [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:283` thresholdStatus repeats config's kind table (ParseInt/ParseDuration/ParseFloat/ParseString per kind) in a switch whose default arm reports 'a registration bug'.
@@ -80,7 +80,7 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] ab9563d internal/auth, medium: `internal/auth/epoch.go:251` CheckLink (epoch.go:251-267) is CheckSession (epoch.go:225-241) with a different time field and a different sentinel.
 - [ ] internal/auth, medium: `internal/auth/session.go:218` VerifySession composes authenticateSession and checkLife, and MagicLinkSeam.VerifyIdentity composes the same two calls with a setting read between them (seam.go:112-122).
 - [ ] internal/auth, medium: `internal/auth/store.go:46` The type is called Store, but every comment and local variable calls it the leaf: leafDirName, 'the auth leaf', 'Open creates the leaf', and `leaf, err := auth.Open(...)` in sentinel_test.go:30 and member_test.go:552.
-- [ ] internal/auth, low: `internal/auth/config.go:498` The doc comments at config.go:498, 507 and 516 say 'an [Setting]'.
+- [x] be17d0b (the article, done in server-boundaries) and 214e862 (the LinkURL guard); EpochPath no longer exists: internal/auth, low: `internal/auth/config.go:498` The doc comments at config.go:498, 507 and 516 say 'an [Setting]'.
 - [x] 8c5659c internal/auth, low: `internal/auth/handlers.go:207` The exported Handlers and the unexported handlers differ only in case, so a reader has to track which one a method hangs on.
 - [x] 8c5659c internal/auth, low: `internal/auth/handlers.go:528` writeAnswer calls writeJSON, which calls writeJSONHeader, and each of the three has exactly one caller.
 - [x] 3e0e79d internal/auth, low: `internal/auth/nonce.go:355` syncDir repeats the directory fsync that atomicfile.WriteStream already performs (internal/atomicfile/atomicfile.go:61-68).
@@ -120,13 +120,13 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [ ] internal/serve, low: `internal/serve/clientaddr.go:70` refusedProxyHeaders rebuilds its map on every call.
 - [x] 996e4ec internal/serve, low: `internal/serve/normalize.go:81` The refusal pair `markRefusal(r, s);
 - [x] d2e51b4 internal/webapp, medium: `internal/webapp/document.go:284` (P7) The package is named webapp, but its errors carry 'web: ' (28 sites) and its request record carries 'serve: document request', which is another package's prefix.
-- [ ] internal/webapp, medium: `internal/webapp/webapp.go:191` (P5) The two favicons and their MIME types are listed twice: as the icon links documents carry (webapp.go:191-194) and as the files the icons route serves (static.go:108-111).
-- [ ] internal/webapp, medium: `internal/webapp/webapp.go:224` The documents table (webapp.go:131-138) does not say which Routes field each document lands in.
-- [ ] internal/webapp, medium: `internal/webapp/webapp.go:393` namedDocument{path, raw} repeats document{name, ...} (webapp.go:117): document.name and namedDocument.path both hold the same build path under two different names.
+- [x] 02367ef internal/webapp, medium: `internal/webapp/webapp.go:191` (P5) The two favicons and their MIME types are listed twice: as the icon links documents carry (webapp.go:191-194) and as the files the icons route serves (static.go:108-111).
+- [x] 665c61b internal/webapp, medium: `internal/webapp/webapp.go:224` The documents table (webapp.go:131-138) does not say which Routes field each document lands in.
+- [x] 5e1856c internal/webapp, medium: `internal/webapp/webapp.go:393` namedDocument{path, raw} repeats document{name, ...} (webapp.go:117): document.name and namedDocument.path both hold the same build path under two different names.
 - [x] 1ee649e internal/webapp, low: `internal/webapp/config.go:153` brandingNeutral parses decls a second time with the same Split and Cut that BrandingStylesheet (branding.go:125-127) just ran.
-- [ ] internal/webapp, low: `internal/webapp/document.go:47` Some unexported types have exported fields (variantConfig, themeColor, icon, and documentConfig at :204), while their siblings (document, namedDocument, bundleThemes, staticFile) use lowercase fields.
-- [ ] internal/webapp, low: `internal/webapp/document.go:242` The handler constructors use four naming schemes: newDocument, newStylesheet, and newAssets (document.go:242, :192, :335), newFontsRoute and newIconsRoute (static.go:83, :100), stylesheetRoute (webapp.go:287), and documentNotFound ...
-- [ ] internal/webapp, low: `internal/webapp/document.go:306` (P6) maxLoggedPathBytes and boundedPath are a byte-for-byte copy of internal/serve/serve.go:322-334, and the comment admits they must agree ('matching the bound internal/serve puts').
+- [x] 581f3c9 internal/webapp, low: `internal/webapp/document.go:47` Some unexported types have exported fields (variantConfig, themeColor, icon, and documentConfig at :204), while their siblings (document, namedDocument, bundleThemes, staticFile) use lowercase fields.
+- [x] 65211d1 internal/webapp, low: `internal/webapp/document.go:242` The handler constructors use four naming schemes: newDocument, newStylesheet, and newAssets (document.go:242, :192, :335), newFontsRoute and newIconsRoute (static.go:83, :100), stylesheetRoute (webapp.go:287), and documentNotFound ...
+- [x] 2089663 internal/webapp, low: `internal/webapp/document.go:306` (P6) maxLoggedPathBytes and boundedPath are a byte-for-byte copy of internal/serve/serve.go:322-334, and the comment admits they must agree ('matching the bound internal/serve puts').
 - [x] 1ee649e internal/webapp, low: `internal/webapp/webapp.go:46` The Config doc says 'Every value is resolved and checked by the caller', but FromEnviron in this same package resolves and checks Match, Palette, Branding, BrandingNeutral, and OperatorCSS (config.go:98).
 - [x] 1ee649e internal/webapp, low: `internal/webapp/webapp.go:95` Routes.Operator is the handler for what RouteNames.OperatorCSS and Config.OperatorCSS name everywhere else.
 - [x] 12fa5fc Unused export, move-to-test: `keyedLimiter.size` at `internal/auth/limit.go:265`.
