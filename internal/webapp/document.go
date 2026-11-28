@@ -137,7 +137,7 @@ type icon struct {
 // an href) can supply a missing placeholder or add a second one; an
 // inserted value carrying the placeholder is refused outright.
 //
-// The variants are computed once, at startup; [newDocument] never
+// The variants are computed once, at startup; [documentHandler] never
 // touches raw again, so no request byte can reach a served document.
 // name identifies the document in a returned error.
 func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[string][]byte, error) {
@@ -264,7 +264,7 @@ func isStylesheetLink(tag []byte) bool {
 	return rel != nil && string(rel[1]) == "stylesheet"
 }
 
-// documentConfig is what [newDocument] serves a document from.
+// documentConfig is what [documentHandler] serves a document from.
 type documentConfig struct {
 	// variants holds one rewritten body per stampable palette, as
 	// [buildDocumentVariants] returns them.
@@ -286,7 +286,7 @@ type documentConfig struct {
 	logger *slog.Logger
 }
 
-// newDocument returns an http.Handler serving GET and HEAD only,
+// documentHandler returns an http.Handler serving GET and HEAD only,
 // answering the variant named by the [themeCookieName] cookie when its
 // value is an exact key of cfg.variants, and the default variant
 // otherwise. cfg.defaultPalette must be a key of cfg.variants: that
@@ -303,9 +303,9 @@ type documentConfig struct {
 // nothing about the cookie's value: every response is byte-identical
 // to one of the bodies [buildDocumentVariants] computed at startup, so
 // no request byte reaches a served document.
-func newDocument(cfg documentConfig) http.Handler {
+func documentHandler(cfg documentConfig) http.Handler {
 	if _, ok := cfg.variants[cfg.defaultPalette]; !ok {
-		panic(fmt.Sprintf("webapp: newDocument: default palette %q has no variant", cfg.defaultPalette))
+		panic(fmt.Sprintf("webapp: documentHandler: default palette %q has no variant", cfg.defaultPalette))
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !allowGetHead(w, r) {
@@ -328,10 +328,10 @@ func newDocument(cfg documentConfig) http.Handler {
 	})
 }
 
-// documentNotFound returns the 404 a documents' router answers a path
-// it holds no document for with, logged as [newDocument] logs its own
-// answers.
-func documentNotFound(logger *slog.Logger) http.Handler {
+// documentNotFoundHandler returns the 404 a documents' router answers
+// a path it holds no document for with, logged as [documentHandler]
+// logs its own answers.
+func documentNotFoundHandler(logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		logDocumentRequest(logger, r, http.StatusNotFound)

@@ -8,9 +8,9 @@ import (
 	"testing/fstest"
 )
 
-func TestNewStylesheet(t *testing.T) {
+func TestStylesheetHandler(t *testing.T) {
 	body := []byte(":root {\n\t--depth: 1;\n}\n")
-	handler := newStylesheet(body)
+	handler := stylesheetHandler("/branding.css", body)
 
 	for _, method := range []string{http.MethodGet, http.MethodHead} {
 		t.Run(method, func(t *testing.T) {
@@ -47,14 +47,14 @@ func TestNewStylesheet(t *testing.T) {
 	}
 }
 
-func newAssetsRoot() fstest.MapFS {
+func assetsRoot() fstest.MapFS {
 	return fstest.MapFS{
 		"immutable/app.js": &fstest.MapFile{Data: []byte("console.log(1)")},
 		"version.json":     &fstest.MapFile{Data: []byte(`{"version":"1"}`)},
 	}
 }
 
-func TestNewAssets(t *testing.T) {
+func TestAssetsHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		path       string
@@ -70,7 +70,7 @@ func TestNewAssets(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := newAssets(newAssetsRoot(), "/dubplate/_app")
+			handler := assetsHandler(assetsRoot(), "/dubplate/_app")
 			r := httptest.NewRequest(http.MethodGet, tt.path, nil)
 			rec := httptest.NewRecorder()
 			handler.ServeHTTP(rec, r)
@@ -87,8 +87,8 @@ func TestNewAssets(t *testing.T) {
 	}
 }
 
-func TestNewAssets_NeverListsOrRedirectsADirectory(t *testing.T) {
-	handler := newAssets(newAssetsRoot(), "/dubplate/_app")
+func TestAssetsHandler_NeverListsOrRedirectsADirectory(t *testing.T) {
+	handler := assetsHandler(assetsRoot(), "/dubplate/_app")
 	r := httptest.NewRequest(http.MethodGet, "/dubplate/_app/immutable", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, r)
@@ -100,8 +100,8 @@ func TestNewAssets_NeverListsOrRedirectsADirectory(t *testing.T) {
 	}
 }
 
-func TestNewAssets_MethodNotAllowed(t *testing.T) {
-	handler := newAssets(newAssetsRoot(), "/dubplate/_app")
+func TestAssetsHandler_MethodNotAllowed(t *testing.T) {
+	handler := assetsHandler(assetsRoot(), "/dubplate/_app")
 	r := httptest.NewRequest(http.MethodPost, "/dubplate/_app/immutable/app.js", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, r)
