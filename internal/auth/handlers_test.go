@@ -1337,29 +1337,6 @@ func wantSettingRecord(t *testing.T, rec map[string]any) {
 	}
 }
 
-// TestSettingFailureReason proves a failed setting read's log reason
-// is a fixed phrase naming the key a [settings.ReadError] carries, however
-// deeply wrapped, and never any error's own text.
-func TestSettingFailureReason(t *testing.T) {
-	keyed := &settings.ReadError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("near a@b.example")}
-	tests := []struct {
-		name string
-		err  error
-		want string
-	}{
-		{"a setting error", keyed, "setting unreadable: DUBPLATE_FIXTURE_KEY"},
-		{"a wrapped setting error", fmt.Errorf("verify identity: %w: %w", errSettingUnreadable, keyed), "setting unreadable: DUBPLATE_FIXTURE_KEY"},
-		{"an error naming no key", fmt.Errorf("%w: near a@b.example", errSettingUnreadable), "setting unreadable: unnamed"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := settingFailureReason(tt.err); got != tt.want {
-				t.Errorf("settingFailureReason() = %q, want %q", got, tt.want)
-			}
-		})
-	}
-}
-
 // TestRequestLink_SettingReadFailure proves each setting a link request
 // reads is read when the request starts, before the address parses or
 // the roster is asked: with one reader failing, a member, a stranger,

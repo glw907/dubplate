@@ -506,3 +506,29 @@ func ConfigFrom(cfg *config.Config, acc *settings.Accessor) (Config, error) {
 		GenericAnswer:         genericAnswer(acc),
 	}, nil
 }
+
+// errSettingUnreadable marks a failed read of a setting's value in
+// force. A handler answers it as a server error, never as a refusal of
+// what the request carried, and never falls back to a default.
+var errSettingUnreadable = errors.New("auth setting unreadable")
+
+// settingFailureReason is the log reason for err, a failed setting
+// read: a fixed phrase naming the key err's [settings.ReadError]
+// carries, or "unnamed" when it carries none. A handler logs this and
+// never err's text, which may carry whatever the read met.
+func settingFailureReason(err error) string {
+	key := "unnamed"
+	if re, ok := errors.AsType[*settings.ReadError](err); ok {
+		key = re.Key
+	}
+	return "setting unreadable: " + key
+}
+
+// readSetting calls s, wrapping a failure in errSettingUnreadable.
+func readSetting[T any](ctx context.Context, s settings.Reader[T]) (T, error) {
+	v, err := s(ctx)
+	if err != nil {
+		return v, fmt.Errorf("%w: %w", errSettingUnreadable, err)
+	}
+	return v, nil
+}

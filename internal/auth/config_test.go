@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -356,6 +357,29 @@ func TestConfigFrom_ReadersNameTheirKeys(t *testing.T) {
 			}
 			if se.Key != tt.key {
 				t.Errorf("ReadError key = %q, want %q", se.Key, tt.key)
+			}
+		})
+	}
+}
+
+// TestSettingFailureReason proves a failed setting read's log reason
+// is a fixed phrase naming the key a [settings.ReadError] carries, however
+// deeply wrapped, and never any error's own text.
+func TestSettingFailureReason(t *testing.T) {
+	keyed := &settings.ReadError{Key: "DUBPLATE_FIXTURE_KEY", Err: errors.New("near a@b.example")}
+	tests := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"a setting error", keyed, "setting unreadable: DUBPLATE_FIXTURE_KEY"},
+		{"a wrapped setting error", fmt.Errorf("verify identity: %w: %w", errSettingUnreadable, keyed), "setting unreadable: DUBPLATE_FIXTURE_KEY"},
+		{"an error naming no key", fmt.Errorf("%w: near a@b.example", errSettingUnreadable), "setting unreadable: unnamed"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := settingFailureReason(tt.err); got != tt.want {
+				t.Errorf("settingFailureReason() = %q, want %q", got, tt.want)
 			}
 		})
 	}
