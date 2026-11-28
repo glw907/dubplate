@@ -4,135 +4,135 @@ Each line is one finding from `docs/research/2026-11-23-architecture-read.md`, q
 sentence; the report holds the full finding and its fix. The task ticks each box as the spec's
 "Done items every task carries" section says.
 
-- [ ] Repo-wide, low: "Two package comments for serve" (`internal/serve/clientaddr.go:1`).
+- [x] 8c165d1 Repo-wide, low: "Two package comments for serve" (`internal/serve/clientaddr.go:1`).
 - [ ] P1, high: `cmd/dubplate-server/main.go:149` Every verb constructor takes `stdout, stderr io.Writer`, then repeats SilenceUsage/SilenceErrors and calls cmd.SetErr(stderr) (check.go:79, doctor.go:152, backup.go:51, restore.go:131, member.go:140,186,217, settings.go:60, unidec ...
 - [ ] P1, high: `cmd/dubplate-server/member.go:24` operatorVerbs exists, as its own doc says, 'so a test builds them with values of its choosing'.
 - [ ] P1, high: `cmd/dubplate-server/serve.go:158` newServeShellVia takes `mount func(*serve.Shell) registrar` and `buildFS fs.FS` only for tests.
-- [ ] P1, high: `internal/auth/doctor.go:87` StoreRowOptions exists only to carry Geteuid, and its one production caller always passes os.Geteuid (cmd/dubplate-server/doctor.go:105).
-- [ ] P1, high: `internal/auth/epoch.go:209` Subscribe, the subscribers slice (epoch.go:70), notifySubscriber with its goroutine, recover and 5s deadline (epoch.go:117-136), and the slices.Clone in advance (epoch.go:166) all serve a subscriber list that nothing subscribes to.
-- [ ] P1, high: `internal/notify/notify.go:60` Mailer.tlsConfig and Mailer.forceImplicitTLS are struct fields whose only writers are tests (notify_test.go:411, 412, 433, 472, 605, 636).
-- [ ] P1, high: `internal/ops/admin/admin.go:50` Config.Window is an injected function field whose only production caller (cmd/dubplate-server/serve.go:246) always fills it with this package's own export, admin.ReauthWindow(acc) (config.go:77).
-- [ ] P1, high: `internal/ops/opshttp/authorize.go:19` The authorizer interface has one production implementation, contextAuthorizer{} (carrier.go:35), and NewMount always passes it along with identity.ChannelCookie (mount.go:54).
-- [ ] P1, high: `internal/webapp/doctor.go:18` RowStatus takes `resolve func(*config.Config) error`, and its one production caller (cmd/dubplate-server/doctor.go:120) always passes webRowResolve(environ).
+- [x] 5a9b8c0 P1, high: `internal/auth/doctor.go:87` StoreRowOptions exists only to carry Geteuid, and its one production caller always passes os.Geteuid (cmd/dubplate-server/doctor.go:105).
+- [x] 706586f P1, high: `internal/auth/epoch.go:209` Subscribe, the subscribers slice (epoch.go:70), notifySubscriber with its goroutine, recover and 5s deadline (epoch.go:117-136), and the slices.Clone in advance (epoch.go:166) all serve a subscriber list that nothing subscribes to.
+- [x] 7f60e5a P1, high: `internal/notify/notify.go:60` Mailer.tlsConfig and Mailer.forceImplicitTLS are struct fields whose only writers are tests (notify_test.go:411, 412, 433, 472, 605, 636).
+- [x] 64c91f1 for admin; the jobs and intake copies are server-data's (`server-data.md:7`, `:112`): P1, high: `internal/ops/admin/admin.go:50` Config.Window is an injected function field whose only production caller (cmd/dubplate-server/serve.go:246) always fills it with this package's own export, admin.ReauthWindow(acc) (config.go:77).
+- [x] 411ee0e P1, high: `internal/ops/opshttp/authorize.go:19` The authorizer interface has one production implementation, contextAuthorizer{} (carrier.go:35), and NewMount always passes it along with identity.ChannelCookie (mount.go:54).
+- [x] 22236c3 P1, high: `internal/webapp/doctor.go:18` RowStatus takes `resolve func(*config.Config) error`, and its one production caller (cmd/dubplate-server/doctor.go:120) always passes webRowResolve(environ).
 - [ ] P1, medium: `cmd/dubplate-server/serve.go:363` authHandlersConfig has ten positional parameters.
-- [ ] P1, medium: `internal/auth/nonce.go:122` RunSweep takes the sweep function as a parameter, and its one production caller passes nonces.Sweep (cmd/dubplate-server/serve.go:423).
-- [ ] P1, medium: `internal/auth/seam.go:38` Seam.Read has no caller anywhere.
-- [ ] P1, medium: `internal/identity/identity_test.go:453` TestIdentity_PrincipalDistinctFromAddress (453-469) and TestIdentity_AddressMatchesNormalizer (474-494) cannot fail.
-- [ ] P1, medium: `internal/notify/notify.go:150` Send logs success through the process-global slog.Default.
-- [ ] P1, medium: `internal/ops/opshttp/opshttp.go:56` checkStatuses takes a table parameter, but its one production call passes the package-level statuses (opshttp.go:93).
-- [ ] P1, medium: `internal/serve/doctor.go:198` BoundaryProbeRowStatus takes reg *config.Registry only to detect 'a registry built for a test of another family' (doctor.go:192-204).
-- [ ] P1, medium: `internal/serve/server.go:88` newHTTPServer takes a writeTimeout parameter that its one production caller always fills with defaultWriteTimeout (server.go:141).
-- [ ] P1, low: `internal/identity/identity_test.go:206` defaultIgnorableRow.preExisting is set on three rows but no test reads it.
-- [ ] P1, low: `internal/ops/idpin_test.go:10` The non-test code has no test-only seams.
+- [x] 607a0b5 P1, medium: `internal/auth/nonce.go:122` RunSweep takes the sweep function as a parameter, and its one production caller passes nonces.Sweep (cmd/dubplate-server/serve.go:423).
+- [x] done in vocabulary (507e342) P1, medium: `internal/auth/seam.go:38` Seam.Read has no caller anywhere.
+- [x] 901d107 P1, medium: `internal/identity/identity_test.go:453` TestIdentity_PrincipalDistinctFromAddress (453-469) and TestIdentity_AddressMatchesNormalizer (474-494) cannot fail.
+- [x] 7f60e5a P1, medium: `internal/notify/notify.go:150` Send logs success through the process-global slog.Default.
+- [x] aafc1d7 P1, medium: `internal/ops/opshttp/opshttp.go:56` checkStatuses takes a table parameter, but its one production call passes the package-level statuses (opshttp.go:93).
+- [x] 55d9bbe P1, medium: `internal/serve/doctor.go:198` BoundaryProbeRowStatus takes reg *config.Registry only to detect 'a registry built for a test of another family' (doctor.go:192-204).
+- [x] 1161df6 P1, medium: `internal/serve/server.go:88` newHTTPServer takes a writeTimeout parameter that its one production caller always fills with defaultWriteTimeout (server.go:141).
+- [x] 901d107 P1, low: `internal/identity/identity_test.go:206` defaultIgnorableRow.preExisting is set on three rows but no test reads it.
+- [x] aafc1d7 P1, low: `internal/ops/idpin_test.go:10` The non-test code has no test-only seams.
 - [ ] P1, low: `internal/serve/doctor.go:80` BindAddrsRowStatus(environ, ifaceAddrs []net.Addr, ifaceErr error) takes another function's error as an input parameter.
-- [ ] P1, low: `internal/serve/tusmount_test.go:86` A serve test imports intake, store and identity to exercise intake's tus mount.
-- [ ] P1, low: `internal/webapp/branding_test.go:177` Two test names do not name behavior.
-- [ ] P2, high: `internal/auth/store.go:83` Much of the exported surface has no caller outside the package.
-- [ ] P2, high: `internal/identity/identity.go:202` `type UserID id.ID` is a defined type, so it drops every method id.ID has: String, IsZero, and Value (the driver.Valuer).
-- [ ] P2, high: `internal/notify/notify.go:28` ErrHeaderInjection (28), ErrInvalidFrom (33), ErrInvalidRecipient (38) and ErrSend (44) are exported, but grepping the module finds no reference outside notify.go and notify_test.go.
-- [ ] P2, high: `internal/serve/config.go:18` Grepped across the module, these exports have no production caller outside internal/serve: BindAddrsThreshold (config.go:18), PortThreshold (:30), TrustedProxyAddrsKey and TrustedProxyHeaderKey (:128-129), TrustedProxyClass (:138) ...
-- [ ] P2, high: `internal/serve/serve.go:48` NewShell(prefix Prefix, strip Strip, logger) makes the caller build a Strip with NewStrip(proxyConfig) and hand it straight back.
-- [ ] P2, high: `internal/webapp/branding.go:112` BrandingStylesheet has no reference anywhere outside internal/webapp;
-- [ ] P2, high: `internal/webapp/config.go:14` ThemePaletteKey and ErrNoThemeSelector (webapp.go:28) are an exported pair with one purpose: cmd/dubplate-server/web.go:125-126 catches the sentinel and prepends the key and palette.
-- [ ] P2, high: `internal/webapp/csp.go:63` DocumentCSP has one production caller, New (webapp.go:168) and checkVariantCSP (webapp.go:274) in this package.
-- [ ] P2, high: `internal/webapp/document.go:391` StylesheetHrefs is called outside the package only by cmd/dubplate-server/web_test.go:1021, :1261, :1296, and :1426.
-- [ ] P2, high: `internal/webapp/operatorcss.go:40` ReadOperatorCSS has no reference outside internal/webapp;
+- [x] f158e6c P1, low: `internal/serve/tusmount_test.go:86` A serve test imports intake, store and identity to exercise intake's tus mount.
+- [x] 1ee649e, d2e51b4 P1, low: `internal/webapp/branding_test.go:177` Two test names do not name behavior.
+- [x] 81b9f38 P2, high: `internal/auth/store.go:83` Much of the exported surface has no caller outside the package.
+- [x] 52e055f P2, high: `internal/identity/identity.go:202` `type UserID id.ID` is a defined type, so it drops every method id.ID has: String, IsZero, and Value (the driver.Valuer).
+- [x] 7f60e5a P2, high: `internal/notify/notify.go:28` ErrHeaderInjection (28), ErrInvalidFrom (33), ErrInvalidRecipient (38) and ErrSend (44) are exported, but grepping the module finds no reference outside notify.go and notify_test.go.
+- [x] 4a873cd P2, high: `internal/serve/config.go:18` Grepped across the module, these exports have no production caller outside internal/serve: BindAddrsThreshold (config.go:18), PortThreshold (:30), TrustedProxyAddrsKey and TrustedProxyHeaderKey (:128-129), TrustedProxyClass (:138) ...
+- [x] 4a873cd P2, high: `internal/serve/serve.go:48` NewShell(prefix Prefix, strip Strip, logger) makes the caller build a Strip with NewStrip(proxyConfig) and hand it straight back.
+- [x] 1ee649e P2, high: `internal/webapp/branding.go:112` BrandingStylesheet has no reference anywhere outside internal/webapp;
+- [x] 1ee649e P2, high: `internal/webapp/config.go:14` ThemePaletteKey and ErrNoThemeSelector (webapp.go:28) are an exported pair with one purpose: cmd/dubplate-server/web.go:125-126 catches the sentinel and prepends the key and palette.
+- [x] 1ee649e P2, high: `internal/webapp/csp.go:63` DocumentCSP has one production caller, New (webapp.go:168) and checkVariantCSP (webapp.go:274) in this package.
+- [x] 1ee649e P2, high: `internal/webapp/document.go:391` StylesheetHrefs is called outside the package only by cmd/dubplate-server/web_test.go:1021, :1261, :1296, and :1426.
+- [x] 1ee649e P2, high: `internal/webapp/operatorcss.go:40` ReadOperatorCSS has no reference outside internal/webapp;
 - [ ] P2, medium: `internal/auth/token.go:112` MintLink, LinkURL, VerifyLink, MintSession and VerifySession are exported, yet their only callers outside this package are cmd/dubplate-server tests (rendered_test.go:633,637;
-- [ ] P2, medium: `internal/identity/identity.go:26` MaxAddressLength has no reference outside identity.go except this package's own test, so it is not referenced from any other package, test or production.
-- [ ] P2, medium: `internal/identity/identity.go:218` Identity.DisplayName has a single writer (auth/seam.go:136) and no reader anywhere in production code.
-- [ ] P2, medium: `internal/ops/errors.go:132` NewUnauthenticatedError and ErrUnauthenticated (errors.go:44) have no production caller.
-- [ ] P2, medium: `internal/ops/privilege.go:41` Privilege.MarshalText and Privilege.UnmarshalText, plus the valid() helper at :20 that exists only for MarshalText, have no production caller.
+- [x] 901d107 P2, medium: `internal/identity/identity.go:26` MaxAddressLength has no reference outside identity.go except this package's own test, so it is not referenced from any other package, test or production.
+- [x] 901d107 P2, medium: `internal/identity/identity.go:218` Identity.DisplayName has a single writer (auth/seam.go:136) and no reader anywhere in production code.
+- [x] aafc1d7 P2, medium: `internal/ops/errors.go:132` NewUnauthenticatedError and ErrUnauthenticated (errors.go:44) have no production caller.
+- [x] c6b44ec P2, medium: `internal/ops/privilege.go:41` Privilege.MarshalText and Privilege.UnmarshalText, plus the valid() helper at :20 that exists only for MarshalText, have no production caller.
 - [ ] P2, medium: `internal/serve/config.go:99` ResolveConfig returns four results, (Prefix, []string, int, error), with nothing naming the second and third.
-- [ ] P2, medium: `internal/webapp/document.go:21` ThemeCookieName is read only by cmd/dubplate-server/web_test.go:383, :526, and :1450.
-- [ ] P2, medium: `internal/webapp/webapp.go:469` ExactPaths has one caller outside, and it is not about the web app: cmd/dubplate-server/serve.go:242 uses it to keep deeper paths off serve's probe route.
-- [ ] P2, low: `internal/identity/identity.go:159` Channel's doc spends a paragraph (159-164) explaining that ChannelCommandLine is not an identity channel, and Valid has to reject it by name (234).
+- [x] 1ee649e P2, medium: `internal/webapp/document.go:21` ThemeCookieName is read only by cmd/dubplate-server/web_test.go:383, :526, and :1450.
+- [x] 1ee649e P2, medium: `internal/webapp/webapp.go:469` ExactPaths has one caller outside, and it is not about the web app: cmd/dubplate-server/serve.go:242 uses it to keep deeper paths off serve's probe route.
+- [x] 901d107 P2, low: `internal/identity/identity.go:159` Channel's doc spends a paragraph (159-164) explaining that ChannelCommandLine is not an identity channel, and Valid has to reject it by name (234).
 - [ ] P3, medium: `cmd/dubplate-server/doctorrows.go:1` The split follows deliverables, not concerns.
-- [ ] P3, medium: `internal/auth/reads.go:19` Several files follow deliverables, not concerns.
+- [x] 34ace8a, with 89e9232 and 81b9f38 P3, medium: `internal/auth/reads.go:19` Several files follow deliverables, not concerns.
 - [ ] P3, medium: `internal/ops/ops.go:1` ops.go is named after the package but holds two unrelated concerns: the Actor (lines 12-88) and the job vocabulary (lines 90-177).
-- [ ] P3, medium: `internal/serve/clientaddr.go:1` The package has two package doc comments: doc.go:1 ('the root composition every request passes through') and clientaddr.go:1 (a different list of contents).
+- [x] 8c165d1, 93c2fd7, 67b0704 P3, medium: `internal/serve/clientaddr.go:1` The package has two package doc comments: doc.go:1 ('the root composition every request passes through') and clientaddr.go:1 (a different list of contents).
 - [ ] P3, medium: `internal/webapp/document.go:322` document.go is a grab bag.
-- [ ] P3, low: `internal/ops/opshttp/carrier.go:1` carrier.go is a 43-line file with a coined name.
+- [x] 411ee0e P3, low: `internal/ops/opshttp/carrier.go:1` carrier.go is a 43-line file with a coined name.
 - [ ] P4, medium: `cmd/dubplate-server/serve.go:91` Density is 0.297 against cmd/go/internal/modcmd at 0.141.
 - [ ] P4, medium: `internal/auth/config.go:422` The package has 1427 comment lines against 2270 code lines (0.63).
-- [ ] P4, medium: `internal/identity/identity.go:1` Density is 1.19 (118/99), against net/mail at 0.21, so more than five times the stdlib norm.
-- [ ] P4, medium: `internal/notify/notify.go:1` The package doc argues against an alternative nobody proposed ('born general rather than as a magic-link mailer'), and it names 'the upload reject copy and run notifications' as callers.
-- [ ] P4, medium: `internal/ops/opshttp/doc.go:17` The package doc says "Nothing here is exported: the package has no caller until a server mounts it".
+- [x] 901d107 P4, medium: `internal/identity/identity.go:1` Density is 1.19 (118/99), against net/mail at 0.21, so more than five times the stdlib norm.
+- [x] 7f60e5a P4, medium: `internal/notify/notify.go:1` The package doc argues against an alternative nobody proposed ('born general rather than as a magic-link mailer'), and it names 'the upload reject copy and run notifications' as callers.
+- [x] 411ee0e P4, medium: `internal/ops/opshttp/doc.go:17` The package doc says "Nothing here is exported: the package has no caller until a server mounts it".
 - [ ] P4, medium: `internal/serve/strip.go:177` The package measures 1145 comment lines to 1321 code lines, 0.87, against net/http/httputil at 0.45 (net/netip is 0.39).
-- [ ] P4, low: `internal/identity/identity.go:54` The NormalizeAddress doc promises that the error never quotes value, "so a caller may log it".
-- [ ] P4, low: `internal/notify/notify.go:40` The ErrSend doc says it covers failure 'after a successful dial', but lines 141-145 wrap every DialAndSendWithContext error, a refused dial and a missing STARTTLS included (notify_test.go:511 asserts ErrSend for the STARTTLS case).
-- [ ] P4, low: `internal/notify/notify.go:117` The comment quotes 'go-mail v0.8.1' and names that version's source files, but go.mod pins github.com/wneessen/go-mail v0.8.2.
-- [ ] P4, low: `internal/notify/notify.go:148` The comment claims that only the roster audit record names an address.
-- [ ] P4, low: `internal/ops/errors.go:182` Overall density is 0.56 against io/fs at 0.57, so there is no volume excess.
-- [ ] P4, low: `internal/ops/admin/admin.go:79` Two comments are harder to parse than the code they describe.
-- [ ] P4, low: `internal/ops/admin/settings.go:72` The closure `environment` is a noun naming a function that dedupes and appends an entry.
-- [ ] P4, low: `internal/ops/opshttp/opshttp.go:252` Two comments no longer match the code.
-- [ ] P4, low: `internal/serve/serve.go:128` doc.go:7-37 and Handler's doc (serve.go:128-146) each describe the composition order at length, and both say 'six steps'.
+- [x] 2b9f024 P4, low: `internal/identity/identity.go:54` The NormalizeAddress doc promises that the error never quotes value, "so a caller may log it".
+- [x] 7f60e5a P4, low: `internal/notify/notify.go:40` The ErrSend doc says it covers failure 'after a successful dial', but lines 141-145 wrap every DialAndSendWithContext error, a refused dial and a missing STARTTLS included (notify_test.go:511 asserts ErrSend for the STARTTLS case).
+- [x] 7f60e5a P4, low: `internal/notify/notify.go:117` The comment quotes 'go-mail v0.8.1' and names that version's source files, but go.mod pins github.com/wneessen/go-mail v0.8.2.
+- [x] 7f60e5a P4, low: `internal/notify/notify.go:148` The comment claims that only the roster audit record names an address.
+- [x] aafc1d7 P4, low: `internal/ops/errors.go:182` Overall density is 0.56 against io/fs at 0.57, so there is no volume excess.
+- [x] 64c91f1 P4, low: `internal/ops/admin/admin.go:79` Two comments are harder to parse than the code they describe.
+- [x] 64c91f1 P4, low: `internal/ops/admin/settings.go:72` The closure `environment` is a noun naming a function that dedupes and appends an entry.
+- [x] 411ee0e P4, low: `internal/ops/opshttp/opshttp.go:252` Two comments no longer match the code.
+- [x] 93c2fd7 P4, low: `internal/serve/serve.go:128` doc.go:7-37 and Handler's doc (serve.go:128-146) each describe the composition order at length, and both say 'six steps'.
 - [ ] P4, low: `internal/webapp/document.go:375` The aggregate density, 0.45, matches net/http/httputil's 0.45, but document.go runs at 0.62.
 - [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/backup.go:63` runBackup repeats openOperatorStore's body line for line (loadConfig, store.BusyTimeout, store.OpenWrite), and runRestore (restore.go:145-152) repeats its first two steps.
-- [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:185` The doctor row-name constants follow no single scheme.
+- [x] done in server-boundaries (5a406f7) cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:185` The doctor row-name constants follow no single scheme.
 - [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/doctor.go:283` thresholdStatus repeats config's kind table (ParseInt/ParseDuration/ParseFloat/ParseString per kind) in a switch whose default arm reports 'a registration bug'.
 - [ ] cmd/dubplate-server, medium: `cmd/dubplate-server/web.go:71` newWebRoutes and newWebRoutesFromFS are twins that differ only in calling embeddedBuild.
 - [ ] cmd/dubplate-server, low: `cmd/dubplate-server/backup.go:239` backupExitCode returns an error, not a code.
 - [ ] cmd/dubplate-server, low: `cmd/dubplate-server/intake.go:73` tusVerifier and apiVerifier (api.go:32) share the same CheckRequest call and ErrNotSignedIn switch, with a different sentinel wrapped.
 - [ ] cmd/dubplate-server, low: `cmd/dubplate-server/web.go:45` privateFiles wraps one string, and every user unpacks it straight away (`webapp.FromEnviron(environ, private.stateDir)`, web.go:115).
-- [ ] internal/auth, high: `internal/auth/request.go:31` CheckRequest (request.go:31-58) repeats RequireAdmin's body (admin.go:42-67): the clock read, the Sec-Fetch-Site test, VerifyIdentity, the reason/level switch through gateRefusalReason, the log line, and the refreshed-cookie write.
-- [ ] internal/auth, medium: `internal/auth/admin.go:12` AdminConfig configures CheckRequest, which admits any signed-in member, and the cmd verifiers for the API and tus mounts take it (cmd/dubplate-server/api.go:32, intake.go:73).
-- [ ] internal/auth, medium: `internal/auth/epoch.go:251` CheckLink (epoch.go:251-267) is CheckSession (epoch.go:225-241) with a different time field and a different sentinel.
+- [x] 89e9232 internal/auth, high: `internal/auth/request.go:31` CheckRequest (request.go:31-58) repeats RequireAdmin's body (admin.go:42-67): the clock read, the Sec-Fetch-Site test, VerifyIdentity, the reason/level switch through gateRefusalReason, the log line, and the refreshed-cookie write.
+- [x] done in vocabulary (2293db1) internal/auth, medium: `internal/auth/admin.go:12` AdminConfig configures CheckRequest, which admits any signed-in member, and the cmd verifiers for the API and tus mounts take it (cmd/dubplate-server/api.go:32, intake.go:73).
+- [x] ab9563d internal/auth, medium: `internal/auth/epoch.go:251` CheckLink (epoch.go:251-267) is CheckSession (epoch.go:225-241) with a different time field and a different sentinel.
 - [ ] internal/auth, medium: `internal/auth/session.go:218` VerifySession composes authenticateSession and checkLife, and MagicLinkSeam.VerifyIdentity composes the same two calls with a setting read between them (seam.go:112-122).
 - [ ] internal/auth, medium: `internal/auth/store.go:46` The type is called Store, but every comment and local variable calls it the leaf: leafDirName, 'the auth leaf', 'Open creates the leaf', and `leaf, err := auth.Open(...)` in sentinel_test.go:30 and member_test.go:552.
 - [ ] internal/auth, low: `internal/auth/config.go:498` The doc comments at config.go:498, 507 and 516 say 'an [Setting]'.
-- [ ] internal/auth, low: `internal/auth/handlers.go:207` The exported Handlers and the unexported handlers differ only in case, so a reader has to track which one a method hangs on.
-- [ ] internal/auth, low: `internal/auth/handlers.go:528` writeAnswer calls writeJSON, which calls writeJSONHeader, and each of the three has exactly one caller.
-- [ ] internal/auth, low: `internal/auth/nonce.go:355` syncDir repeats the directory fsync that atomicfile.WriteStream already performs (internal/atomicfile/atomicfile.go:61-68).
-- [ ] internal/auth, low: `internal/auth/roster.go:239` normalizeMemberAddress is a one-line pass-through, and its comment says it is the roster's single resolution point.
+- [x] 8c5659c internal/auth, low: `internal/auth/handlers.go:207` The exported Handlers and the unexported handlers differ only in case, so a reader has to track which one a method hangs on.
+- [x] 8c5659c internal/auth, low: `internal/auth/handlers.go:528` writeAnswer calls writeJSON, which calls writeJSONHeader, and each of the three has exactly one caller.
+- [x] 3e0e79d internal/auth, low: `internal/auth/nonce.go:355` syncDir repeats the directory fsync that atomicfile.WriteStream already performs (internal/atomicfile/atomicfile.go:61-68).
+- [x] 0fe4f30 internal/auth, low: `internal/auth/roster.go:239` normalizeMemberAddress is a one-line pass-through, and its comment says it is the roster's single resolution point.
 - [ ] internal/auth, low: `internal/auth/roster.go:381` AddMember, RemoveMember and DemoteMember take a *slog.Logger on every call, and revoke passes it down.
-- [ ] internal/auth, low: `internal/auth/roster.go:489` The same raw-bytes-to-UserID length check is written three times: reads.go:30-34, roster.go:425-428 and roster.go:489-491.
-- [ ] internal/identity, medium: `internal/identity/identity.go:65` NormalizeAddress scans the string twice: strings.ContainsFunc finds an invisible rune, then invisibleRune (lines 135-142) walks it again to find the same rune.
-- [ ] internal/identity, medium: `internal/identity/identity.go:232` The receiver `id` of Identity.Valid shadows the package `id` imported at line 19, inside the same file that declares `type UserID id.ID`.
-- [ ] internal/identity, low: `internal/identity/identity.go:217` The field is named Principal but documented as "the member's username", and its only writer fills it from `member.Username` (auth/seam.go:135).
+- [x] 52e055f internal/auth, low: `internal/auth/roster.go:489` The same raw-bytes-to-UserID length check is written three times: reads.go:30-34, roster.go:425-428 and roster.go:489-491.
+- [x] 901d107 internal/identity, medium: `internal/identity/identity.go:65` NormalizeAddress scans the string twice: strings.ContainsFunc finds an invisible rune, then invisibleRune (lines 135-142) walks it again to find the same rune.
+- [x] 901d107 internal/identity, medium: `internal/identity/identity.go:232` The receiver `id` of Identity.Valid shadows the package `id` imported at line 19, inside the same file that declares `type UserID id.ID`.
+- [x] 901d107 internal/identity, low: `internal/identity/identity.go:217` The field is named Principal but documented as "the member's username", and its only writer fills it from `member.Username` (auth/seam.go:135).
 - [ ] internal/notify, medium: `internal/notify/notify.go:93` Send runs three CR/LF guards (93-101), and then msg.From and msg.To parse the same values through net/mail.
-- [ ] internal/notify, low: `internal/notify/notify.go:33` ErrInvalidFrom names a header and ErrInvalidRecipient names a role, and the guard labels at 93-99 ('recipient', 'subject', 'from') mix the same two vocabularies.
-- [ ] internal/notify, low: `internal/notify/notify.go:145` The non-SendError branch formats err with %v, which cuts the error chain.
-- [ ] internal/ops, high: `internal/ops/errors.go:35` (P5) Each of the nine failures is declared four times and kept in agreement by hand: Code constants (errors.go:16-31), sentinel vars (35-46), the codes map that joins them (51-62), and nine constructors that differ only in the sen ...
-- [ ] internal/ops, medium: `internal/ops/admin.go:67` One concept has two wire names: a setting is `name` in SettingEntry.Name (admin.go:67) and `key` in SetSettingRequest.Key, ResetSettingRequest.Key, and the two responses (admin.go:85, 92, 99, 105).
-- [ ] internal/ops, medium: `internal/ops/privilege.go:69` (P5, P8) The twelve operation names live in parallel hand-kept lists: the untyped Op constants (admin.go:111-119, submissions.go:10-16), the privileges map (privilege.go:69-83), and opshttp's route table (opshttp/opshttp.go:98-110 ...
-- [ ] internal/ops, low: `internal/ops/admin.go:104` Identical shapes are declared twice in two places: ResetSettingResponse repeats SetSettingResponse field for field (admin.go:91-108), and CancelJobResponse repeats JobStatusResponse (ops.go:164-177).
-- [ ] internal/ops, low: `internal/ops/admin.go:126` AdminSeam and SubmissionSeam name the architectural role ('seam' is test-seam jargon) instead of what the interface does.
-- [ ] internal/ops, low: `internal/ops/ops.go:54` NetworkActor's parameter `id` shadows the imported package `id` (ops.go:8).
-- [ ] internal/ops, low: `internal/ops/ops.go:104` ParseHandle calls id.Parse, discards the result, and returns the input string.
-- [ ] internal/ops/admin, medium: `internal/ops/admin/members.go:45` RemoveMember (45-58) and DemoteMember (60-73) are the same body except for the roster method they call, and AddMember (29-31) repeats the same requireFresh call.
-- [ ] internal/ops/admin, medium: `internal/ops/admin/settings.go:16` (P5) The wire values of ops.SettingEntry's Home, Apply, and Mark fields are declared in the implementation (homeStore, homeEnvironment, applyNames, markNames).
-- [ ] internal/ops/admin, low: `internal/ops/admin/admin.go:64` The Seam field `settings map[string]config.Setting` has the same name as the imported package `settings`.
-- [ ] internal/ops/admin, low: `internal/ops/admin/config.go:58` The local `refusal := fmt.Sprintf(...)` inside reauthWindowBelowCap.Check shadows the package-level function refusal (admin.go:118), which maps errors to wire answers.
-- [ ] internal/ops/admin, low: `internal/ops/admin/notice.go:26` The method `notice` reads at its call site (settings.go:150, `s.notice(ctx, actor, key, res)`) as the verb "to notice", meaning to observe, while it actually sends mail.
-- [ ] internal/ops/admin, low: `internal/ops/admin/notice.go:38` The principal lookup scans the whole roster and keeps assigning after the match, with no break.
-- [ ] internal/ops/admin, low: `internal/ops/admin/settings.go:142` writeSetting repeats writeMember's core: `context.WithTimeout(ctx, writeWait)`, defer cancel, run the write, `refusal(err)`.
-- [ ] internal/ops/opshttp, medium: `internal/ops/opshttp/authorize.go:29` authorizingSeam is not a seam.
-- [ ] internal/ops/opshttp, medium: `internal/ops/opshttp/mount.go:16` (P6) opshttp.ErrUnauthenticated restates ops.ErrUnauthenticated (internal/ops/errors.go:44), which already maps to CodeUnauthenticated and which nothing in production raises today.
-- [ ] internal/ops/opshttp, medium: `internal/ops/opshttp/opshttp.go:97` (P5) The route map repeats each op name twice per entry (key and route argument).
-- [ ] internal/ops/opshttp, low: `internal/ops/opshttp/opshttp.go:138` Several small naming inconsistencies.
-- [ ] internal/ops/opshttp, low: `internal/ops/opshttp/opshttp.go:247` writeError takes both a status and a code, even though statuses already relates the two, so callers pick one of two forms.
+- [x] 7f60e5a internal/notify, low: `internal/notify/notify.go:33` ErrInvalidFrom names a header and ErrInvalidRecipient names a role, and the guard labels at 93-99 ('recipient', 'subject', 'from') mix the same two vocabularies.
+- [x] 7f60e5a internal/notify, low: `internal/notify/notify.go:145` The non-SendError branch formats err with %v, which cuts the error chain.
+- [x] aafc1d7 internal/ops, high: `internal/ops/errors.go:35` (P5) Each of the nine failures is declared four times and kept in agreement by hand: Code constants (errors.go:16-31), sentinel vars (35-46), the codes map that joins them (51-62), and nine constructors that differ only in the sen ...
+- [x] 2ad373b, the rest done in wire-contract (b51632f, e946adb) internal/ops, medium: `internal/ops/admin.go:67` One concept has two wire names: a setting is `name` in SettingEntry.Name (admin.go:67) and `key` in SetSettingRequest.Key, ResetSettingRequest.Key, and the two responses (admin.go:85, 92, 99, 105).
+- [x] 411ee0e internal/ops, medium: `internal/ops/privilege.go:69` (P5, P8) The twelve operation names live in parallel hand-kept lists: the untyped Op constants (admin.go:111-119, submissions.go:10-16), the privileges map (privilege.go:69-83), and opshttp's route table (opshttp/opshttp.go:98-110 ...
+- [x] 64c91f1 internal/ops, low: `internal/ops/admin.go:104` Identical shapes are declared twice in two places: ResetSettingResponse repeats SetSettingResponse field for field (admin.go:91-108), and CancelJobResponse repeats JobStatusResponse (ops.go:164-177).
+- [x] done in vocabulary (507e342) internal/ops, low: `internal/ops/admin.go:126` AdminSeam and SubmissionSeam name the architectural role ('seam' is test-seam jargon) instead of what the interface does.
+- [x] done in vocabulary (69028bb) internal/ops, low: `internal/ops/ops.go:54` NetworkActor's parameter `id` shadows the imported package `id` (ops.go:8).
+- [x] done in wire-contract (e946adb) internal/ops, low: `internal/ops/ops.go:104` ParseHandle calls id.Parse, discards the result, and returns the input string.
+- [x] 64c91f1 internal/ops/admin, medium: `internal/ops/admin/members.go:45` RemoveMember (45-58) and DemoteMember (60-73) are the same body except for the roster method they call, and AddMember (29-31) repeats the same requireFresh call.
+- [x] 64c91f1 internal/ops/admin, medium: `internal/ops/admin/settings.go:16` (P5) The wire values of ops.SettingEntry's Home, Apply, and Mark fields are declared in the implementation (homeStore, homeEnvironment, applyNames, markNames).
+- [x] 64c91f1 internal/ops/admin, low: `internal/ops/admin/admin.go:64` The Seam field `settings map[string]config.Setting` has the same name as the imported package `settings`.
+- [x] 64c91f1 internal/ops/admin, low: `internal/ops/admin/config.go:58` The local `refusal := fmt.Sprintf(...)` inside reauthWindowBelowCap.Check shadows the package-level function refusal (admin.go:118), which maps errors to wire answers.
+- [x] 64c91f1 internal/ops/admin, low: `internal/ops/admin/notice.go:26` The method `notice` reads at its call site (settings.go:150, `s.notice(ctx, actor, key, res)`) as the verb "to notice", meaning to observe, while it actually sends mail.
+- [x] 64c91f1 internal/ops/admin, low: `internal/ops/admin/notice.go:38` The principal lookup scans the whole roster and keeps assigning after the match, with no break.
+- [x] 64c91f1 internal/ops/admin, low: `internal/ops/admin/settings.go:142` writeSetting repeats writeMember's core: `context.WithTimeout(ctx, writeWait)`, defer cancel, run the write, `refusal(err)`.
+- [x] 411ee0e internal/ops/opshttp, medium: `internal/ops/opshttp/authorize.go:29` authorizingSeam is not a seam.
+- [x] aafc1d7 internal/ops/opshttp, medium: `internal/ops/opshttp/mount.go:16` (P6) opshttp.ErrUnauthenticated restates ops.ErrUnauthenticated (internal/ops/errors.go:44), which already maps to CodeUnauthenticated and which nothing in production raises today.
+- [x] 411ee0e internal/ops/opshttp, medium: `internal/ops/opshttp/opshttp.go:97` (P5) The route map repeats each op name twice per entry (key and route argument).
+- [x] 411ee0e internal/ops/opshttp, low: `internal/ops/opshttp/opshttp.go:138` Several small naming inconsistencies.
+- [x] 411ee0e internal/ops/opshttp, low: `internal/ops/opshttp/opshttp.go:247` writeError takes both a status and a code, even though statuses already relates the two, so callers pick one of two forms.
 - [ ] internal/serve, high: `internal/serve/bindaddrs.go:46` Two values are parsed and then passed on as strings, so the callers parse them again.
 - [ ] internal/serve, medium: `internal/serve/clientaddr.go:109` Names are inconsistent across the package.
-- [ ] internal/serve, medium: `internal/serve/clientaddr.go:261` splitHops and trimHop rebuild the stdlib by hand.
-- [ ] internal/serve, medium: `internal/serve/doctor.go:252` trustedProxy calls ResolveTrustedProxy and then calls ParseProxyAddrs on the raw config value again (doctor.go:261) to rebuild the proxy set the TrustedProxyConfig already holds.
-- [ ] internal/serve, medium: `internal/serve/prefix.go:84` validatePrefix's segment loop (prefix.go:84-96) repeats pathRefusal's loop (normalize.go:114-124): trim the leading slash, split on '/', refuse '.' and '..', and refuse an empty segment anywhere but last.
+- [x] 9ef401d internal/serve, medium: `internal/serve/clientaddr.go:261` splitHops and trimHop rebuild the stdlib by hand.
+- [x] 55d9bbe internal/serve, medium: `internal/serve/doctor.go:252` trustedProxy calls ResolveTrustedProxy and then calls ParseProxyAddrs on the raw config value again (doctor.go:261) to rebuild the proxy set the TrustedProxyConfig already holds.
+- [x] 64ad952 internal/serve, medium: `internal/serve/prefix.go:84` validatePrefix's segment loop (prefix.go:84-96) repeats pathRefusal's loop (normalize.go:114-124): trim the leading slash, split on '/', refuse '.' and '..', and refuse an empty segment anywhere but last.
 - [ ] internal/serve, low: `internal/serve/clientaddr.go:70` refusedProxyHeaders rebuilds its map on every call.
-- [ ] internal/serve, low: `internal/serve/normalize.go:81` The refusal pair `markRefusal(r, s);
-- [ ] internal/webapp, medium: `internal/webapp/document.go:284` (P7) The package is named webapp, but its errors carry 'web: ' (28 sites) and its request record carries 'serve: document request', which is another package's prefix.
+- [x] 996e4ec internal/serve, low: `internal/serve/normalize.go:81` The refusal pair `markRefusal(r, s);
+- [x] d2e51b4 internal/webapp, medium: `internal/webapp/document.go:284` (P7) The package is named webapp, but its errors carry 'web: ' (28 sites) and its request record carries 'serve: document request', which is another package's prefix.
 - [ ] internal/webapp, medium: `internal/webapp/webapp.go:191` (P5) The two favicons and their MIME types are listed twice: as the icon links documents carry (webapp.go:191-194) and as the files the icons route serves (static.go:108-111).
 - [ ] internal/webapp, medium: `internal/webapp/webapp.go:224` The documents table (webapp.go:131-138) does not say which Routes field each document lands in.
 - [ ] internal/webapp, medium: `internal/webapp/webapp.go:393` namedDocument{path, raw} repeats document{name, ...} (webapp.go:117): document.name and namedDocument.path both hold the same build path under two different names.
-- [ ] internal/webapp, low: `internal/webapp/config.go:153` brandingNeutral parses decls a second time with the same Split and Cut that BrandingStylesheet (branding.go:125-127) just ran.
+- [x] 1ee649e internal/webapp, low: `internal/webapp/config.go:153` brandingNeutral parses decls a second time with the same Split and Cut that BrandingStylesheet (branding.go:125-127) just ran.
 - [ ] internal/webapp, low: `internal/webapp/document.go:47` Some unexported types have exported fields (variantConfig, themeColor, icon, and documentConfig at :204), while their siblings (document, namedDocument, bundleThemes, staticFile) use lowercase fields.
 - [ ] internal/webapp, low: `internal/webapp/document.go:242` The handler constructors use four naming schemes: newDocument, newStylesheet, and newAssets (document.go:242, :192, :335), newFontsRoute and newIconsRoute (static.go:83, :100), stylesheetRoute (webapp.go:287), and documentNotFound ...
 - [ ] internal/webapp, low: `internal/webapp/document.go:306` (P6) maxLoggedPathBytes and boundedPath are a byte-for-byte copy of internal/serve/serve.go:322-334, and the comment admits they must agree ('matching the bound internal/serve puts').
-- [ ] internal/webapp, low: `internal/webapp/webapp.go:46` The Config doc says 'Every value is resolved and checked by the caller', but FromEnviron in this same package resolves and checks Match, Palette, Branding, BrandingNeutral, and OperatorCSS (config.go:98).
-- [ ] internal/webapp, low: `internal/webapp/webapp.go:95` Routes.Operator is the handler for what RouteNames.OperatorCSS and Config.OperatorCSS name everywhere else.
-- [ ] Unused export, move-to-test: `keyedLimiter.size` at `internal/auth/limit.go:265`.
+- [x] 1ee649e internal/webapp, low: `internal/webapp/webapp.go:46` The Config doc says 'Every value is resolved and checked by the caller', but FromEnviron in this same package resolves and checks Match, Palette, Branding, BrandingNeutral, and OperatorCSS (config.go:98).
+- [x] 1ee649e internal/webapp, low: `internal/webapp/webapp.go:95` Routes.Operator is the handler for what RouteNames.OperatorCSS and Config.OperatorCSS name everywhere else.
+- [x] 12fa5fc Unused export, move-to-test: `keyedLimiter.size` at `internal/auth/limit.go:265`.
 - [ ] Unused export, move-to-test: `VerifySession` at `internal/auth/session.go:218`.
-- [ ] Unused export, delete: `NewUnauthenticatedError` at `internal/ops/errors.go:132`.
-- [ ] P2, high: `web/embed.go:21` `var Assets embed.FS` exports the raw embed rooted at its directory name, so every consumer has to know and repeat the internal string "build".
-- [ ] P4, medium: `web/embed.go:15` The rationale in lines 15-18 is false.
-- [ ] P4, low: `web/embed.go:1` The density is 15 comment lines over 3 code lines, 5.00 (go: directives excluded).
-- [ ] web, medium: `web/embed.go:21` `web.Assets` is the whole build: documents, fonts, favicons, the mark, and `_app/`.
+- [x] aafc1d7 Unused export, delete: `NewUnauthenticatedError` at `internal/ops/errors.go:132`.
+- [x] f4d2e34 P2, high: `web/embed.go:21` `var Assets embed.FS` exports the raw embed rooted at its directory name, so every consumer has to know and repeat the internal string "build".
+- [x] f4d2e34 P4, medium: `web/embed.go:15` The rationale in lines 15-18 is false.
+- [x] f4d2e34 P4, low: `web/embed.go:1` The density is 15 comment lines over 3 code lines, 5.00 (go: directives excluded).
+- [x] f4d2e34 web, medium: `web/embed.go:21` `web.Assets` is the whole build: documents, fonts, favicons, the mark, and `_app/`.
