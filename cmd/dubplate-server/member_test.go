@@ -47,9 +47,12 @@ func runMember(t *testing.T, environ []string, args ...string) (stdout, stderr s
 func runMemberWith(t *testing.T, ov operatorVerbs, environ []string, args ...string) (stdout, stderr string, err error) {
 	t.Helper()
 	var out, errOut bytes.Buffer
-	cmd := ov.newMemberCmd(environ, productionRegistry(), &out, &errOut)
-	cmd.SetArgs(args)
-	err = cmd.Execute()
+	root := &cobra.Command{Use: "dubplate-server", SilenceUsage: true, SilenceErrors: true}
+	root.AddCommand(ov.newMemberCmd(environ, productionRegistry()))
+	root.SetOut(&out)
+	root.SetErr(&errOut)
+	root.SetArgs(append([]string{"member"}, args...))
+	err = root.Execute()
 	return out.String(), errOut.String(), err
 }
 
@@ -444,7 +447,7 @@ func TestMemberAddCmd_ConcurrentAdminAddsBothLand(t *testing.T) {
 }
 
 func TestNewRootCmd_RegistersMemberCommand(t *testing.T) {
-	cmd := newRootCmd()
+	cmd := newRootCmd(nil, productionRegistry())
 	for _, sub := range cmd.Commands() {
 		if sub.Name() == "member" {
 			return
@@ -730,7 +733,7 @@ func TestMemberCmd_WideAuthLeafRefusesRemoveAndDemote(t *testing.T) {
 // no flag at all, which the test asserts so a flag added later must
 // join the table.
 func TestOperatorVerbs_RequiredFlagsSaySo(t *testing.T) {
-	root := newRootCmd()
+	root := newRootCmd(nil, productionRegistry())
 	find := func(path ...string) *cobra.Command {
 		t.Helper()
 		cmd, _, err := root.Find(path)

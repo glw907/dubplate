@@ -23,7 +23,7 @@ import (
 func doctorRows(t *testing.T, environ []string) (rows map[string]string, lines int, err error) {
 	t.Helper()
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	cmd.SetOut(&stdout)
 	err = cmd.Execute()
 	rows = make(map[string]string)

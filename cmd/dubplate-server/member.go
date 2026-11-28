@@ -37,15 +37,17 @@ type operatorVerbs struct {
 // internal/member keeps in the store. None reads the environment itself; each resolves
 // configuration through loadConfig against reg, the same wall serve
 // enforces.
-func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newMemberCmd(environ []string, reg *config.Registry) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
 		Short: "Manage the group's members",
 	}
-	cmd.AddCommand(ov.newMemberAddCmd(environ, reg, stderr))
-	cmd.AddCommand(ov.newMemberRemoveCmd(environ, reg, stderr))
-	cmd.AddCommand(ov.newMemberDemoteCmd(environ, reg, stderr))
-	cmd.AddCommand(ov.newMemberListCmd(environ, reg, stdout, stderr))
+	cmd.AddCommand(
+		ov.newMemberAddCmd(environ, reg),
+		ov.newMemberRemoveCmd(environ, reg),
+		ov.newMemberDemoteCmd(environ, reg),
+		ov.newMemberListCmd(environ, reg),
+	)
 	return cmd
 }
 
@@ -101,16 +103,14 @@ func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, erro
 // --name and --username are required flags; an empty value still
 // reaches the roster's write-path validation, since cobra's required
 // check proves only that the flag was set.
-func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry) *cobra.Command {
 	var name, username string
 	var admin bool
 
 	cmd := &cobra.Command{
-		Use:           "add <address>",
-		Short:         "Add a member to the group",
-		Args:          cobra.ExactArgs(1),
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Use:   "add <address>",
+		Short: "Add a member to the group",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, stateDir string) error {
 				roster, err := writingRoster(h, stateDir, "add")
@@ -123,7 +123,7 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 					Username:    username,
 					Admin:       admin,
 				}
-				logger := slog.New(slog.NewTextHandler(stderr, nil))
+				logger := slog.New(slog.NewTextHandler(cmd.ErrOrStderr(), nil))
 				_, err = roster.AddMember(ctx, candidate, identity.LocalActor(resolveActor(ov.LookupID)), logger)
 				return err
 			})
@@ -138,7 +138,6 @@ func (ov operatorVerbs) newMemberAddCmd(environ []string, reg *config.Registry, 
 	if err := cmd.MarkFlagRequired("username"); err != nil {
 		panic(err)
 	}
-	cmd.SetErr(stderr)
 	return cmd
 }
 
@@ -147,14 +146,14 @@ type rosterChange func(r *member.Roster, ctx context.Context, id identity.UserID
 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
-func (ov operatorVerbs) newMemberRemoveCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("remove", "Remove a member from the group", environ, reg, stderr, (*member.Roster).RemoveMember)
+func (ov operatorVerbs) newMemberRemoveCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return ov.newMemberChangeCmd("remove", "Remove a member from the group", environ, reg, (*member.Roster).RemoveMember)
 }
 
 // newMemberDemoteCmd builds "member demote <address>": it clears the
 // member's admin flag.
-func (ov operatorVerbs) newMemberDemoteCmd(environ []string, reg *config.Registry, stderr io.Writer) *cobra.Command {
-	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, stderr, (*member.Roster).DemoteMember)
+func (ov operatorVerbs) newMemberDemoteCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return ov.newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, (*member.Roster).DemoteMember)
 }
 
 // newMemberChangeCmd builds the verb that resolves an address to the
@@ -162,13 +161,11 @@ func (ov operatorVerbs) newMemberDemoteCmd(environ []string, reg *config.Registr
 // the member by id, so one removed between the lookup and the write
 // answers [member.ErrMemberNotFound], as an unknown address does. The
 // audit record goes to stderr.
-func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, stderr io.Writer, change rosterChange) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:           verb + " <address>",
-		Short:         short,
-		Args:          cobra.ExactArgs(1),
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, change rosterChange) *cobra.Command {
+	return &cobra.Command{
+		Use:   verb + " <address>",
+		Short: short,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, stateDir string) error {
 				roster, err := writingRoster(h, stateDir, verb)
@@ -179,26 +176,22 @@ func (ov operatorVerbs) newMemberChangeCmd(verb, short string, environ []string,
 				if err != nil {
 					return err
 				}
-				logger := slog.New(slog.NewTextHandler(stderr, nil))
+				logger := slog.New(slog.NewTextHandler(cmd.ErrOrStderr(), nil))
 				return change(roster, ctx, target.ID, identity.LocalActor(resolveActor(ov.LookupID)), logger)
 			})
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // newMemberListCmd builds "member list": it opens the store and prints
 // one line per live member, in the order they were added, to stdout,
 // which is the subcommand's whole purpose. Nothing else this file
 // writes carries an address.
-func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:           "list",
-		Short:         "List the group's members",
-		Args:          cobra.NoArgs,
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List the group's members",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) (err error) {
 			openCtx, cancel := context.WithTimeout(cmd.Context(), ov.WriteWait)
 			defer cancel()
@@ -212,11 +205,9 @@ func (ov operatorVerbs) newMemberListCmd(environ []string, reg *config.Registry,
 			if err != nil {
 				return err
 			}
-			return printMemberList(stdout, members)
+			return printMemberList(cmd.OutOrStdout(), members)
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // printMemberList writes members to w: a header line, then one line

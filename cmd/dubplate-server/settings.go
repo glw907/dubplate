@@ -16,12 +16,12 @@ import (
 // newSettingsCmd builds the settings verb, whose one subcommand is
 // reset. Like member, it resolves configuration through loadConfig
 // against reg and reads the environment only through environ.
-func (ov operatorVerbs) newSettingsCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func (ov operatorVerbs) newSettingsCmd(environ []string, reg *config.Registry) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Change the settings the store holds",
 	}
-	cmd.AddCommand(ov.newSettingsResetCmd(environ, reg, stdout, stderr))
+	cmd.AddCommand(ov.newSettingsResetCmd(environ, reg))
 	return cmd
 }
 
@@ -33,13 +33,11 @@ func (ov operatorVerbs) newSettingsCmd(environ []string, reg *config.Registry, s
 // refuses an older store, a newer store, and a restore in progress as
 // member does; it runs under the validator the API's writes run
 // under, and it sends no notice, since the operator is at the box.
-func (ov operatorVerbs) newSettingsResetCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:           "reset <key>",
-		Short:         "Delete an administrator's value so the setting returns to its default",
-		Args:          cobra.ExactArgs(1),
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func (ov operatorVerbs) newSettingsResetCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "reset <key>",
+		Short: "Delete an administrator's value so the setting returns to its default",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return ov.withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, _ string) error {
 				by := identity.LocalActor(resolveActor(ov.LookupID))
@@ -49,12 +47,10 @@ func (ov operatorVerbs) newSettingsResetCmd(environ []string, reg *config.Regist
 					return err
 				}
 				_, envSets := config.Lookup(environ, key)
-				return printResetResult(stdout, key, res, envSets)
+				return printResetResult(cmd.OutOrStdout(), key, res, envSets)
 			})
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // printResetResult writes the one line a reset answers with: what the

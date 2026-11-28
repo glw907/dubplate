@@ -20,13 +20,12 @@ import (
 // it returns the failing error unprinted: main is the sole writer of
 // command errors to stderr, so a failed check in a systemd journal is
 // the error alone, never doubled.
-func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:           "check",
-		Short:         "Validate configuration",
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func newCheckCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "check",
+		Short: "Validate configuration",
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			stdout := cmd.OutOrStdout()
 			cfg, err := loadConfig(environ, reg)
 			if err != nil {
 				return err
@@ -81,8 +80,6 @@ func newCheckCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			return nil
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // printSettingsRows prints one "settings: <key>: <outcome>" line per

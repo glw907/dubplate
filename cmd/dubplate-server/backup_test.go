@@ -78,8 +78,9 @@ func TestMain(m *testing.M) {
 		os.Exit(backupStandIn(os.Args[1:]))
 	}
 	if os.Getenv(backupVerbChildEnv) != "" {
-		cmd := newBackupCmd(os.Environ(), newProductionRegistry(), os.Stdout, os.Stderr)
-		os.Exit(run(cmd))
+		root := newRootCmd(os.Environ(), newProductionRegistry())
+		root.SetArgs([]string{"backup"})
+		os.Exit(run(root))
 	}
 	if raw := os.Getenv(restoreVerbChildEnv); raw != "" {
 		os.Exit(runRestoreChild(raw))
@@ -165,8 +166,7 @@ func appendBackupStandinLine(path, line string) {
 // SignalHandling) proves the code itself; this proves the code is
 // documented.
 func TestBackupCmd_LongNamesExitCodes(t *testing.T) {
-	cmd := newBackupCmd(nil, newProductionRegistry(), io.Discard, io.Discard)
-	long := cmd.Long
+	long := newBackupCmd(nil, newProductionRegistry()).Long
 
 	tests := []struct {
 		name string
@@ -826,12 +826,10 @@ func TestBackupCmd_AuthSettingOutOfBoundsNeverFails(t *testing.T) {
 	}
 }
 
-// backupRunFor runs the backup verb's own logic directly, exactly as
-// run(newBackupCmd(...)) does but returning the error rather than
-// printing it to the real os.Stderr, the one write run() and cobra's
-// SilenceErrors leave for it (main.go): a test that wants the error's
-// own text, rather than only run's exit status, calls this instead of
-// going through cobra.
+// backupRunFor runs the backup verb's logic directly, as run does
+// through the root command, but returns the error rather than printing
+// it: a test that wants the error's text, rather than only run's exit
+// status, calls this instead of going through cobra.
 func backupRunFor(ctx context.Context, environ []string, stdout io.Writer) (code int, err error) {
 	err = runBackup(ctx, environ, productionRegistry(), stdout, io.Discard)
 	if err == nil {

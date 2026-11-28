@@ -35,9 +35,9 @@ func runRestoreChild(raw string) int {
 		fmt.Fprintf(os.Stderr, "restore child arguments %q: %v\n", raw, err)
 		return 2
 	}
-	cmd := newRestoreCmd(os.Environ(), newProductionRegistry(), os.Stdout, os.Stderr)
-	cmd.SetArgs(args)
-	return run(cmd)
+	root := newRootCmd(os.Environ(), newProductionRegistry())
+	root.SetArgs(append([]string{"restore"}, args...))
+	return run(root)
 }
 
 // The two tracks every backed-up fixture holds, by path relative to
@@ -59,7 +59,7 @@ const (
 // TestRestoreCmd_LongNamesExitCodes proves the verb's help lists each
 // of the four exit statuses the verb assigns, one per line.
 func TestRestoreCmd_LongNamesExitCodes(t *testing.T) {
-	long := newRestoreCmd(nil, productionRegistry(), io.Discard, io.Discard).Long
+	long := newRestoreCmd(nil, productionRegistry()).Long
 	for _, want := range []string{
 		"\n  0    the restore finished",
 		"\n  1    a flag, load, or store refusal",

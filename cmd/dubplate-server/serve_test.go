@@ -199,7 +199,7 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newServeCmd(tt.environ, productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(tt.environ, productionRegistry(), &stdout, &stderr, "serve")
 
 			ctx, cancel := context.WithCancel(t.Context())
 			cancel()
@@ -218,15 +218,14 @@ func TestNewServeCmd_RefusesInvalidConfigWithoutListening(t *testing.T) {
 // cobra dispatches, and root.Find alone would not tell the two apart
 // from a verb reachable only because some other command re-added it.
 //
-// The second half proves the wiring carries the production registry
-// and the process environment rather than a construction that only
-// looks right: dispatching "serve" through the root command with an
+// The second half proves the wiring carries the root's environment and
+// registry: dispatching "serve" through the root command with an
 // invalid prefix in the environment refuses with the prefix refusal,
-// which can only happen if the added command resolved
-// configuration. No listener opens, since resolution fails first.
+// which can only happen if the added command resolved configuration.
+// No listener opens, since resolution fails first.
 func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 	var serveCmd, doctorCmd bool
-	for _, child := range newRootCmd().Commands() {
+	for _, child := range newRootCmd(nil, productionRegistry()).Commands() {
 		switch child.Use {
 		case "serve":
 			serveCmd = true
@@ -241,27 +240,9 @@ func TestNewServeCmd_WiredIntoRootCmd(t *testing.T) {
 		t.Fatal("newRootCmd().Commands() carries no doctor verb; the AddCommand block this test reads against has moved")
 	}
 
-	// newRootCmd reads os.Environ() at construction, so the process
-	// environment is this half's input. A developer's shell carries
-	// DUBPLATE_* names of its own, and the wall would refuse them
-	// before resolution ever ran; clearing each to the empty string is
-	// what the wall reads as unset (config.wall.get's own convention).
-	for _, kv := range os.Environ() {
-		if name, _, ok := strings.Cut(kv, "="); ok && strings.HasPrefix(name, "DUBPLATE_") {
-			t.Setenv(name, "")
-		}
-	}
-	for _, kv := range authEnviron(t) {
-		name, value, _ := strings.Cut(kv, "=")
-		t.Setenv(name, value)
-	}
-	t.Setenv("DUBPLATE_SERVE_PREFIX", "no-leading-separator")
-
-	root := newRootCmd()
-	root.SetArgs([]string{"serve"})
+	environ := append(authEnviron(t), "DUBPLATE_SERVE_PREFIX=no-leading-separator")
 	var stdout, stderr bytes.Buffer
-	root.SetOut(&stdout)
-	root.SetErr(&stderr)
+	root := rootFor(environ, productionRegistry(), &stdout, &stderr, "serve")
 
 	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "invalid serve prefix") {
 		t.Fatalf("Execute([]string{\"serve\"}) error = %v, want the prefix refusal", err)

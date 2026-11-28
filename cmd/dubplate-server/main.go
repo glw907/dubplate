@@ -45,7 +45,7 @@ var version = "dev"
 var matcherCommit = "dev"
 
 func main() {
-	os.Exit(run(newRootCmd()))
+	os.Exit(run(newRootCmd(os.Environ(), newProductionRegistry())))
 }
 
 // run executes cmd under the signal-derived context and returns the
@@ -142,11 +142,9 @@ func loadWall(environ []string, reg *config.Registry) (*config.Config, error) {
 	return cfg, errors.Join(err, serve.ValidatePort(environ))
 }
 
-// newRootCmd builds the production registry once and passes it to every
-// subcommand that enforces against it.
-func newRootCmd() *cobra.Command {
-	reg := newProductionRegistry()
-	environ := os.Environ()
+// newRootCmd builds the command tree over environ and reg. Its silence
+// covers every subcommand, so run is the only printer of an error.
+func newRootCmd(environ []string, reg *config.Registry) *cobra.Command {
 	operator := operatorVerbs{WriteWait: storeWait, LookupID: user.LookupId}
 
 	cmd := &cobra.Command{
@@ -157,14 +155,14 @@ func newRootCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		newVersionCmd(),
-		newCheckCmd(environ, reg, os.Stdout, os.Stderr),
-		newDoctorCmd(environ, reg, os.Stdout, os.Stderr),
-		newServeCmd(environ, reg, os.Stdout, os.Stderr),
-		operator.newMemberCmd(environ, reg, os.Stdout, os.Stderr),
-		operator.newSettingsCmd(environ, reg, os.Stdout, os.Stderr),
-		newBackupCmd(environ, reg, os.Stdout, os.Stderr),
-		newRestoreCmd(environ, reg, os.Stdout, os.Stderr),
-		newUnidecodeCmd(environ, os.Stdout, os.Stderr),
+		newCheckCmd(environ, reg),
+		newDoctorCmd(environ, reg),
+		newServeCmd(environ, reg),
+		operator.newMemberCmd(environ, reg),
+		operator.newSettingsCmd(environ, reg),
+		newBackupCmd(environ, reg),
+		newRestoreCmd(environ, reg),
+		newUnidecodeCmd(environ),
 	)
 	return cmd
 }
