@@ -26,10 +26,6 @@ const (
 	membersRouteName        = "members"
 	serverSettingsRouteName = "server-settings"
 
-	// The public web routes: the login documents, the bundle's hashed
-	// assets, the two tier stylesheets that follow the bundle's own,
-	// the embedded faces, the favicon in its two forms, and the
-	// directory holding the mark's three detail levels.
 	loginRouteName       = "login"
 	assetsRouteName      = "_app"
 	brandingRouteName    = "branding.css"
@@ -40,8 +36,6 @@ const (
 	markRouteName        = "mark"
 )
 
-// webRouteNames are the subtree names [webapp.New] builds its routes
-// under, the same names [registerWebRoutes] mounts them at.
 var webRouteNames = webapp.RouteNames{
 	Login:          loginRouteName,
 	Members:        membersRouteName,
@@ -55,14 +49,12 @@ var webRouteNames = webapp.RouteNames{
 	OperatorCSS:    operatorCSSRouteName,
 }
 
-// A registrar mounts a route under a subtree name.
 type registrar interface {
 	Register(name string, h http.Handler)
 }
 
-// mountRoutes returns the registrar newServeShell mounts every route
-// through. Every registration goes through it, never through the shell
-// directly, so the route inventory test sees each name.
+// mountRoutes is the registrar every route mounts through, never the
+// shell directly, so the route inventory test sees each name.
 var mountRoutes = func(s *serve.Shell) registrar { return s }
 
 // registerAuthRoutes mounts the three auth handlers. They apply no
@@ -73,7 +65,6 @@ func registerAuthRoutes(routes registrar, h auth.Handlers) {
 	routes.Register(signOutRouteName, methodOnly(http.MethodPost, h.SignOut))
 }
 
-// registerWebRoutes mounts wr's public routes.
 func registerWebRoutes(routes registrar, wr webapp.Routes) {
 	routes.Register(loginRouteName, wr.Login)
 	routes.Register(assetsRouteName, wr.Assets)
@@ -96,8 +87,6 @@ func registerAdminRoutes(routes registrar, wr webapp.Routes, admin auth.VerifyCo
 	routes.Register(serverSettingsRouteName, auth.RequireAdmin(admin, wr.ServerSettings))
 }
 
-// methodOnly wraps h, answering 405 with an Allow header naming method
-// to any request whose method is not method.
 func methodOnly(method string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != method {

@@ -18,13 +18,11 @@ import (
 var webBuild fs.FS = web.Build
 
 // webDoctorRows renders the web row: "ok" when [newWebRoutes] builds
-// the routes from the inputs serve startup passes, and "invalid: " plus
-// the refusal otherwise, which fails the row. cfg is nil when
-// [config.Load] refused the environment, and the row then reads "not
-// checked" and adds no failure, since Load's report already fails
-// doctor. The logger discards: the record newWebRoutes writes for a
-// branding neutral that drops the theme-color meta belongs to serve,
-// and doctor's stdout is the table alone.
+// the routes serve would, and a failing "invalid: " plus the refusal
+// otherwise. cfg is nil when [config.Load] refused, and the row reads
+// "not checked" without failing, since Load's report already fails
+// doctor. Any record the build logs belongs to serve, so it is
+// discarded.
 func webDoctorRows(environ []string, cfg *config.Config) []doctor.Row {
 	row := doctor.Row{Name: "web", Status: "not checked"}
 	if cfg != nil {
@@ -51,12 +49,9 @@ func checkWebRoutes(environ []string, cfg *config.Config) error {
 	return err
 }
 
-// newWebRoutes builds the web app's routes from build. It runs before
-// any listener opens, so a bad config value or build defect stops
-// startup rather than the first request. siteName enters every
-// document as the dubplate-site-name meta; logger takes the documents'
-// request records and the record a theme-color-less branding neutral
-// writes.
+// newWebRoutes builds the web app's routes from build before any
+// listener opens, so a bad value or a build defect stops startup rather
+// than the first request.
 func newWebRoutes(environ []string, prefix serve.Prefix, siteName, stateDir string, logger *slog.Logger, build fs.FS) (webapp.Routes, error) {
 	cfg, err := webapp.FromEnviron(environ, stateDir)
 	if err != nil {

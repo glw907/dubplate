@@ -24,10 +24,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newDoctorCmd builds the doctor subcommand: it prints one line per row
-// of the config wall, one block per family, deriving every row it can
-// from reg. The exit status is 1 when [config.Load] refuses environ or
-// any row it prints reports a failure, and 0 otherwise.
 func newDoctorCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return &cobra.Command{
 		Use:   "doctor",
@@ -38,13 +34,12 @@ func newDoctorCmd(environ []string, reg *config.Registry) *cobra.Command {
 	}
 }
 
-// runDoctor runs every doctor probe, then prints the rows in order. It
-// returns an error when [config.Load] refuses environ or any printed
-// row reports a failure.
+// runDoctor prints one line per row of the config wall, one block per
+// family, and returns an error when [config.Load] refuses environ or
+// any printed row fails.
 func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdout io.Writer) error {
-	// loadWall rather than loadConfig, so a refused check lands on its
-	// row as "invalid" and the report carries on with the config Load
-	// resolved.
+	// loadWall, unlike loadConfig, returns the config with its refusal,
+	// so a refused check lands on its own row.
 	cfg, loadErr := loadWall(environ, reg)
 
 	// One store inspection reads every fact the rows report, each
@@ -159,14 +154,10 @@ func printRow(w io.Writer, key, status string) error {
 }
 
 // rowStatuses maps the joined error [config.Load] returns, and the
-// staging check's, to per-key status text: "missing" for a row
-// [config.ErrMissing] flags, or "invalid: " plus the row's reason for
-// anything else. A leaf with no [config.KeyError] names no row and gets
-// no entry, and a key with no entry is satisfied.
-//
-// It flattens nested joins to any depth: an identity source's Validate
-// hook joins its failures before [config.Load] joins them with every
-// other row's.
+// staging check's, to per-key status text. A leaf with no
+// [config.KeyError] names no row and gets no entry, and a key with no
+// entry is satisfied. It flattens nested joins to any depth, since an
+// identity source's Validate hook joins its failures first.
 func rowStatuses(err error) map[string]string {
 	statuses := make(map[string]string)
 	if err == nil {
@@ -187,8 +178,6 @@ func rowStatuses(err error) map[string]string {
 	return statuses
 }
 
-// flattenErrors returns every leaf of err's tree of [errors.Join]
-// errors.
 func flattenErrors(err error) []error {
 	joined, ok := err.(interface{ Unwrap() []error })
 	if !ok {
@@ -201,11 +190,9 @@ func flattenErrors(err error) []error {
 	return leaves
 }
 
-// thresholdStatus resolves t's effective value against environ, and
-// reports a parse failure as "invalid: " plus the reason. It consults
-// statuses first, because a relational refusal a hook raises against a
-// threshold, such as the retention against expiry comparison, is
-// invisible to that threshold's own Parse call.
+// thresholdStatus consults statuses before resolving t, because a
+// relational refusal a hook raises against a threshold, such as the
+// retention against expiry comparison, is invisible to t's own parse.
 func thresholdStatus(environ []string, statuses map[string]string, t config.Threshold) string {
 	if status, ok := statuses[t.Key]; ok {
 		return status
@@ -241,15 +228,10 @@ func integrationStatus(environ []string, class config.IntegrationClass) string {
 	}
 }
 
-// identitySourceStatus reports how src stands against environ: inactive
-// when the selector names another source, "unsatisfied: " plus every
-// failing key when it is selected and [config.Load] flagged one of its
-// Required or Optional rows or its Validate hook refuses their values,
-// and active otherwise. Validate is rerun because a relational refusal
-// is keyed against a threshold's name, which the per-key sweep cannot
-// see. It names no value, since a source's keys carry secrets and the
-// table is read on a terminal; [sourceKeyWord] withholds a reason that
-// quotes one.
+// identitySourceStatus reports src as inactive, unsatisfied with every
+// failing key, or active. Validate is rerun because a relational
+// refusal is keyed against a threshold's name, which the per-key sweep
+// cannot see. It names no value, since a source's keys carry secrets.
 func identitySourceStatus(environ []string, src config.IdentitySource, statuses map[string]string) string {
 	if !src.Selected(environ) {
 		return "inactive"
@@ -293,10 +275,7 @@ func identitySourceStatus(environ []string, src config.IdentitySource, statuses 
 	}
 
 	if len(failing) == 0 {
-		// A Validate refusal whose leaves carry no [config.KeyError]
-		// names no key, and still reads unsatisfied rather than
-		// falling through to "active" and hiding a real refusal from
-		// the table.
+		// A Validate refusal that names no key still reads unsatisfied.
 		if validateFailed {
 			return "unsatisfied"
 		}

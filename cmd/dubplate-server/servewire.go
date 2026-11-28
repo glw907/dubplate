@@ -31,28 +31,6 @@ import (
 // newServeShell builds the shell the serve verb runs, owning prefix, and
 // returns it as a [server] the caller closes when the shell stops
 // serving. Every refusal returns no server, and none opens a listener.
-//
-// The order matters in three places. The intake startup check runs
-// before the store opens, and the settings seed applies before anything
-// else is built. Intake starts last, once nothing else can refuse: its
-// lease is held until Close, and a lease another process holds refuses
-// the start naming the holder.
-//
-// The four rate limits the seed left in force are read once, here, and
-// apply at the next start. Every other auth setting is a reader over
-// the store, called at each use.
-//
-// No mount authenticates by bearer credential, so none registers a
-// bearer bypass and every one stays behind the origin check. A route
-// that bypasses it needs a shell-level test that it never reads the
-// session cookie.
-//
-// The trusted proxy class governs both the strip's forwarded-address
-// carve-out and every handler's ClientIP, so the peer whose forwarded
-// headers survive the strip is the peer whose header names the client.
-// Every identity header is stripped from every peer, a trusted proxy
-// included. The boundary probe mounts like every other route, so the
-// request it counts is one the strip has already cleared.
 func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger) (_ *server, err error) {
 	proxyConfig, err := serve.ParseTrustedProxy(cfg)
 	if err != nil {
@@ -62,6 +40,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, err
 	}
+	// Intake's startup check refuses before the store opens.
 	if err := staging.Check(staging.Read(cfg.WallValue(intake.StagingKey)), staging.Read(cfg.LibraryRoot)); err != nil {
 		return nil, fmt.Errorf("startup check: %w", err)
 	}
@@ -79,6 +58,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		}
 		err = errors.Join(err, h.Close())
 	}()
+	// The seed applies before anything reads a setting.
 	if err := applySettingsSeed(ctx, h, reg, environ, logger); err != nil {
 		return nil, err
 	}
@@ -87,11 +67,16 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, err
 	}
+	// The rate limits are read once and change at the next start; every
+	// other auth setting is read from the store at each use.
 	limits, err := auth.ReadLimits(ctx, acc)
 	if err != nil {
 		return nil, err
 	}
 	shell := serve.NewShell(prefix, proxyConfig, logger)
+	// No mount takes a bearer credential, so every one stays behind the
+	// origin check. A route that bypasses it needs a shell-level test
+	// that it never reads the session cookie.
 	routes := mountRoutes(shell)
 	if sendsHSTS(authConfig.PublicOrigin) {
 		shell.EnableHSTS()
@@ -123,6 +108,8 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	verifier := auth.NewMagicLinkVerifier(roster, epoch, authConfig.SessionSecret, authConfig.PreviousSessionSecret,
 		authConfig.SessionLifetime, authConfig.SessionAbsoluteCap)
 
+	// The shell's strip reads the same proxy class, so the peer whose
+	// forwarded headers survive is the one whose header names the client.
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
 	handlers := auth.NewHandlers(auth.HandlersConfig{
 		Roster:             roster,
@@ -154,6 +141,8 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		Now:      time.Now,
 		Logger:   shell.Logger(),
 	}
+	// The probe mounts like every route, so the request it counts is one
+	// the strip has already cleared.
 	routes.Register(serve.ProbeRouteName, serve.NewProbeRoute(prefix, bindAddrs, proxyConfig))
 
 	adminService := admin.New(admin.Config{
@@ -170,9 +159,8 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		return nil, err
 	}
 	routes.Register(apiRouteName, apiMount)
-	// tusd's own warnings go to stderr as JSON, where serve's default
-	// logger writes: its logger is golang.org/x/exp/slog's, a type the
-	// shell's log/slog logger cannot fill.
+	// tusd logs through golang.org/x/exp/slog, which the shell's logger
+	// cannot fill, so its warnings go to stderr as JSON.
 	tusMount, err := in.TusMount(intake.TusConfig{
 		Prefix:    prefix.String(),
 		PublicURL: authConfig.PublicOrigin,
@@ -191,6 +179,8 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	registerWebRoutes(routes, webRoutes)
 	registerAdminRoutes(routes, webRoutes, adminConfig)
 
+	// Intake starts last, once nothing else can refuse, because it holds
+	// its lease until Close.
 	if err := in.Start(ctx); err != nil {
 		return nil, err
 	}

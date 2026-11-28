@@ -7,6 +7,7 @@
 //   - doctor: report the full config wall's effective values
 //   - serve: run the HTTP server
 //   - member: manage the group's members
+//   - settings reset: return a setting the store holds to its default
 //   - backup: snapshot the library database and sync it to remote storage
 //   - restore: restore a library snapshot
 //   - unidecode install: build the pinned Unidecode transliteration
@@ -34,14 +35,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// version is set via -ldflags "-X main.version=..." at release build
-// time; it stays "dev" for workstation builds.
-var version = "dev"
-
-// matcherCommit is the Go matcher revision this build carries, set via
-// -ldflags "-X main.matcherCommit=..." by scripts/deploy.sh alone. Every
-// other build leaves it "dev".
-var matcherCommit = "dev"
+// version and matcherCommit are set with -ldflags -X; only
+// scripts/deploy.sh sets matcherCommit.
+var (
+	version       = "dev"
+	matcherCommit = "dev"
+)
 
 func main() {
 	os.Exit(run(newRootCmd(os.Environ(), newProductionRegistry())))
@@ -62,14 +61,11 @@ func run(cmd *cobra.Command) int {
 	return 1
 }
 
-// storeWait bounds each store open, write, and status read a verb or
-// the serve seed makes. [store.Handle.Update] refuses a context with no
-// deadline, and the busy timeout, not this wait, bounds another
-// process's lock.
+// storeWait bounds each store call a verb or the serve seed makes, since
+// [store.Handle.Update] refuses a context with no deadline. The busy
+// timeout, not this wait, bounds another process's lock.
 const storeWait = 30 * time.Second
 
-// The exit statuses a verb's outcome can carry beyond run's default of
-// 1, which any plain refusal gets.
 const (
 	exitUnavailable = 69  // EX_UNAVAILABLE: backup integration is disabled
 	exitTempFail    = 75  // EX_TEMPFAIL: another backup or a restore holds the lock
@@ -87,20 +83,17 @@ func (e *exitError) Error() string { return e.err.Error() }
 func (e *exitError) Unwrap() error { return e.err }
 
 // executeWithSignalContext runs cmd under a context canceled by SIGINT
-// or SIGTERM. Without it serve's graceful drain is unreachable: cobra's
-// Execute passes context.Background, whose Done channel is nil, so the
-// process would die on the signal's default action with every in-flight
-// request cut.
+// or SIGTERM, without which the signal's default action would kill
+// serve before its graceful drain.
 func executeWithSignalContext(cmd *cobra.Command) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	return cmd.ExecuteContext(ctx)
 }
 
-// newProductionRegistry builds the registry the binary runs against:
-// every package's registration, in the order the registry dump holds.
-// The serve package registers twice because its thresholds and its
-// trusted proxy class sit at two places in that order.
+// newProductionRegistry registers every package in the order the
+// registry dump holds, which places serve's thresholds and its trusted
+// proxy class apart.
 func newProductionRegistry() *config.Registry {
 	reg := config.NewRegistry()
 	auth.Register(reg)
@@ -115,9 +108,8 @@ func newProductionRegistry() *config.Registry {
 	return reg
 }
 
-// loadConfig is [loadWall] for a verb, returning a config only when
-// every check holds. Every verb but doctor loads the wall here, so
-// backup and restore refuse what serve refuses.
+// loadConfig is [loadWall] returning a config only when every check
+// holds, so every verb but doctor refuses what serve refuses.
 func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) {
 	cfg, err := loadWall(environ, reg)
 	if err != nil {
@@ -126,13 +118,10 @@ func loadConfig(environ []string, reg *config.Registry) (*config.Config, error) 
 	return cfg, nil
 }
 
-// loadWall is config.Load plus the two checks no single registration
-// can express: staging and the library root must not overlap, and the
-// serve port must be one the serve unit can bind. The staging check
-// needs Load's config and runs only once Load succeeds. The port check
-// runs either way, and doctor reports a bad port beside every other
-// refusal. cfg is Load's result even when a later check refuses: doctor
-// carries on with it.
+// loadWall is config.Load plus the staging and port checks no single
+// registration can express. The staging check needs Load's config; the
+// port check runs either way, so doctor reports a bad port beside every
+// other refusal. cfg is Load's result even when a later check refuses.
 func loadWall(environ []string, reg *config.Registry) (*config.Config, error) {
 	cfg, err := config.Load(environ, reg)
 	if err == nil {

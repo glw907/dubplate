@@ -13,9 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newSettingsCmd builds the settings verb, whose one subcommand is
-// reset. Like member, it resolves configuration through loadConfig
-// against reg and reads the environment only through environ.
 func newSettingsCmd(environ []string, reg *config.Registry) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "settings",
@@ -25,14 +22,10 @@ func newSettingsCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return cmd
 }
 
-// newSettingsResetCmd builds "settings reset <key>": it deletes an
-// administrator's value so the setting reads its default again, from
-// the command line, with serve stopped or running. It is the way out
-// of a refusal the seed rule raises over an administrator's row, which
-// no start clears by itself. It opens the store in write mode, so it
-// refuses an older store, a newer store, and a restore in progress as
-// member does; it runs under the validator the API's writes run
-// under, and it sends no notice, since the operator is at the box.
+// newSettingsResetCmd builds "settings reset <key>", with serve stopped
+// or running. It is the way out of a refusal the seed rule raises over
+// an administrator's row, which no start clears by itself. It sends no
+// notice, since the operator is at the box.
 func newSettingsResetCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return &cobra.Command{
 		Use:   "reset <key>",
