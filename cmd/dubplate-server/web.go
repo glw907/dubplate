@@ -13,47 +13,6 @@ import (
 	"github.com/glw907/dubplate/web"
 )
 
-// The subtree names beside the ones in serve.go: the embedded faces,
-// the favicon in its two forms, and the directory holding the mark's
-// three detail levels.
-const (
-	fontsRouteName      = "fonts"
-	faviconSVGRouteName = "favicon.svg"
-	faviconPNGRouteName = "favicon.png"
-	markRouteName       = "mark"
-)
-
-// webRouteNames are the subtree names [webapp.New] builds its routes
-// under, the same names [registerWebRoutes] mounts them at.
-var webRouteNames = webapp.RouteNames{
-	Login:          loginRouteName,
-	Members:        membersRouteName,
-	ServerSettings: serverSettingsRouteName,
-	Assets:         assetsRouteName,
-	Fonts:          fontsRouteName,
-	FaviconSVG:     faviconSVGRouteName,
-	FaviconPNG:     faviconPNGRouteName,
-	Mark:           markRouteName,
-	Branding:       brandingRouteName,
-	OperatorCSS:    operatorCSSRouteName,
-}
-
-// registerWebRoutes mounts wr's public routes on routes under their
-// subtree names. It leaves members and server settings to the caller,
-// which alone holds the admin gate.
-func registerWebRoutes(routes registrar, wr webapp.Routes) {
-	routes.Register(loginRouteName, wr.Login)
-	routes.Register(assetsRouteName, wr.Assets)
-	routes.Register(fontsRouteName, wr.Fonts)
-	routes.Register(faviconSVGRouteName, wr.Icons)
-	routes.Register(faviconPNGRouteName, wr.Icons)
-	routes.Register(markRouteName, wr.Icons)
-	routes.Register(brandingRouteName, wr.Branding)
-	if wr.OperatorCSS != nil {
-		routes.Register(operatorCSSRouteName, wr.OperatorCSS)
-	}
-}
-
 // webBuild is the build tree serve serves the web routes from and
 // doctor checks them against.
 var webBuild fs.FS = web.Build
