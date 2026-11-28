@@ -1235,12 +1235,12 @@ func checkDocumentSet(buildFS fs.FS) string {
 // webFSHandler builds a shell over the routes newWebRoutesFromFS builds
 // from buildFS, with the members document mounted with no gate, since
 // these checks read the document rather than the gate.
-func webFSHandler(environ []string, buildFS fs.FS) (http.Handler, error) {
+func webFSHandler(environ []string, stateDir string, buildFS fs.FS) (http.Handler, error) {
 	prefix, err := serve.NewPrefix("/dubplate")
 	if err != nil {
 		return nil, err
 	}
-	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
+	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{stateDir: stateDir}, discardTestLogger(), buildFS)
 	if err != nil {
 		return nil, err
 	}
@@ -1314,7 +1314,7 @@ func checkServedCSP(buildFS fs.FS) []string {
 	if failure := checkDocumentSet(buildFS); failure != "" {
 		return []string{failure}
 	}
-	handler, err := webFSHandler(nil, buildFS)
+	handler, err := webFSHandler(nil, "", buildFS)
 	if err != nil {
 		return []string{"build the routes: " + err.Error()}
 	}
@@ -1433,7 +1433,7 @@ func checkServedTiersAndCache(t *testing.T, buildFS fs.FS) []string {
 		return []string{failure}
 	}
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	handler, err := webFSHandler(environ, buildFS)
+	handler, err := webFSHandler(environ, t.TempDir(), buildFS)
 	if err != nil {
 		return []string{"build the routes: " + err.Error()}
 	}

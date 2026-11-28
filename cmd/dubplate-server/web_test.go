@@ -349,7 +349,7 @@ func TestNewWebRoutes_RewriteChangesOnlyTheToken(t *testing.T) {
 
 	buildFS := web.Build
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{stateDir: t.TempDir()}, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
@@ -613,7 +613,7 @@ func TestPrefixProof_EveryHrefAndSrcResolves(t *testing.T) {
 	}
 
 	environ := []string{"DUBPLATE_OPERATOR_CSS_FILE=" + writeOperatorCSS(t, []byte("body{}"))}
-	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
+	routes, err := newWebRoutes(environ, prefix, fixtureSiteName, privateFiles{stateDir: t.TempDir()}, discardTestLogger())
 	if err != nil {
 		t.Fatalf("newWebRoutes: %v", err)
 	}
@@ -733,7 +733,7 @@ func symlinkFixture(t *testing.T, target, link string) string {
 func newWebShellHandler(t *testing.T, environ []string, buildFS fs.FS) http.Handler {
 	t.Helper()
 	prefix := webTestPrefix(t)
-	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger(), buildFS)
+	routes, err := newWebRoutesFromFS(environ, prefix, fixtureSiteName, privateFiles{stateDir: t.TempDir()}, discardTestLogger(), buildFS)
 	if err != nil {
 		t.Fatalf("newWebRoutesFromFS(%v): %v", environ, err)
 	}
@@ -947,7 +947,7 @@ func TestNewWebRoutesFromFS_OperatorCSSRefusals(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var private privateFiles
+			private := privateFiles{stateDir: t.TempDir()}
 			path := tt.path(t, &private)
 			_, err := newWebRoutesFromFS([]string{"DUBPLATE_OPERATOR_CSS_FILE=" + path}, prefix, fixtureSiteName, private, discardTestLogger(), newFixtureBuildFS(1, 1))
 			if err == nil {
@@ -1258,7 +1258,7 @@ func TestNewWebRoutes_TierLinkOrder(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		routes, err := newWebRoutes(tt.environ, prefix, fixtureSiteName, privateFiles{}, discardTestLogger())
+		routes, err := newWebRoutes(tt.environ, prefix, fixtureSiteName, privateFiles{stateDir: t.TempDir()}, discardTestLogger())
 		if err != nil {
 			t.Fatalf("%s: newWebRoutes: %v", tt.name, err)
 		}

@@ -88,7 +88,8 @@ func Register(reg *config.Registry) {
 // operator stylesheet in that order and returns the first refusal.
 // stateDir is the directory the operator stylesheet must not sit
 // under: the operator route is public, so a path beneath it would
-// publish the store. An empty stateDir guards nothing.
+// publish the store. An empty stateDir refuses a configured operator
+// stylesheet.
 func FromEnviron(environ []string, stateDir string) (Config, error) {
 	match, err := config.ParseString(environ, themeMatchThreshold)
 	if err != nil {
