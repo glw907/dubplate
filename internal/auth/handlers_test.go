@@ -273,7 +273,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(t.Context(), store, orFixed(opts.retentionReader, fixtureRetention), fixtureLinkExpiryCeiling, handlerNow)
+	nonces, _, err := OpenNonceStore(t.Context(), store, orFixed(opts.retentionReader, fixtureRetention), handlerNow)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -300,6 +300,15 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	}
 
 	h := NewHandlers(HandlersConfig{
+		LinkSecret:         []byte(currentFixture),
+		PreviousLinkSecret: []byte(previousFixture),
+		SessionSecret:      []byte(sessionFixture),
+		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
+		SessionLifetime:    orFixed(opts.lifetimeReader, verifierLifetime),
+		SessionAbsoluteCap: orFixed(opts.capReader, verifierCap),
+		PublicOrigin:       handlerOrigin,
+		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
+		GenericAnswer:      orFixed(opts.genericReader, opts.generic),
 		Roster:             roster,
 		Nonces:             nonces,
 		Epoch:              epoch,
@@ -308,17 +317,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 		ClientIP:           func(r *http.Request) string { return serve.ClientIP(r, opts.proxy) },
 		Now:                func() time.Time { return handlerNow },
 		Logger:             slog.New(slog.NewJSONHandler(logs, nil)),
-		LinkSecret:         []byte(currentFixture),
-		PreviousLinkSecret: []byte(previousFixture),
-		SessionSecret:      []byte(sessionFixture),
-		LinkExpiry:         orFixed(opts.expiryReader, linkExpiry),
-		SessionLifetime:    orFixed(opts.lifetimeReader, verifierLifetime),
-		SessionAbsoluteCap: orFixed(opts.capReader, verifierCap),
-		PublicOrigin:       handlerOrigin,
 		Prefix:             handlerPrefix,
-		BodyCap:            orFixed(opts.bodyCapReader, bodyCap),
-		BodyCapCeiling:     bodyCap,
-		GenericAnswer:      orFixed(opts.genericReader, opts.generic),
 	})
 	return handlerFixture{handlers: h, stateDir: stateDir, users: users, epoch: epoch, limiter: limiter, mail: mail, logs: logs}
 }
@@ -575,20 +574,25 @@ func TestConsumeLink_LimiterPrecedesMAC(t *testing.T) {
 // TestOversizeBodyRefusedBeforeParse posts a body one byte over the cap
 // to each endpoint. Each body is a well-formed form whose parse would
 // succeed and whose handling would act: send mail, mint a session, or
-// clear the cookie. The control half serves the same body under a cap
-// that admits it and sees that action, so the refusal is the cap's.
+// clear the cookie. The control half serves the same form padded to the
+// cap exactly and sees that action, so the refusal is the cap's.
+// Sign-out's cap is the setting's registered ceiling, 64KiB, written as
+// a literal so a changed ceiling fails its row.
 func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 	const bodyCap = 512
-	pad := func(body string) string {
-		return body + "&pad=" + strings.Repeat("x", bodyCap+1-len(body)-len("&pad="))
+	const signOutCap = 65536
+	pad := func(body string, n int) string {
+		return body + "&pad=" + strings.Repeat("x", n-len(body)-len("&pad="))
 	}
 	tests := []struct {
 		name  string
+		cap   int
 		serve func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder
 		acted func(t *testing.T, fx handlerFixture, w *httptest.ResponseRecorder) bool
 	}{
 		{
 			name: "request link",
+			cap:  bodyCap,
 			serve: func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder {
 				return serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, body(requestLinkBody("member@example.com"))))
 			},
@@ -598,6 +602,7 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 		},
 		{
 			name: "consume link",
+			cap:  bodyCap,
 			serve: func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder {
 				token := mintFixtureLink(t, currentFixture, "member@example.com", handlerNow)
 				return serveOne(fx.handlers.ConsumeLink, post("/login/link", peerIPPort, body(consumeBody(token))))
@@ -608,6 +613,7 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 		},
 		{
 			name: "sign out",
+			cap:  signOutCap,
 			serve: func(t *testing.T, fx handlerFixture, body func(string) string) *httptest.ResponseRecorder {
 				return serveOne(fx.handlers.SignOut, post("/logout", peerIPPort, body("signout=1")))
 			},
@@ -618,14 +624,17 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fx := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap})
-			w := tt.serve(t, fx, func(b string) string {
-				padded := pad(b)
-				if len(padded) != bodyCap+1 {
-					t.Fatalf("padded body is %d bytes, want %d", len(padded), bodyCap+1)
+			padTo := func(n int) func(string) string {
+				return func(b string) string {
+					padded := pad(b, n)
+					if len(padded) != n {
+						t.Fatalf("padded body is %d bytes, want %d", len(padded), n)
+					}
+					return padded
 				}
-				return padded
-			})
+			}
+			fx := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap})
+			w := tt.serve(t, fx, padTo(tt.cap+1))
 			if w.Code != http.StatusRequestEntityTooLarge {
 				t.Errorf("status = %d, want 413", w.Code)
 			}
@@ -633,10 +642,10 @@ func TestOversizeBodyRefusedBeforeParse(t *testing.T) {
 				t.Errorf("an oversized body was acted on")
 			}
 
-			control := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap + 1})
-			w = tt.serve(t, control, pad)
+			control := newHandlerFixture(t, fixtureOptions{bodyCap: bodyCap})
+			w = tt.serve(t, control, padTo(tt.cap))
 			if w.Code != http.StatusOK || !tt.acted(t, control, w) {
-				t.Errorf("control: status %d, acted %v; want the same body acted on under a cap that admits it", w.Code, tt.acted(t, control, w))
+				t.Errorf("control: status %d, acted %v; want a body at the cap acted on", w.Code, tt.acted(t, control, w))
 			}
 		})
 	}

@@ -77,11 +77,11 @@ var magicLinkIdentitySource = config.IdentitySource{
 // so a base64 rendering of 32 random bytes passes with room to spare.
 const secretLengthFloor = 32
 
-// MagicLinkExpiryCeiling bounds how long a mailed link can stay
+// magicLinkExpiryCeiling bounds how long a mailed link can stay
 // redeemable: generous headroom above the 15-minute default, short of a
 // link surviving a day in a mail scanner's cache or a browser's history.
 // It is [magicLinkExpirySetting]'s registered ceiling.
-const MagicLinkExpiryCeiling = time.Hour
+const magicLinkExpiryCeiling = time.Hour
 
 // magicLinkExpirySetting, sessionLifetimeSetting,
 // SessionAbsoluteCapSetting, and nonceRetentionSetting are the four
@@ -109,7 +109,7 @@ var (
 		Doc:         "a Go duration string, for example 15m",
 		Apply:       config.ApplyNextOperation,
 		Floor:       "1m",
-		Ceiling:     MagicLinkExpiryCeiling.String(),
+		Ceiling:     magicLinkExpiryCeiling.String(),
 		Description: "how long a mailed sign-in link stays redeemable",
 		Sensitivity: config.Sensitive,
 	}
@@ -200,10 +200,10 @@ var (
 	}
 )
 
-// RequestBodyCapCeiling is the auth request body cap's ceiling.
+// requestBodyCapCeiling is the auth request body cap's ceiling.
 // Sign-out bounds its body with it directly, so the one auth endpoint
 // no limiter charges reads no setting.
-const RequestBodyCapCeiling = 65536
+const requestBodyCapCeiling = 65536
 
 // authRequestBodyCapSetting bounds an auth request's body. Its floor,
 // 512 bytes, fits an RFC 5321 address (254 bytes at most) plus its
@@ -217,7 +217,7 @@ var authRequestBodyCapSetting = config.Setting{
 	Doc:         "a positive integer of bytes, for example 4096",
 	Apply:       config.ApplyNextOperation,
 	Floor:       "512",
-	Ceiling:     strconv.Itoa(RequestBodyCapCeiling),
+	Ceiling:     strconv.Itoa(requestBodyCapCeiling),
 	Description: "the largest sign-in request body the server reads, in bytes",
 	Sensitivity: config.NotSensitive,
 }
@@ -456,6 +456,9 @@ var errSourceNotSelected = errors.New("the magic-link identity source is not sel
 // setting at every call, so a stored change applies to the next request
 // that reads it.
 type Config struct {
+	// LinkSecret and PreviousLinkSecret sign and verify magic links,
+	// and the session pair signs and verifies session cookies. Either
+	// previous secret may be empty.
 	LinkSecret            []byte
 	PreviousLinkSecret    []byte
 	SessionSecret         []byte
@@ -465,14 +468,26 @@ type Config struct {
 	// origin every sign-in link is built from.
 	PublicOrigin string
 
-	LinkExpiry         settings.Reader[time.Duration]
-	SessionLifetime    settings.Reader[time.Duration]
+	LinkExpiry      settings.Reader[time.Duration]
+	SessionLifetime settings.Reader[time.Duration]
+
+	// SessionAbsoluteCap bounds how long a session can survive however
+	// many times it is refreshed. A minted session's expiry is clamped
+	// to it as a refresh's is.
 	SessionAbsoluteCap settings.Reader[time.Duration]
-	NonceRetention     settings.Reader[time.Duration]
-	BodyCap            settings.Reader[int64]
+
+	NonceRetention settings.Reader[time.Duration]
+
+	// BodyCap bounds every auth request body but sign-out's, before any
+	// parser reads it. Sign-out bounds its body at the cap's registered
+	// ceiling: no limiter charges a sign-out, so reading a setting there
+	// would let any client spend a store read on every request.
+	BodyCap settings.Reader[int64]
 
 	// GenericAnswer reports whether an unknown address gets the same
-	// answer a known one does.
+	// answer a known one does, sent before any mail is. When false, an
+	// unknown address is told so and handed the roster's admin contact,
+	// and a known address whose mail fails is told its request failed.
 	GenericAnswer settings.Reader[bool]
 }
 

@@ -51,7 +51,7 @@ const renderedInstallHint = "npx --prefix web playwright install chromium"
 // raised from the 15m default (DUBPLATE_MAGIC_LINK_EXPIRY)
 // so the capture matrix's own minted links, spent well after the run
 // starts, stay valid for renderedScriptTimeout's own length: it stays
-// under auth.MagicLinkExpiryCeiling (one hour).
+// under the magic-link expiry ceiling (one hour).
 const renderedMagicLinkExpiry = 25 * time.Minute
 
 // The fixture's four rate limits, set through their configuration keys.

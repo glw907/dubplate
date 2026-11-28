@@ -40,10 +40,6 @@ type NonceStore struct {
 	// record carries its own life and the sweep prunes on that, so
 	// lowering retention never shortens a record already on disk.
 	retention settings.Reader[time.Duration]
-
-	// linkExpiryCeiling is the registered ceiling on the magic-link
-	// expiry, never the value in force ([NonceStore.mtimeFallback]).
-	linkExpiryCeiling time.Duration
 }
 
 // A NonceSweep reports one sweep's counts. Malformed counts records
@@ -55,15 +51,13 @@ type NonceSweep struct {
 }
 
 // OpenNonceStore returns the consumed-nonce store under authDir and
-// sweeps it once at now. retention reads DUBPLATE_NONCE_RETENTION, and
-// linkExpiryCeiling is the registered ceiling on the link expiry. The
+// sweeps it once at now. retention reads DUBPLATE_NONCE_RETENTION. The
 // caller runs [NonceStore.RunSweep] thereafter.
-func OpenNonceStore(ctx context.Context, authDir *Dir, retention settings.Reader[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
+func OpenNonceStore(ctx context.Context, authDir *Dir, retention settings.Reader[time.Duration], now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
-		authDir:           authDir,
-		dir:               authDir.subdir(nonceSubdir),
-		retention:         retention,
-		linkExpiryCeiling: linkExpiryCeiling,
+		authDir:   authDir,
+		dir:       authDir.subdir(nonceSubdir),
+		retention: retention,
 	}
 	sweep, err := s.sweep(ctx, now)
 	if err != nil {
@@ -220,7 +214,7 @@ func (s *NonceStore) recordExpiry(path string, retention time.Duration) (time.Ti
 }
 
 // mtimeFallback dates a record whose bytes cannot be read or parsed at
-// its mtime plus max(retention, s.linkExpiryCeiling). A readable record
+// its mtime plus max(retention, magicLinkExpiryCeiling). A readable record
 // lives at least as long as its token and no token outlives the
 // ceiling, so the bound is never shorter than the record it stands for.
 // With retention alone, lowering it and the link expiry together could
@@ -230,7 +224,7 @@ func (s *NonceStore) mtimeFallback(path string, retention time.Duration) (time.T
 	if statErr != nil {
 		return time.Time{}, statErr
 	}
-	return info.ModTime().Add(max(retention, s.linkExpiryCeiling)), errNonceRecordUnparseable
+	return info.ModTime().Add(max(retention, magicLinkExpiryCeiling)), errNonceRecordUnparseable
 }
 
 // nonceRecord renders the version, the consumed-at second, and the life

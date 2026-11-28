@@ -74,7 +74,7 @@ func (fx revokeFixture) verifyAliceAt(t *testing.T, minted time.Time) (VerifiedI
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
 	}
-	seam := NewMagicLinkVerifier(fx.roster, fx.epoch, []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
+	seam := NewMagicLinkVerifier(fx.roster, fx.epoch, verifierConfig())
 	return seam.VerifyIdentity(requestWithSession(t, value), minted.Add(time.Minute), false)
 }
 
