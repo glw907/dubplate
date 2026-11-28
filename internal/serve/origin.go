@@ -3,66 +3,47 @@ package serve
 import "net/http"
 
 // originCheck refuses a state-changing browser request that did not
-// come from this server's own pages. It is the one cross-site request
-// forgery defense for every surface the shell serves: [Shell.Handler]
-// places it after the ingress strip and path normalization and before
-// subtree dispatch, so every registered subtree and every path outside
-// the prefix sit behind it by construction rather than by each mount
-// remembering to install it.
+// come from this server's own pages: the one cross-site request forgery
+// defense for every surface the shell serves. [Shell.Handler] places it
+// before subtree dispatch, so every subtree sits behind it without each
+// mount installing it.
 //
-// The mechanism is [http.CrossOriginProtection], which honors
-// Sec-Fetch-Site on its own and falls back to comparing Origin's host
-// with Host only when Sec-Fetch-Site is absent. That order matters: a
-// check reading Origin alone refuses every development request that
-// reaches the server through a proxy rewriting Host. The stdlib value
-// is too permissive in one respect, and originCheck tightens exactly
-// that one: a request carrying neither Sec-Fetch-Site nor Origin is
-// allowed by the stdlib, on the assumption that it is same-origin or
-// not from a browser, and is refused here. A current browser sends at
-// least one of the two on every state-changing request, so what the
-// tightening refuses is a non-browser caller presenting a cookie, which
-// only the bearer bypass below may admit.
+// It is [http.CrossOriginProtection], which reads Sec-Fetch-Site and
+// falls back to comparing Origin with Host, tightened in one respect:
+// a request carrying neither header, which the stdlib allows, is
+// refused. A current browser sends one of the two on every
+// state-changing request, so the tightening refuses a non-browser
+// caller presenting a cookie, which only a bearer bypass may admit.
 //
-// GET, HEAD and OPTIONS are always allowed, because the stdlib treats
-// them as safe. A handler must therefore never change state on one of
-// them, and a native client that does change state on a GET, as some
-// streaming clients do, is never checked here: the handler serving it
-// stands behind its own authentication alone.
+// GET, HEAD, and OPTIONS are always allowed, so a handler must never
+// change state on one; a native client that does is guarded by its
+// handler's own authentication alone.
 //
-// There is no double-submit token. The session cookie's __Host- prefix
-// and SameSite=Lax attribute and this check each do a distinct job,
-// and a token would repeat the check's job on a surface only browsers
-// reach with a cookie.
+// There is no double-submit token: on a surface only browsers reach
+// with a cookie, it would repeat this check's job.
 //
 // # The bearer bypass
 //
-// A request authenticated by a bearer credential rather than by the
-// session cookie cannot be forged by a third-party page, which can make
-// a browser attach cookies but never a bearer credential. Such a path
-// is exempted through [originCheck.addBearerBypass], keyed on its
-// path. The exemption carries a contract every handler behind a
-// bypassed pattern keeps: it must not read the session cookie to
-// authenticate a request. A bypassed handler that
-// fell back to the cookie would turn the exemption into exactly the
-// forgery this check refuses.
+// A third-party page can make a browser attach cookies but never a
+// bearer credential, so a bearer-authenticated path is exempted through
+// [originCheck.addBearerBypass]. Every handler behind a bypassed
+// pattern must not authenticate by the session cookie: one that fell
+// back to it would turn the exemption into the forgery this check
+// refuses.
 type originCheck struct {
 	protection *http.CrossOriginProtection
 
-	// bypass holds the same patterns as protection's own bypass set.
-	// It is kept here because the stdlib cannot be asked whether a
-	// request matched: protection allows a request carrying neither
-	// header before it consults its bypass set, so the tightening must
-	// decide the exemption for itself.
+	// bypass holds protection's bypass patterns again, since protection
+	// allows a request carrying neither header before it consults its
+	// own set and cannot be asked whether a request matched.
 	bypass *http.ServeMux
 
-	// deny answers every refused request.
 	deny http.Handler
 }
 
-// bypassSentinel is the handler every bypass pattern registers. It is
-// never served: the check compares the handler the mux resolves against
-// bypassMatch, which tells a matched pattern from the mux's own
-// not-found or redirect handler.
+// bypassSentinel is the handler every bypass pattern registers, never
+// served: comparing the resolved handler with bypassMatch tells a
+// matched pattern from the mux's not-found or redirect handler.
 type bypassSentinel struct{}
 
 func (bypassSentinel) ServeHTTP(http.ResponseWriter, *http.Request) {}
@@ -80,11 +61,9 @@ func newOriginCheck() *originCheck {
 }
 
 // addBearerBypass exempts every request matching pattern, in
-// [http.ServeMux] syntax, from the check. It registers pattern with the
-// stdlib value, which governs a cross-origin request, and with the
-// check's own set, which governs a request carrying neither header;
-// either alone would leave one of the two refusing. It panics on a
-// pattern the mux rejects or one already registered.
+// [http.ServeMux] syntax, from the check, in both the stdlib value and
+// the check's own set. It panics on a pattern the mux rejects or one
+// already registered.
 func (o *originCheck) addBearerBypass(pattern string) {
 	o.bypass.Handle(pattern, bypassMatch)
 	o.protection.AddInsecureBypassPattern(pattern)
