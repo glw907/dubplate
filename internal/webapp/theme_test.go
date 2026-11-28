@@ -43,10 +43,10 @@ func TestStampablePalettes_RealBundle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fs.ReadFile(%q): %v", loginLinkDocumentName, err)
 	}
-	themes, err := extractThemes(buildFS,
-		namedDocument{path: loginDocumentName, raw: loginRaw},
-		namedDocument{path: loginLinkDocumentName, raw: linkRaw},
-	)
+	themes, err := extractThemes(buildFS, []document{
+		{name: loginDocumentName, raw: loginRaw},
+		{name: loginLinkDocumentName, raw: linkRaw},
+	})
 	if err != nil {
 		t.Fatalf("extractThemes: %v", err)
 	}

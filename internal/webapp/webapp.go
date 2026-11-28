@@ -107,23 +107,20 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		return Routes{}, errors.New("the embedded web build tree holds only the placeholder; run `npm run build` in web/")
 	}
 
-	webDocuments := documents(cfg.Names)
-	docs := make([]namedDocument, len(webDocuments))
-	csps := make([]string, len(webDocuments))
-	for i, d := range webDocuments {
-		raw, err := fs.ReadFile(build, d.name)
+	docs := documents(cfg.Names)
+	for i := range docs {
+		d := &docs[i]
+		d.raw, err = fs.ReadFile(build, d.name)
 		if err != nil {
 			return Routes{}, fmt.Errorf("webapp: document %q: %w", d.name, err)
 		}
-		csp, err := documentCSP(d.name, raw)
+		d.csp, err = documentCSP(d.name, d.raw)
 		if err != nil {
 			return Routes{}, err
 		}
-		docs[i] = namedDocument{path: d.name, raw: raw}
-		csps[i] = csp
 	}
 
-	themes, err := extractThemes(build, docs...)
+	themes, err := extractThemes(build, docs)
 	if err != nil {
 		return Routes{}, err
 	}
@@ -142,8 +139,8 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		{href: cfg.Prefix + "/" + cfg.Names.FaviconSVG, contentType: "image/svg+xml"},
 		{href: cfg.Prefix + "/" + cfg.Names.FaviconPNG, contentType: "image/png", sizes: "32x32"},
 	}
-	handlers := make(map[string]http.Handler, len(webDocuments))
-	for i, d := range webDocuments {
+	handlers := make(map[string]http.Handler, len(docs))
+	for _, d := range docs {
 		vc := variantConfig{
 			placeholder: themePlaceholder,
 			match:       cfg.Match,
@@ -156,18 +153,18 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 		if d.noIndex {
 			vc.robots = authRobots
 		}
-		variants, err := buildDocumentVariants(d.name, docs[i].raw, vc)
+		variants, err := buildDocumentVariants(d.name, d.raw, vc)
 		if err != nil {
 			return Routes{}, err
 		}
-		if err := checkVariantCSP(d.name, variants, csps[i]); err != nil {
+		if err := checkVariantCSP(d.name, variants, d.csp); err != nil {
 			return Routes{}, err
 		}
 		handlers[cfg.Prefix+d.route] = documentHandler(documentConfig{
 			variants:       variants,
 			defaultPalette: cfg.Palette,
 			cacheControl:   d.cacheControl,
-			csp:            csps[i],
+			csp:            d.csp,
 			logger:         cfg.Logger,
 		})
 	}

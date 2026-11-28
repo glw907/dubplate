@@ -30,12 +30,16 @@ const authRobots = "noindex, nofollow"
 
 // document is one document the routes serve: its path inside the build
 // tree, the path under the owned prefix it answers at, its
-// Cache-Control value, and whether it carries the robots meta.
+// Cache-Control value, and whether it carries the robots meta. raw and
+// csp are empty in the [documents] table; [New] fills them with the
+// build's bytes for the document and the CSP header built from them.
 type document struct {
 	name         string
 	route        string
 	cacheControl string
 	noIndex      bool
+	raw          []byte
+	csp          string
 }
 
 // documents returns every document the build emits and the server
