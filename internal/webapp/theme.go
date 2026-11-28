@@ -98,14 +98,6 @@ func paletteThemeColors(theme string, declared []themeColor) ([]themeColor, erro
 	return []themeColor{{scheme: "light", color: light}, {scheme: "dark", color: dark}}, nil
 }
 
-// namedDocument pairs a document's path inside the embedded build tree
-// with its raw bytes, so [extractThemes] can resolve each stylesheet
-// href it finds relative to the document that carries it.
-type namedDocument struct {
-	path string
-	raw  []byte
-}
-
 // bundleThemes is what the built bundle's stylesheets declare about
 // its themes: every [data-theme=<name>] selector name, and each named
 // theme's --color-neutral declarations as [themeNeutrals] reads them.
@@ -114,18 +106,18 @@ type bundleThemes struct {
 	neutrals  map[string][]themeColor
 }
 
-// extractThemes reads the stylesheets docs link to, each href resolved
-// relative to its own document's path inside build, and returns the
-// union of what they declare about the bundle's themes.
-func extractThemes(build fs.FS, docs ...namedDocument) (bundleThemes, error) {
+// extractThemes reads the stylesheets the raw bytes of docs link to,
+// each href resolved relative to its own document's path inside build,
+// and returns the union of what they declare about the bundle's themes.
+func extractThemes(build fs.FS, docs []document) (bundleThemes, error) {
 	cssPaths := make(map[string]struct{})
 	for _, doc := range docs {
 		for _, href := range stylesheetHrefs(doc.raw) {
-			cssPaths[resolveStylesheetPath(doc.path, href)] = struct{}{}
+			cssPaths[resolveStylesheetPath(doc.name, href)] = struct{}{}
 		}
 	}
 	if len(cssPaths) == 0 {
-		return bundleThemes{}, fmt.Errorf("webapp: document %q: no stylesheet link found", docs[0].path)
+		return bundleThemes{}, fmt.Errorf("webapp: document %q: no stylesheet link found", docs[0].name)
 	}
 
 	themes := bundleThemes{
