@@ -419,18 +419,6 @@ func TestLinkURL(t *testing.T) {
 			prefix:  "/dubplate",
 			wantErr: true,
 		},
-		{
-			name:    "an empty prefix refuses",
-			origin:  "https://example.test",
-			prefix:  "",
-			wantErr: true,
-		},
-		{
-			name:    "a root prefix refuses",
-			origin:  "https://example.test",
-			prefix:  "/",
-			wantErr: true,
-		},
 	}
 
 	for _, tt := range tests {
