@@ -90,9 +90,9 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, err
 	}
-	epoch := auth.NewEpochStore(authDir)
+	epoch := auth.NewEpochStore(authDir, shell.Logger())
 
-	roster := member.NewRoster(h, epoch, time.Now)
+	roster := member.NewRoster(h, epoch, time.Now, shell.Logger())
 
 	limiter := auth.NewLimiter(limits)
 

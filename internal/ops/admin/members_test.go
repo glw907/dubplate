@@ -11,6 +11,7 @@ import (
 
 	"github.com/glw907/dubplate/internal/id"
 	"github.com/glw907/dubplate/internal/identity"
+	"github.com/glw907/dubplate/internal/member"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/store"
 )
@@ -140,7 +141,7 @@ func TestAddMember_AnswersTheStoredMemberOnceCommitted(t *testing.T) {
 			f := newFixture(t)
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			t.Cleanup(cancel)
-			f.seam.cfg.Logger = slog.New(cancelOnRecord{msg: "roster member added", cancel: cancel})
+			f.seam.cfg.Roster = member.NewRoster(f.h, f.epoch, func() time.Time { return testNow }, slog.New(cancelOnRecord{msg: "roster member added", cancel: cancel}))
 
 			resp, err := f.seam.AddMember(ctx, actor(alice, fresh), tt.req)
 			if err != nil {

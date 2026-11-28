@@ -30,7 +30,7 @@ func (s *Service) AddMember(ctx context.Context, actor identity.Actor, req ops.A
 	candidate := member.Member{Address: req.Address, DisplayName: req.DisplayName, Username: req.Username}
 	var added member.Member
 	if err := s.writeMember(ctx, actor, func(ctx context.Context) (err error) {
-		added, err = s.cfg.Roster.AddMember(ctx, candidate, actor, s.cfg.Logger)
+		added, err = s.cfg.Roster.AddMember(ctx, candidate, actor)
 		return err
 	}); err != nil {
 		return ops.AddMemberResponse{}, err
@@ -46,7 +46,7 @@ func (s *Service) RemoveMember(ctx context.Context, actor identity.Actor, req op
 		return ops.RemoveMemberResponse{}, err
 	}
 	return ops.RemoveMemberResponse{}, s.writeMember(ctx, actor, func(ctx context.Context) error {
-		return s.cfg.Roster.RemoveMember(ctx, target, actor, s.cfg.Logger)
+		return s.cfg.Roster.RemoveMember(ctx, target, actor)
 	})
 }
 
@@ -58,7 +58,7 @@ func (s *Service) DemoteMember(ctx context.Context, actor identity.Actor, req op
 		return ops.DemoteMemberResponse{}, err
 	}
 	return ops.DemoteMemberResponse{}, s.writeMember(ctx, actor, func(ctx context.Context) error {
-		return s.cfg.Roster.DemoteMember(ctx, target, actor, s.cfg.Logger)
+		return s.cfg.Roster.DemoteMember(ctx, target, actor)
 	})
 }
 

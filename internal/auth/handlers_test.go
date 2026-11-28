@@ -277,7 +277,7 @@ func newHandlerFixture(t *testing.T, opts fixtureOptions) handlerFixture {
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
-	epoch := NewEpochStore(store)
+	epoch := NewEpochStore(store, discardLogger())
 	roster, users := newRosterOver(t, slices.Clone(handlerRoster)...)
 
 	limits := opts.limits
