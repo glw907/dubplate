@@ -50,17 +50,18 @@ type MagicLinkVerifier struct {
 
 var _ Verifier = (*MagicLinkVerifier)(nil)
 
-// NewMagicLinkVerifier returns a MagicLinkVerifier over roster and epoch.
-// absoluteCap is read at every verification, so a changed cap applies to
-// the next request in both directions; lifetime is read at every refresh.
-func NewMagicLinkVerifier(roster *member.Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap settings.Reader[time.Duration]) *MagicLinkVerifier {
+// NewMagicLinkVerifier returns a MagicLinkVerifier over roster and epoch
+// that reads cfg's session secrets and session readers. The cap is read
+// at every verification, so a changed cap applies to the next request in
+// both directions; the lifetime is read at every refresh.
+func NewMagicLinkVerifier(roster *member.Roster, epoch *EpochStore, cfg Config) *MagicLinkVerifier {
 	return &MagicLinkVerifier{
 		roster:         roster,
 		epoch:          epoch,
-		currentSecret:  currentSecret,
-		previousSecret: previousSecret,
-		lifetime:       lifetime,
-		absoluteCap:    absoluteCap,
+		currentSecret:  cfg.SessionSecret,
+		previousSecret: cfg.PreviousSessionSecret,
+		lifetime:       cfg.SessionLifetime,
+		absoluteCap:    cfg.SessionAbsoluteCap,
 	}
 }
 

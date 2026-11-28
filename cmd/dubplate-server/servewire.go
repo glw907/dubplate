@@ -83,7 +83,7 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 	if err != nil {
 		return nil, err
 	}
-	nonces, _, err := auth.OpenNonceStore(ctx, authDir, authConfig.NonceRetention, auth.MagicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(ctx, authDir, authConfig.NonceRetention, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -98,32 +98,22 @@ func newServeShell(ctx context.Context, environ []string, reg *config.Registry, 
 		return nil, err
 	}
 
-	verifier := auth.NewMagicLinkVerifier(roster, epoch, authConfig.SessionSecret, authConfig.PreviousSessionSecret,
-		authConfig.SessionLifetime, authConfig.SessionAbsoluteCap)
+	verifier := auth.NewMagicLinkVerifier(roster, epoch, authConfig)
 
 	// The shell's strip reads the same proxy class, so the peer whose
 	// forwarded headers survive is the one whose header names the client.
 	clientIP := func(r *http.Request) string { return serve.ClientIP(r, proxyConfig) }
 	handlers := auth.NewHandlers(auth.HandlersConfig{
-		Roster:             roster,
-		Nonces:             nonces,
-		Epoch:              epoch,
-		Limiter:            limiter,
-		Send:               mailer.Send,
-		ClientIP:           clientIP,
-		Now:                time.Now,
-		Logger:             shell.Logger(),
-		LinkSecret:         authConfig.LinkSecret,
-		PreviousLinkSecret: authConfig.PreviousLinkSecret,
-		SessionSecret:      authConfig.SessionSecret,
-		LinkExpiry:         authConfig.LinkExpiry,
-		SessionLifetime:    authConfig.SessionLifetime,
-		SessionAbsoluteCap: authConfig.SessionAbsoluteCap,
-		PublicOrigin:       authConfig.PublicOrigin,
-		Prefix:             prefix.String(),
-		BodyCap:            authConfig.BodyCap,
-		BodyCapCeiling:     auth.RequestBodyCapCeiling,
-		GenericAnswer:      authConfig.GenericAnswer,
+		Config:   authConfig,
+		Roster:   roster,
+		Nonces:   nonces,
+		Epoch:    epoch,
+		Limiter:  limiter,
+		Send:     mailer.Send,
+		ClientIP: clientIP,
+		Now:      time.Now,
+		Logger:   shell.Logger(),
+		Prefix:   prefix.String(),
 	})
 
 	registerAuthRoutes(routes, handlers)

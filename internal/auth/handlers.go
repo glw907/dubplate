@@ -12,7 +12,6 @@ import (
 
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/member"
-	"github.com/glw907/dubplate/internal/settings"
 )
 
 // Form fields the handlers read. Both pages post a urlencoded form,
@@ -65,8 +64,12 @@ const (
 )
 
 // HandlersConfig is everything [NewHandlers] needs, resolved by the
-// caller. Every field is required except PreviousLinkSecret.
+// caller. Every field is required except Config's previous secrets.
 type HandlersConfig struct {
+	// Config holds the secrets, the public origin, and the setting
+	// readers, as [ConfigFrom] resolves them.
+	Config
+
 	Roster  *member.Roster
 	Nonces  *NonceStore
 	Epoch   *EpochStore
@@ -87,49 +90,10 @@ type HandlersConfig struct {
 
 	Logger *slog.Logger
 
-	// LinkSecret and PreviousLinkSecret sign and verify magic links;
-	// PreviousLinkSecret may be empty. SessionSecret signs the session
-	// a consumed link mints.
-	LinkSecret, PreviousLinkSecret, SessionSecret []byte
-
-	// LinkExpiry is read when a link request starts, and the session
-	// a consumed link mints takes the SessionLifetime read when its
-	// consumption starts.
-	LinkExpiry, SessionLifetime settings.Reader[time.Duration]
-
-	// SessionAbsoluteCap bounds how long a session can survive however
-	// many times it is refreshed. MintSession clamps every minted
-	// session's expiry to the value read when the consumption starts,
-	// the same clamp a refresh applies.
-	SessionAbsoluteCap settings.Reader[time.Duration]
-
-	// PublicOrigin is the configured public URL every mailed link is
-	// built from.
-	PublicOrigin string
-
 	// Prefix is the owned prefix's string form (serve.Prefix's String),
 	// so a mailed link lands under the surface the shell routes to this
 	// package's own handlers.
 	Prefix string
-
-	// BodyCap is the byte limit on every request body but sign-out's,
-	// read when the request starts and applied before any parser reads
-	// the body.
-	BodyCap settings.Reader[int64]
-
-	// BodyCapCeiling is the registered ceiling on BodyCap, never the
-	// value in force. Sign-out bounds its body with it: no limiter
-	// charges a sign-out, so reading a setting there would let any
-	// client spend a store read on every request.
-	BodyCapCeiling int64
-
-	// GenericAnswer, read when a link request starts, selects the
-	// generic unknown-address answer: a known address and an unknown
-	// one get the same response, sent before any mail is. When false,
-	// an unknown address is told so and handed the roster's admin
-	// contact, and a known address whose mail fails is told its request
-	// failed.
-	GenericAnswer settings.Reader[bool]
 }
 
 // Handlers is the three auth endpoints, as values the shell mounts.
@@ -452,7 +416,7 @@ func (h *endpoints) consume(ctx context.Context, now time.Time, token string) (s
 // does not do.
 func (h *endpoints) signOut(w http.ResponseWriter, r *http.Request) {
 	log := h.cfg.Logger.With("client_ip", h.cfg.ClientIP(r))
-	if !readForm(w, r, h.cfg.BodyCapCeiling, log) {
+	if !readForm(w, r, requestBodyCapCeiling, log) {
 		return
 	}
 	http.SetCookie(w, clearSessionCookie())

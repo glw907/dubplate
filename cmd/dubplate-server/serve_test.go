@@ -465,7 +465,7 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("auth.Open: %v", err)
 	}
-	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, auth.MagicLinkExpiryCeiling, time.Now())
+	nonces, _, err := auth.OpenNonceStore(t.Context(), store, func(context.Context) (time.Duration, error) { return time.Hour, nil }, time.Now())
 	if err != nil {
 		t.Fatalf("auth.OpenNonceStore: %v", err)
 	}
@@ -553,22 +553,9 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 }
 
 // handlersConfigFor is the part of the handler config serve fills from
-// ac and prefix: the secrets, the setting readers, the public origin,
-// and the prefix.
+// ac and prefix.
 func handlersConfigFor(prefix serve.Prefix, ac auth.Config) auth.HandlersConfig {
-	return auth.HandlersConfig{
-		LinkSecret:         ac.LinkSecret,
-		PreviousLinkSecret: ac.PreviousLinkSecret,
-		SessionSecret:      ac.SessionSecret,
-		LinkExpiry:         ac.LinkExpiry,
-		SessionLifetime:    ac.SessionLifetime,
-		SessionAbsoluteCap: ac.SessionAbsoluteCap,
-		PublicOrigin:       ac.PublicOrigin,
-		Prefix:             prefix.String(),
-		BodyCap:            ac.BodyCap,
-		BodyCapCeiling:     auth.RequestBodyCapCeiling,
-		GenericAnswer:      ac.GenericAnswer,
-	}
+	return auth.HandlersConfig{Config: ac, Prefix: prefix.String()}
 }
 
 // requestedLink posts a link request for address to the handlers hc
@@ -2221,7 +2208,7 @@ func TestNewServeShell_NonceFallbackOutlivesTheExpiryCeiling(t *testing.T) {
 		t.Fatalf("buildServeShell: %v", err)
 	}
 	if _, err := os.Stat(record); err != nil {
-		t.Errorf("the opening sweep removed a record younger than the expiry ceiling %v: %v", auth.MagicLinkExpiryCeiling, err)
+		t.Errorf("the opening sweep removed a record younger than the one-hour expiry ceiling: %v", err)
 	}
 }
 

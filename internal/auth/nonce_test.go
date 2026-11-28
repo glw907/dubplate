@@ -32,11 +32,11 @@ var (
 // unless it says otherwise.
 const fixtureRetention = 24 * time.Hour
 
-// fixtureLinkExpiryCeiling stands for the configured ceiling on the
-// magic-link expiry, passed into OpenNonceStore by its caller. It is
-// shorter than fixtureRetention, so every row that opens a store with
-// it reads the retention, not the ceiling, as the mtime fallback's
-// life, unless the row says otherwise.
+// fixtureLinkExpiryCeiling is the magic-link expiry's registered
+// ceiling, written as a literal so a changed ceiling fails the rows that
+// read it. It is shorter than fixtureRetention, so every row reads the
+// retention, not the ceiling, as the mtime fallback's life, unless the
+// row says otherwise.
 const fixtureLinkExpiryCeiling = time.Hour
 
 func newNonceStore(t *testing.T, stateDir string, retention time.Duration, now time.Time) *NonceStore {
@@ -45,7 +45,7 @@ func newNonceStore(t *testing.T, stateDir string, retention time.Duration, now t
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(t.Context(), store, fixed(retention), fixtureLinkExpiryCeiling, now)
+	nonces, _, err := OpenNonceStore(t.Context(), store, fixed(retention), now)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -371,7 +371,7 @@ func TestSweepRetainsUnreadableRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	if _, _, err := OpenNonceStore(t.Context(), store, fixed(fixtureRetention), fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second)); err != nil {
+	if _, _, err := OpenNonceStore(t.Context(), store, fixed(fixtureRetention), nonceClock.Add(fixtureRetention+time.Second)); err != nil {
 		t.Errorf("OpenNonceStore: %v, want nil: a single unreadable record must not stop startup", err)
 	}
 
@@ -416,7 +416,7 @@ func TestMtimeFallbackRespectsLinkExpiryCeiling(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	nonces, _, err := OpenNonceStore(t.Context(), store, fixed(shortRetention), fixtureLinkExpiryCeiling, nonceClock)
+	nonces, _, err := OpenNonceStore(t.Context(), store, fixed(shortRetention), nonceClock)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -517,7 +517,7 @@ func TestOpenSweeps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	_, sweep, err := OpenNonceStore(t.Context(), store, fixed(fixtureRetention), fixtureLinkExpiryCeiling, nonceClock.Add(fixtureRetention+time.Second))
+	_, sweep, err := OpenNonceStore(t.Context(), store, fixed(fixtureRetention), nonceClock.Add(fixtureRetention+time.Second))
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -642,7 +642,7 @@ func TestRunSweepLogsAFailureAndContinues(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 	retention := newSettingFake(fixtureRetention)
-	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), nonceClock)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -703,7 +703,7 @@ func TestNonceStore_ReadsTheRetentionAtEachUse(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 	retention := newSettingFake(fixtureRetention)
-	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), nonceClock)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -731,7 +731,7 @@ func TestNonceStore_RetentionReadFailure(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 	retention := newSettingFake(fixtureRetention)
-	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), nonceClock)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}
@@ -770,7 +770,7 @@ func TestRunSweep_RetentionReadFailureLogsTheKey(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 	retention := newSettingFake(fixtureRetention)
-	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), fixtureLinkExpiryCeiling, nonceClock)
+	nonces, _, err := OpenNonceStore(t.Context(), store, retention.setting(), nonceClock)
 	if err != nil {
 		t.Fatalf("OpenNonceStore: %v", err)
 	}

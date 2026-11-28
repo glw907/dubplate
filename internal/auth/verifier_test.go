@@ -36,6 +36,17 @@ type verifierFixture struct {
 	dir    string // stateDir, for reaching the epoch subdirectory directly
 }
 
+// verifierConfig is the session half of a [Config] the verifier reads:
+// the fixture secrets and fixed readers for the lifetime and the cap.
+func verifierConfig() Config {
+	return Config{
+		SessionSecret:         []byte(currentFixture),
+		PreviousSessionSecret: []byte(previousFixture),
+		SessionLifetime:       fixed(verifierLifetime),
+		SessionAbsoluteCap:    fixed(verifierCap),
+	}
+}
+
 // newVerifierFixture opens a roster over a fresh store holding rows and a
 // fresh epoch store under t.TempDir(), and wires both into a
 // MagicLinkVerifier signing under currentFixture and previousFixture
@@ -54,7 +65,7 @@ func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap settings.Read
 	epoch := newEpochStore(t, stateDir)
 	roster := member.NewRoster(users, epoch, fixedNow(rosterNow), discardLogger())
 
-	seam := NewMagicLinkVerifier(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
+	seam := NewMagicLinkVerifier(roster, epoch, Config{SessionSecret: []byte(currentFixture), PreviousSessionSecret: []byte(previousFixture), SessionLifetime: lifetime, SessionAbsoluteCap: absoluteCap})
 	return verifierFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
 }
 
@@ -295,7 +306,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 func TestMagicLinkVerifier_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
+	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil, nil), newEpochStore(t, t.TempDir()), verifierConfig())
 	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)
