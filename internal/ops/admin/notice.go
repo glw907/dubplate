@@ -23,7 +23,8 @@ const noticeWait = 10 * time.Second
 // commits and outside its transaction, so no writer waits on the mail
 // server. Its context keeps none of ctx's cancellation or deadline and
 // takes its own: a client that disconnects after the commit does not
-// stop the send. A failure is logged and changes nothing. The write
+// stop the send. Each notice is logged as sent or failed, never with
+// its recipient's address, and a failure changes nothing. The write
 // stays committed, and its settings audit row is the durable record.
 func (s *Service) notifyAdmins(ctx context.Context, actor identity.Actor, key string, res settings.Result) {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), noticeWait)
@@ -48,7 +49,9 @@ func (s *Service) notifyAdmins(ctx context.Context, actor identity.Actor, key st
 		}
 		if err := s.cfg.Send(ctx, m.Address, subject, body); err != nil {
 			logger.Error("sensitive-change notice failed", "reason", err.Error())
+			continue
 		}
+		logger.Info("sensitive-change notice sent")
 	}
 }
 
