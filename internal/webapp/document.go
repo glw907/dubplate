@@ -377,8 +377,7 @@ func loggedMethod(method string) string {
 }
 
 // maxLoggedPathBytes bounds the request path a document record
-// carries, matching the bound internal/serve puts on its refusal
-// record: a path is bounded by nothing but http.Server.MaxHeaderBytes,
+// carries. A path is bounded by nothing but http.Server.MaxHeaderBytes,
 // and 256 bytes is enough to identify which page was asked for.
 const maxLoggedPathBytes = 256
 
