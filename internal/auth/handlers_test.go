@@ -682,7 +682,7 @@ func TestRequestLink_GenericAnswersAlike(t *testing.T) {
 // address logs the rule it broke, by code point, and never the address.
 func TestRequestLink_RefusalLogsTheNormalizerReason(t *testing.T) {
 	fx := newHandlerFixture(t, fixtureOptions{})
-	const address = "\"me​mber\"@example.com"
+	const address = "\"me\U0000200Bmber\"@example.com"
 	w := serveOne(fx.handlers.RequestLink, post("/login", peerIPPort, requestLinkBody(address)))
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want %d", w.Code, http.StatusBadRequest)
