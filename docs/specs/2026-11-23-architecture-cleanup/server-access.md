@@ -24,7 +24,7 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 1161df6 P1, medium: `internal/serve/server.go:88` newHTTPServer takes a writeTimeout parameter that its one production caller always fills with defaultWriteTimeout (server.go:141).
 - [x] 901d107 P1, low: `internal/identity/identity_test.go:206` defaultIgnorableRow.preExisting is set on three rows but no test reads it.
 - [x] aafc1d7 P1, low: `internal/ops/idpin_test.go:10` The non-test code has no test-only seams.
-- [ ] P1, low: `internal/serve/doctor.go:80` BindAddrsRowStatus(environ, ifaceAddrs []net.Addr, ifaceErr error) takes another function's error as an input parameter.
+- [~] not held: bindAddrsStatus is now unexported and pure with one caller, DoctorRows, which makes the net.InterfaceAddrs call itself, so every state is testable with no seam, and moving the call inside would need a package-level interfaceAddrs var swapped by tests: P1, low: `internal/serve/doctor.go:80` BindAddrsRowStatus(environ, ifaceAddrs []net.Addr, ifaceErr error) takes another function's error as an input parameter.
 - [x] f158e6c P1, low: `internal/serve/tusmount_test.go:86` A serve test imports intake, store and identity to exercise intake's tus mount.
 - [x] 1ee649e, d2e51b4 P1, low: `internal/webapp/branding_test.go:177` Two test names do not name behavior.
 - [x] 81b9f38 P2, high: `internal/auth/store.go:83` Much of the exported surface has no caller outside the package.
@@ -42,7 +42,7 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 901d107 P2, medium: `internal/identity/identity.go:218` Identity.DisplayName has a single writer (auth/seam.go:136) and no reader anywhere in production code.
 - [x] aafc1d7 P2, medium: `internal/ops/errors.go:132` NewUnauthenticatedError and ErrUnauthenticated (errors.go:44) have no production caller.
 - [x] c6b44ec P2, medium: `internal/ops/privilege.go:41` Privilege.MarshalText and Privilege.UnmarshalText, plus the valid() helper at :20 that exists only for MarshalText, have no production caller.
-- [ ] P2, medium: `internal/serve/config.go:99` ResolveConfig returns four results, (Prefix, []string, int, error), with nothing naming the second and third.
+- [x] cb3a61a P2, medium: `internal/serve/config.go:99` ResolveConfig returns four results, (Prefix, []string, int, error), with nothing naming the second and third.
 - [x] 1ee649e P2, medium: `internal/webapp/document.go:21` ThemeCookieName is read only by cmd/dubplate-server/web_test.go:383, :526, and :1450.
 - [x] 1ee649e P2, medium: `internal/webapp/webapp.go:469` ExactPaths has one caller outside, and it is not about the web app: cmd/dubplate-server/serve.go:242 uses it to keep deeper paths off serve's probe route.
 - [x] 901d107 P2, low: `internal/identity/identity.go:159` Channel's doc spends a paragraph (159-164) explaining that ChannelCommandLine is not an identity channel, and Valid has to reject it by name (234).
@@ -57,7 +57,7 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 901d107 P4, medium: `internal/identity/identity.go:1` Density is 1.19 (118/99), against net/mail at 0.21, so more than five times the stdlib norm.
 - [x] 7f60e5a P4, medium: `internal/notify/notify.go:1` The package doc argues against an alternative nobody proposed ('born general rather than as a magic-link mailer'), and it names 'the upload reject copy and run notifications' as callers.
 - [x] 411ee0e P4, medium: `internal/ops/opshttp/doc.go:17` The package doc says "Nothing here is exported: the package has no caller until a server mounts it".
-- [ ] P4, medium: `internal/serve/strip.go:177` The package measures 1145 comment lines to 1321 code lines, 0.87, against net/http/httputil at 0.45 (net/netip is 0.39).
+- [x] 6d8ac49 (0.74 to 0.41) P4, medium: `internal/serve/strip.go:177` The package measures 1145 comment lines to 1321 code lines, 0.87, against net/http/httputil at 0.45 (net/netip is 0.39).
 - [x] 2b9f024 P4, low: `internal/identity/identity.go:54` The NormalizeAddress doc promises that the error never quotes value, "so a caller may log it".
 - [x] 7f60e5a P4, low: `internal/notify/notify.go:40` The ErrSend doc says it covers failure 'after a successful dial', but lines 141-145 wrap every DialAndSendWithContext error, a refused dial and a missing STARTTLS included (notify_test.go:511 asserts ErrSend for the STARTTLS case).
 - [x] 7f60e5a P4, low: `internal/notify/notify.go:117` The comment quotes 'go-mail v0.8.1' and names that version's source files, but go.mod pins github.com/wneessen/go-mail v0.8.2.
@@ -112,12 +112,12 @@ sentence; the report holds the full finding and its fix. The task ticks each box
 - [x] 411ee0e internal/ops/opshttp, medium: `internal/ops/opshttp/opshttp.go:97` (P5) The route map repeats each op name twice per entry (key and route argument).
 - [x] 411ee0e internal/ops/opshttp, low: `internal/ops/opshttp/opshttp.go:138` Several small naming inconsistencies.
 - [x] 411ee0e internal/ops/opshttp, low: `internal/ops/opshttp/opshttp.go:247` writeError takes both a status and a code, even though statuses already relates the two, so callers pick one of two forms.
-- [ ] internal/serve, high: `internal/serve/bindaddrs.go:46` Two values are parsed and then passed on as strings, so the callers parse them again.
-- [ ] internal/serve, medium: `internal/serve/clientaddr.go:109` Names are inconsistent across the package.
+- [x] 1ef06d1 internal/serve, high: `internal/serve/bindaddrs.go:46` Two values are parsed and then passed on as strings, so the callers parse them again.
+- [x] 80931ed internal/serve, medium: `internal/serve/clientaddr.go:109` Names are inconsistent across the package.
 - [x] 9ef401d internal/serve, medium: `internal/serve/clientaddr.go:261` splitHops and trimHop rebuild the stdlib by hand.
 - [x] 55d9bbe internal/serve, medium: `internal/serve/doctor.go:252` trustedProxy calls ResolveTrustedProxy and then calls ParseProxyAddrs on the raw config value again (doctor.go:261) to rebuild the proxy set the TrustedProxyConfig already holds.
 - [x] 64ad952 internal/serve, medium: `internal/serve/prefix.go:84` validatePrefix's segment loop (prefix.go:84-96) repeats pathRefusal's loop (normalize.go:114-124): trim the leading slash, split on '/', refuse '.' and '..', and refuse an empty segment anywhere but last.
-- [ ] internal/serve, low: `internal/serve/clientaddr.go:70` refusedProxyHeaders rebuilds its map on every call.
+- [x] 2365153 internal/serve, low: `internal/serve/clientaddr.go:70` refusedProxyHeaders rebuilds its map on every call.
 - [x] 996e4ec internal/serve, low: `internal/serve/normalize.go:81` The refusal pair `markRefusal(r, s);
 - [x] d2e51b4 internal/webapp, medium: `internal/webapp/document.go:284` (P7) The package is named webapp, but its errors carry 'web: ' (28 sites) and its request record carries 'serve: document request', which is another package's prefix.
 - [x] 02367ef internal/webapp, medium: `internal/webapp/webapp.go:191` (P5) The two favicons and their MIME types are listed twice: as the icon links documents carry (webapp.go:191-194) and as the files the icons route serves (static.go:108-111).
