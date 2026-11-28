@@ -44,12 +44,9 @@ func newStaticFile(data []byte, contentType string) staticFile {
 // Content-Type is set on w before [http.ServeContent] runs, so no host
 // mime table can override it (Go's built-in extension table carries no
 // ".woff2" entry, and its fallback reads host files that differ
-// between the workstation and the box). The ETag lets a revalidation
-// answer 304: "If the caller has set w's ETag header formatted per RFC
-// 7232, section 2.3, ServeContent uses it to handle requests using
-// If-Match, If-None-Match, or If-Range" (go doc
-// net/http.ServeContent), which holds even though every response
-// carries a zero modtime.
+// between the workstation and the box). The preset ETag lets
+// [http.ServeContent] answer a revalidation 304 although every
+// response carries a zero modtime.
 func staticFilesHandler(files map[string]staticFile) http.Handler {
 	notFound := http.NotFoundHandler()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
