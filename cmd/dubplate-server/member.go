@@ -19,15 +19,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// lookupUser resolves the effective uid to the user an audit record
-// names; see [resolveActor].
 var lookupUser = user.LookupId
 
-// newMemberCmd builds the member verb: add, remove, demote, and list,
-// the subcommands that give an operator the group's members, which
-// internal/member keeps in the store. None reads the environment itself; each resolves
-// configuration through loadConfig against reg, the same wall serve
-// enforces.
 func newMemberCmd(environ []string, reg *config.Registry) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
@@ -42,12 +35,9 @@ func newMemberCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return cmd
 }
 
-// openOperatorStore loads the wall and opens the store in write mode, the
-// mode every operator verb shares: it refuses an absent store, a store at
-// any version but the binary's, a restore in progress, and a leaf another
-// user owns, each with the store's own message. A verb that only reads
-// opens the same mode, so one set of refusals covers them all. The
-// caller closes the handle.
+// openOperatorStore loads the wall and opens the store in write mode,
+// so every operator verb, a read-only one included, meets one set of
+// refusals. The caller closes the handle.
 func openOperatorStore(ctx context.Context, environ []string, reg *config.Registry) (*store.Handle, *config.Config, error) {
 	cfg, err := loadConfig(environ, reg)
 	if err != nil {
@@ -81,11 +71,9 @@ func withStore(ctx context.Context, environ []string, reg *config.Registry, fn f
 	return fn(ctx, h, cfg.StateDir)
 }
 
-// writingRoster returns a roster over h that may write: it opens the
-// auth leaf under stateDir for the revocation epochs a removal and a
-// re-add bump. A leaf auth.Open refuses is reported naming verb, and
-// nothing is written. Only a writing verb calls it, so member list
-// opens no auth leaf.
+// writingRoster returns a roster over h that may write, opening the
+// auth leaf under stateDir for the epochs a removal and a re-add bump.
+// Only a writing verb calls it, so member list opens no auth leaf.
 func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, error) {
 	leaf, err := auth.Open(stateDir)
 	if err != nil {
@@ -94,11 +82,9 @@ func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, erro
 	return member.NewRoster(h, auth.NewEpochStore(leaf), time.Now), nil
 }
 
-// newMemberAddCmd builds "member add <address>": it opens the store in
-// write mode and adds the member through the roster's one write path.
-// --name and --username are required flags; an empty value still
-// reaches the roster's write-path validation, since cobra's required
-// check proves only that the flag was set.
+// newMemberAddCmd builds "member add <address>". cobra's required-flag
+// check proves only that --name and --username were set, so an empty
+// value still reaches the roster's validation.
 func newMemberAddCmd(environ []string, reg *config.Registry) *cobra.Command {
 	var name, username string
 	var admin bool
@@ -145,8 +131,6 @@ func newMemberRemoveCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return newMemberChangeCmd("remove", "Remove a member from the group", environ, reg, (*member.Roster).RemoveMember)
 }
 
-// newMemberDemoteCmd builds "member demote <address>": it clears the
-// member's admin flag.
 func newMemberDemoteCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return newMemberChangeCmd("demote", "Clear a member's admin flag", environ, reg, (*member.Roster).DemoteMember)
 }
@@ -154,8 +138,7 @@ func newMemberDemoteCmd(environ []string, reg *config.Registry) *cobra.Command {
 // newMemberChangeCmd builds the verb that resolves an address to the
 // live member's id and applies one roster write to it. The write names
 // the member by id, so one removed between the lookup and the write
-// answers [member.ErrMemberNotFound], as an unknown address does. The
-// audit record goes to stderr.
+// answers [member.ErrMemberNotFound], as an unknown address does.
 func newMemberChangeCmd(verb, short string, environ []string, reg *config.Registry, change rosterChange) *cobra.Command {
 	return &cobra.Command{
 		Use:   verb + " <address>",
@@ -177,10 +160,9 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 	}
 }
 
-// newMemberListCmd builds "member list": it opens the store and prints
-// one line per live member, in the order they were added, to stdout,
-// which is the subcommand's whole purpose. Nothing else this file
-// writes carries an address.
+// newMemberListCmd builds "member list", which prints the live members
+// to stdout in the order they were added. Nothing else this file writes
+// carries an address.
 func newMemberListCmd(environ []string, reg *config.Registry) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
@@ -198,9 +180,6 @@ func newMemberListCmd(environ []string, reg *config.Registry) *cobra.Command {
 	}
 }
 
-// printMemberList writes members to w: a header line, then one line
-// per member in the order given, address, display name, username,
-// and an admin marker, tab-separated.
 func printMemberList(w io.Writer, members []member.Member) error {
 	if _, err := fmt.Fprint(w, "ADDRESS\tDISPLAY NAME\tUSERNAME\tADMIN\n"); err != nil {
 		return err
