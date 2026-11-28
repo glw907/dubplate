@@ -11,49 +11,35 @@ import (
 )
 
 // A Verifier verifies the credential a request carries and yields the
-// identity it asserts, so a caller never inspects a credential's own
-// encoding to decide who is logged in or whether they are an operator.
-// MagicLinkVerifier is its production implementation; a test substitutes
-// its own to drive the gate through each refusal.
+// identity it asserts, so no caller inspects a credential's encoding.
+// MagicLinkVerifier is the production implementation.
 type Verifier interface {
-	// VerifyIdentity verifies the credential r carries and returns the
-	// identity it asserts. now is the instant every time comparison
-	// runs against. sameOrigin is the same-origin condition as the
-	// caller's own header inspection determined it, since deriving it
-	// here would require this package to know which headers a shell
-	// trusts.
-	//
-	// A nil error means the request is permitted; any non-nil error
-	// means it is refused. The specific sentinel names the check that
-	// failed for a caller's own log line; the refusal itself never
-	// depends on which one it is.
+	// VerifyIdentity returns the identity r's credential asserts, with
+	// every time comparison made against now. sameOrigin is the caller's
+	// reading of the request headers, since only the shell knows which
+	// headers it trusts. A nil error permits the request. The sentinel
+	// in a non-nil one names the failed check for logging only.
 	VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error)
 }
 
-// VerifiedIdentity is what a Verifier yields for a credential that
-// verified.
+// VerifiedIdentity is what a Verifier yields for a verified credential.
 type VerifiedIdentity struct {
-	// Identity is the verified login.
 	Identity identity.Identity
 
-	// Admin is read from the roster record at verification, never from
-	// anything the request carries.
+	// Admin is read from the roster record, never from the request.
 	Admin bool
 
-	// Session is the session backing Identity, refreshed when the
-	// request was same-origin.
+	// Session is refreshed when the request was same-origin.
 	Session Session
 
-	// RefreshedValue is the newly signed session cookie value when
-	// Session was refreshed, empty when the request was not
-	// same-origin and nothing was refreshed.
+	// RefreshedValue is the new cookie value, empty when nothing was
+	// refreshed.
 	RefreshedValue string
 }
 
-// MagicLinkVerifier is the [Verifier] for a member's session: it verifies the
-// session cookie, re-checks the address against the roster and the
-// revocation epoch on every call, and refreshes the session only for a
-// same-origin request.
+// MagicLinkVerifier is the [Verifier] for a member's session: it checks
+// the session cookie against the roster and the revocation epoch on
+// every call, and refreshes it only for a same-origin request.
 type MagicLinkVerifier struct {
 	roster *member.Roster
 	epoch  *EpochStore
@@ -64,12 +50,9 @@ type MagicLinkVerifier struct {
 
 var _ Verifier = (*MagicLinkVerifier)(nil)
 
-// NewMagicLinkVerifier returns a MagicLinkVerifier verifying against roster and
-// epoch, signing and clamping refreshed sessions the same way
-// currentSecret, previousSecret, lifetime, and absoluteCap already
-// govern minting and verification. absoluteCap is read at every
-// verification, so a changed cap applies to the next request in both
-// directions; lifetime is read at every refresh.
+// NewMagicLinkVerifier returns a MagicLinkVerifier over roster and epoch.
+// absoluteCap is read at every verification, so a changed cap applies to
+// the next request in both directions; lifetime is read at every refresh.
 func NewMagicLinkVerifier(roster *member.Roster, epoch *EpochStore, currentSecret, previousSecret []byte, lifetime, absoluteCap settings.Reader[time.Duration]) *MagicLinkVerifier {
 	return &MagicLinkVerifier{
 		roster:         roster,
@@ -83,17 +66,11 @@ func NewMagicLinkVerifier(roster *member.Roster, epoch *EpochStore, currentSecre
 
 // VerifyIdentity implements [Verifier].
 //
-// The order is fixed: the session cookie's MAC, then the absolute cap
-// and the expiry, then the revocation epoch, then the roster. The cap
-// is read only once the MAC has verified, so a forged cookie costs no
-// setting read. The roster lookup runs on every
-// call rather than once at login, so a member removed after logging in
-// stops working at their next request rather than at their session's
-// expiry. A refresh, when the request is same-origin, runs last, after
-// every refusal has already had its chance to deny.
-//
-// A failed read of the cap or the lifetime fails the verification with
-// an error wrapping errSettingUnreadable, never a default.
+// The cap is read only after the MAC verifies, so a forged cookie costs
+// no setting read. The roster is checked on every call, so a removed
+// member is refused at their next request, not at expiry. A failed
+// setting read wraps errSettingUnreadable and never falls back to a
+// default.
 func (m *MagicLinkVerifier) VerifyIdentity(r *http.Request, now time.Time, sameOrigin bool) (VerifiedIdentity, error) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err != nil {
