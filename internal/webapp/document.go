@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html"
-	"io/fs"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"slices"
 	"strings"
-	"time"
 )
 
 // themeCookieName is the theme preference cookie's name, following
@@ -19,6 +17,42 @@ import (
 // cookie is stored only when it carries Path=/, no Domain, and Secure.
 // The web app's theme toggle writes it; this package only reads it.
 const themeCookieName = "__Host-dubplate_theme"
+
+// themePlaceholder is the token app.html carries on <html data-theme>,
+// substituted once per stampable palette at startup. It must match
+// web/src/app.html's own literal exactly.
+const themePlaceholder = "__DUBPLATE_THEME__"
+
+// authRobots is the robots meta the two sign-in documents carry, so a
+// search engine neither lists a sign-in page nor follows a link out of
+// one.
+const authRobots = "noindex, nofollow"
+
+// document is one document the routes serve: its path inside the build
+// tree, the path under the owned prefix it answers at, its
+// Cache-Control value, and whether it carries the robots meta.
+type document struct {
+	name         string
+	route        string
+	cacheControl string
+	noIndex      bool
+}
+
+// documents returns every document the build emits and the server
+// serves. A document is no-cache by default: the stamp and the tier
+// links are fixed at startup, so a cache may keep it and revalidate.
+// The consumption document is no-store because its URL carried a
+// sign-in token. The members and server settings documents are
+// no-store because they answer only behind the admin gate, as the API
+// they read from does.
+func documents(names RouteNames) []document {
+	return []document{
+		{name: "login.html", route: "/" + names.Login, cacheControl: "no-cache", noIndex: true},
+		{name: "login/link.html", route: "/" + names.Login + "/link", cacheControl: "no-store", noIndex: true},
+		{name: "members.html", route: "/" + names.Members, cacheControl: "no-store"},
+		{name: "server-settings.html", route: "/" + names.ServerSettings, cacheControl: "no-store"},
+	}
+}
 
 // rewriteDocument returns raw with the exactly-one occurrence of
 // placeholder replaced by composed, the theme stamp's whole edit: no
@@ -73,15 +107,6 @@ type variantConfig struct {
 
 	// Icons are the icon links every variant carries, in order.
 	Icons []icon
-}
-
-// themeColor is one theme color: the color, and the color scheme it
-// applies under, "light" or "dark", or "" when it applies whatever the
-// device prefers. As a theme-color meta, a color with a scheme carries
-// a prefers-color-scheme media query.
-type themeColor struct {
-	Scheme string
-	Color  string
 }
 
 // icon is one <link rel="icon">: its href, its MIME type, and its
@@ -184,20 +209,59 @@ func headAnchor(name string, raw []byte) (int, error) {
 	return anchor, nil
 }
 
-// newStylesheet returns an http.Handler serving GET and HEAD only,
-// answering body as text/css. body is fixed when the handler is built,
-// so the response reads nothing from the request. The response is
-// no-cache, since the stylesheet's content changes at a restart while
-// its name does not.
-func newStylesheet(body []byte) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !allowGetHead(w, r) {
-			return
+// tierHrefs returns the tier links for the document at docPath inside
+// the build tree: the branding stylesheet always, and the operator
+// stylesheet when one is configured. Each href is relative to the
+// document's own URL, as the build's own links are, so the same
+// document resolves them under any prefix.
+func tierHrefs(docPath string, names RouteNames, hasOperatorCSS bool) []string {
+	root := "./"
+	if depth := strings.Count(docPath, "/"); depth > 0 {
+		root = strings.Repeat("../", depth)
+	}
+	hrefs := []string{root + names.Branding}
+	if hasOperatorCSS {
+		hrefs = append(hrefs, root+names.OperatorCSS)
+	}
+	return hrefs
+}
+
+// linkTagRE finds every <link ...> opening tag in a built document.
+// hrefAttrRE and relAttrRE then search inside one matched tag's own
+// bytes for its href and rel attributes independently, rather than
+// assuming either attribute's order: the build writes href before rel,
+// and a regex anchored to one order would silently find nothing on the
+// other.
+var (
+	linkTagRE  = regexp.MustCompile(`(?i)<link\b[^>]*>`)
+	hrefAttrRE = regexp.MustCompile(`(?i)\bhref\s*=\s*"([^"]*)"`)
+	relAttrRE  = regexp.MustCompile(`(?i)\brel\s*=\s*"([^"]*)"`)
+)
+
+// stylesheetHrefs returns the href of every <link rel="stylesheet">
+// tag in doc, in document order. It reads the built bundle's own
+// attribute-quoting shape (kit always double-quotes), the fixture
+// state every caller of this function runs against.
+func stylesheetHrefs(doc []byte) []string {
+	var hrefs []string
+	for _, tag := range linkTagRE.FindAll(doc, -1) {
+		if !isStylesheetLink(tag) {
+			continue
 		}
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		w.Header().Set("Cache-Control", "no-cache")
-		_, _ = w.Write(body)
-	})
+		href := hrefAttrRE.FindSubmatch(tag)
+		if href == nil {
+			continue
+		}
+		hrefs = append(hrefs, string(href[1]))
+	}
+	return hrefs
+}
+
+// isStylesheetLink reports whether tag, one <link> opening tag, carries
+// rel="stylesheet".
+func isStylesheetLink(tag []byte) bool {
+	rel := relAttrRE.FindSubmatch(tag)
+	return rel != nil && string(rel[1]) == "stylesheet"
 }
 
 // documentConfig is what [newDocument] serves a document from.
@@ -317,158 +381,4 @@ func boundedPath(path string) string {
 		return path
 	}
 	return fmt.Sprintf("%s...[truncated, %d bytes]", path[:maxLoggedPathBytes], len(path))
-}
-
-// newAssets returns an http.Handler serving GET and HEAD only, looking
-// up each request path as an exact file under root: routePrefix is the
-// exact path a caller mounted root at (for example "<prefix>/_app"),
-// and a request path is served only when it is routePrefix followed by
-// a separator and a name root holds as a regular file. Every other
-// shape (routePrefix itself, a path under it naming a directory, and
-// a path naming no file) answers [http.NotFoundHandler]'s 404, with no
-// directory listing and no redirect, unlike [http.FileServerFS].
-//
-// A file under root's immutable directory is served public and
-// immutable for a year: the build names each one by its content's
-// hash, so a name never changes content. Every other file keeps a
-// stable name across builds and is served no-cache.
-func newAssets(root fs.FS, routePrefix string) http.Handler {
-	notFound := http.NotFoundHandler()
-	prefixSlash := routePrefix + "/"
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !allowGetHead(w, r) {
-			return
-		}
-		if !strings.HasPrefix(r.URL.Path, prefixSlash) {
-			notFound.ServeHTTP(w, r)
-			return
-		}
-		name := strings.TrimPrefix(r.URL.Path, prefixSlash)
-		data, err := fs.ReadFile(root, name)
-		if err != nil {
-			notFound.ServeHTTP(w, r)
-			return
-		}
-		cacheControl := "no-cache"
-		if strings.HasPrefix(name, "immutable/") {
-			cacheControl = "public, max-age=31536000, immutable"
-		}
-		w.Header().Set("Cache-Control", cacheControl)
-		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
-	})
-}
-
-// allowGetHead reports whether r's method is GET or HEAD, and answers
-// 405 with Allow: GET, HEAD when it is not, so the caller has only to
-// return. HEAD needs no separate branch: net/http's own server discards
-// a handler's written body on a HEAD request while still computing
-// Content-Length, so a caller can always write the full body.
-func allowGetHead(w http.ResponseWriter, r *http.Request) bool {
-	if r.Method == http.MethodGet || r.Method == http.MethodHead {
-		return true
-	}
-	w.Header().Set("Allow", "GET, HEAD")
-	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-	return false
-}
-
-// linkTagRE finds every <link ...> opening tag in a built document.
-// hrefAttrRE and relAttrRE then search inside one matched tag's own
-// bytes for its href and rel attributes independently, rather than
-// assuming either attribute's order: the build writes href before rel,
-// and a regex anchored to one order would silently find nothing on the
-// other.
-var (
-	linkTagRE  = regexp.MustCompile(`(?i)<link\b[^>]*>`)
-	hrefAttrRE = regexp.MustCompile(`(?i)\bhref\s*=\s*"([^"]*)"`)
-	relAttrRE  = regexp.MustCompile(`(?i)\brel\s*=\s*"([^"]*)"`)
-)
-
-// stylesheetHrefs returns the href of every <link rel="stylesheet">
-// tag in doc, in document order. It reads the built bundle's own
-// attribute-quoting shape (kit always double-quotes), the fixture
-// state every caller of this function runs against.
-func stylesheetHrefs(doc []byte) []string {
-	var hrefs []string
-	for _, tag := range linkTagRE.FindAll(doc, -1) {
-		if !isStylesheetLink(tag) {
-			continue
-		}
-		href := hrefAttrRE.FindSubmatch(tag)
-		if href == nil {
-			continue
-		}
-		hrefs = append(hrefs, string(href[1]))
-	}
-	return hrefs
-}
-
-// isStylesheetLink reports whether tag, one <link> opening tag, carries
-// rel="stylesheet".
-func isStylesheetLink(tag []byte) bool {
-	rel := relAttrRE.FindSubmatch(tag)
-	return rel != nil && string(rel[1]) == "stylesheet"
-}
-
-// dataThemeSelectorRE matches one [data-theme=<name>] compound
-// selector, quoted or not, capturing the name alone: the closing "]"
-// anchors the match, so a prefix of a real name (matched as a
-// substring rather than the whole bracket expression) can never pass.
-// It is applied to raw CSS text rather than a parsed selector tree, so
-// a name inside an :is(...) list, which a minifier may produce, is
-// found the same as a standalone selector.
-var dataThemeSelectorRE = regexp.MustCompile(`\[data-theme=(?:"([a-zA-Z0-9-]+)"|([a-zA-Z0-9-]+))\]`)
-
-// themeSelectors returns the set of every name css declares a
-// [data-theme=<name>] compound selector for, quoted and unquoted forms
-// both.
-func themeSelectors(css []byte) map[string]struct{} {
-	names := make(map[string]struct{})
-	for _, m := range dataThemeSelectorRE.FindAllSubmatch(css, -1) {
-		name := m[1]
-		if len(name) == 0 {
-			name = m[2]
-		}
-		names[string(name)] = struct{}{}
-	}
-	return names
-}
-
-// cssRuleRE matches one innermost CSS rule, capturing its selector
-// text and its declaration block. Neither capture may hold a brace, so
-// a rule nested inside an at-rule is matched on its own selector, never
-// on the at-rule's prelude.
-var cssRuleRE = regexp.MustCompile(`([^{}]*)\{([^{}]*)\}`)
-
-// neutralDeclRE and colorSchemeDeclRE find one declaration inside a
-// rule's block. The leading anchor keeps a longer name ending in the
-// same letters from matching, and the name's own ":" keeps
-// --color-neutral-content from matching as --color-neutral.
-var (
-	neutralDeclRE     = regexp.MustCompile(`(?:^|;)\s*--color-neutral\s*:\s*([^;]*)`)
-	colorSchemeDeclRE = regexp.MustCompile(`(?:^|;)\s*color-scheme\s*:\s*([^;]*)`)
-)
-
-// themeNeutrals returns, for every theme name css declares a
-// [data-theme=<name>] rule for, the --color-neutral value of each such
-// rule that declares one, paired with the color-scheme the same rule
-// declares ("" when it declares none). A rule whose selector names
-// several themes counts for each. The values are returned as css
-// writes them, trimmed of surrounding space, and are not validated.
-func themeNeutrals(css []byte) map[string][]themeColor {
-	neutrals := make(map[string][]themeColor)
-	for _, rule := range cssRuleRE.FindAllSubmatch(css, -1) {
-		neutral := neutralDeclRE.FindSubmatch(rule[2])
-		if neutral == nil {
-			continue
-		}
-		tc := themeColor{Color: string(bytes.TrimSpace(neutral[1]))}
-		if scheme := colorSchemeDeclRE.FindSubmatch(rule[2]); scheme != nil {
-			tc.Scheme = string(bytes.TrimSpace(scheme[1]))
-		}
-		for name := range themeSelectors(rule[1]) {
-			neutrals[name] = append(neutrals[name], tc)
-		}
-	}
-	return neutrals
 }
