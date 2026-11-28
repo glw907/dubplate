@@ -115,6 +115,9 @@ func TestNotice_FailedSendLeavesTheWrite(t *testing.T) {
 	if strings.Contains(logs, "notice sent") {
 		t.Errorf("log = %q, want no sent record for a notice that failed", logs)
 	}
+	if strings.Contains(logs, "@") {
+		t.Errorf("log = %q, want no recipient address in a failed notice's record", logs)
+	}
 }
 
 // TestNotice_SentNoticeIsLogged proves each notice that goes out leaves

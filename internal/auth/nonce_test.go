@@ -33,7 +33,7 @@ var (
 const fixtureRetention = 24 * time.Hour
 
 // fixtureLinkExpiryCeiling is the magic-link expiry's registered
-// ceiling, written as a literal so a changed ceiling fails the rows that
+// ceiling, written as a literal so a raised ceiling fails the rows that
 // read it. It is shorter than fixtureRetention, so every row reads the
 // retention, not the ceiling, as the mtime fallback's life, unless the
 // row says otherwise.
@@ -656,7 +656,7 @@ func TestRunSweepLogsAFailureAndContinues(t *testing.T) {
 	go nonces.RunSweep(ctx, tick, func() time.Time { return nonceClock }, slog.New(slog.NewJSONHandler(logs, nil)))
 
 	tick <- nonceClock
-	logs.waitFor(t, "nonce sweep failed")
+	wantSettingRecord(t, logs.waitFor(t, "nonce sweep failed"))
 	retention.set(fixtureRetention, nil)
 	tick <- nonceClock
 	logs.waitFor(t, "nonce sweep completed")
