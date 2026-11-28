@@ -14,7 +14,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// dirRowName is the name of the row reporting the auth leaf serve
+// dirRowName is the name of the row reporting the auth dir serve
 // opens.
 const dirRowName = "auth dir"
 
@@ -27,11 +27,11 @@ func DoctorRows(cfg *config.Config) []doctor.Row {
 }
 
 // dirStatus reports, without writing, whether serve could open
-// the auth leaf under cfg's state directory: "ok" when the leaf is at
+// the auth dir under cfg's state directory: "ok" when the auth dir is at
 // most 0700, owned by euid, and each record directory is
-// writable; "absent; serve creates it" when the leaf is missing and
+// writable; "absent; serve creates it" when the auth dir is missing and
 // its nearest existing ancestor is writable. Otherwise it names every
-// problem and fails: the leaf's mode in the words [Open] refuses it
+// problem and fails: the auth dir's mode in the words [Open] refuses it
 // with, a foreign owner, or a directory the process cannot write, the
 // shape a path outside the unit's ReadWritePaths takes. A nil cfg reads
 // "not checked" and adds no failure of its own, since Load's own
@@ -40,10 +40,10 @@ func dirStatus(cfg *config.Config, euid int) (status string, failed bool) {
 	if cfg == nil {
 		return "not checked", false
 	}
-	leaf := dirPath(cfg.StateDir)
-	info, err := os.Stat(leaf)
+	root := dirPath(cfg.StateDir)
+	info, err := os.Stat(root)
 	if errors.Is(err, fs.ErrNotExist) {
-		if err := checkCreatable(leaf); err != nil {
+		if err := checkCreatable(root); err != nil {
 			return "absent, and serve cannot create it: " + err.Error(), true
 		}
 		return "absent; serve creates it", false
@@ -52,26 +52,26 @@ func dirStatus(cfg *config.Config, euid int) (status string, failed bool) {
 		return err.Error(), true
 	}
 	if !info.IsDir() {
-		return fmt.Sprintf("leaf %s is not a directory", leaf), true
+		return fmt.Sprintf("%s is not a directory", root), true
 	}
 
 	var problems []string
 	if mode := info.Mode().Perm(); mode&^dirPerm != 0 {
-		problems = append(problems, fmt.Sprintf("leaf %s has mode %o, want at most %o", leaf, mode, dirPerm))
+		problems = append(problems, fmt.Sprintf("%s has mode %o, want at most %o", root, mode, dirPerm))
 	}
 	// io/fs.FileInfo documents "Sys() any // underlying data source
 	// (can return nil)"; on Linux, os.Stat's carries a *syscall.Stat_t.
 	if st, ok := info.Sys().(*syscall.Stat_t); !ok {
-		problems = append(problems, fmt.Sprintf("leaf %s: cannot determine its owner", leaf))
+		problems = append(problems, fmt.Sprintf("%s: cannot determine its owner", root))
 	} else if int(st.Uid) != euid {
-		problems = append(problems, fmt.Sprintf("leaf %s is owned by uid %d, want uid %d", leaf, st.Uid, euid))
+		problems = append(problems, fmt.Sprintf("%s is owned by uid %d, want uid %d", root, st.Uid, euid))
 	}
 	for _, name := range []string{nonceSubdir, epochSubdir} {
-		sub := filepath.Join(leaf, name)
+		sub := filepath.Join(root, name)
 		_, err := os.Stat(sub)
 		switch {
 		case errors.Is(err, fs.ErrNotExist):
-			if err := checkDirWritable(leaf); err != nil {
+			if err := checkDirWritable(root); err != nil {
 				problems = append(problems, fmt.Sprintf("%s is absent, and %v", sub, err))
 			}
 		case err != nil:

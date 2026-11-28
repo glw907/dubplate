@@ -47,7 +47,7 @@ const epochRecordVersion = "dubplate-epoch-1"
 const epochRecordFieldCount = 2
 
 // An EpochStore is the set of revocation epochs, one record per
-// normalized login address under the auth leaf's epoch subdirectory.
+// normalized login address under the auth dir's epoch subdirectory.
 // A revocation is stamped on the person, so the record is
 // keyed on the address, the identity a credential carries.
 //
@@ -55,15 +55,15 @@ const epochRecordFieldCount = 2
 // fsyncs the containing directory after the rename, rather than the
 // first-writer-wins create [NonceStore] uses.
 type EpochStore struct {
-	leaf *Dir
+	authDir *Dir
 
 	// mu serializes each bump's read of the stored epoch with its write.
 	mu sync.Mutex
 }
 
-// NewEpochStore returns the revocation-epoch store under leaf.
-func NewEpochStore(leaf *Dir) *EpochStore {
-	return &EpochStore{leaf: leaf}
+// NewEpochStore returns the revocation-epoch store under authDir.
+func NewEpochStore(authDir *Dir) *EpochStore {
+	return &EpochStore{authDir: authDir}
 }
 
 // bump revokes every credential for address anchored or minted at or
@@ -120,7 +120,7 @@ func (e *EpochStore) advance(normalized string, epoch time.Time) error {
 	if ok && epoch.Equal(stored) {
 		return nil
 	}
-	path, err := e.leaf.epochPath(recordID(epochSubdir, normalized))
+	path, err := e.authDir.epochPath(recordID(epochSubdir, normalized))
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (e *EpochStore) Read(address string) (epoch time.Time, ok bool, err error) 
 }
 
 func (e *EpochStore) readNormalized(normalized string) (time.Time, bool, error) {
-	path, err := e.leaf.epochPath(recordID(epochSubdir, normalized))
+	path, err := e.authDir.epochPath(recordID(epochSubdir, normalized))
 	if err != nil {
 		return time.Time{}, false, fmt.Errorf("read epoch: %w", err)
 	}

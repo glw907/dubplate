@@ -272,7 +272,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 		t.Fatalf("MintSession: %v", err)
 	}
 
-	epochDir := filepath.Join(fx.dir, leafDirName, epochSubdir)
+	epochDir := filepath.Join(fx.dir, dirName, epochSubdir)
 	if err := os.Chmod(epochDir, 0o000); err != nil {
 		t.Fatalf("Chmod: %v", err)
 	}

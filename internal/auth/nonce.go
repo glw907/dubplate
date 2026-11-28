@@ -40,7 +40,7 @@ const nonceRecordFieldCount = 3
 var errNonceRecordUnparseable = errors.New("nonce record: unparseable")
 
 // A NonceStore is the set of consumed magic-link nonces, one record per
-// nonce under the auth leaf's nonce subdirectory.
+// nonce under the auth dir's nonce subdirectory.
 //
 // The insert is first-writer-wins and neither atomicfile.WriteFile nor
 // atomicfile.WriteStream can implement it: both write a temp file and
@@ -51,10 +51,10 @@ var errNonceRecordUnparseable = errors.New("nonce record: unparseable")
 // first-writer-wins, and syncs both the record and the directory that
 // now names it.
 type NonceStore struct {
-	leaf *Dir
+	authDir *Dir
 
 	// dir is the nonce subdirectory. It names a directory rather
-	// than a record, so it does not go through the leaf's record
+	// than a record, so it does not go through authDir's record
 	// path function; every record path below still does.
 	dir string
 
@@ -86,15 +86,15 @@ type NonceSweep struct {
 	Malformed int
 }
 
-// OpenNonceStore returns the consumed-nonce store under leaf,
+// OpenNonceStore returns the consumed-nonce store under authDir,
 // with retention reading DUBPLATE_NONCE_RETENTION's value in force and
 // linkExpiryCeiling the registered ceiling on the magic-link expiry,
 // and sweeps it once at now before returning. The caller runs
 // [NonceStore.RunSweep] thereafter; this package owns no timer.
-func OpenNonceStore(ctx context.Context, leaf *Dir, retention settings.Reader[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
+func OpenNonceStore(ctx context.Context, authDir *Dir, retention settings.Reader[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
-		leaf:              leaf,
-		dir:               leaf.subdir(nonceSubdir),
+		authDir:              authDir,
+		dir:               authDir.subdir(nonceSubdir),
 		retention:         retention,
 		linkExpiryCeiling: linkExpiryCeiling,
 	}
@@ -157,7 +157,7 @@ func (s *NonceStore) insert(ctx context.Context, nonce [nonceLength]byte, now, e
 	if err != nil {
 		return err
 	}
-	path, err := s.leaf.noncePath(recordID(nonceSubdir, string(nonce[:])))
+	path, err := s.authDir.noncePath(recordID(nonceSubdir, string(nonce[:])))
 	if err != nil {
 		return err
 	}
