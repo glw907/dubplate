@@ -256,29 +256,29 @@ func TestReportOutcome_Table(t *testing.T) {
 			if !strings.Contains(err.Error(), reportedJobWire) {
 				t.Errorf("error %q does not name the job's handle %s", err, reportedJobWire)
 			}
-			ece, wrapped := errors.AsType[*exitCodeErr](err)
+			ee, wrapped := errors.AsType[*exitError](err)
 			if tt.wantCode == 0 {
 				if wrapped {
-					t.Errorf("reportOutcome() wrapped exit code %d, want a plain error (run's own default of 1)", ece.code)
+					t.Errorf("reportOutcome() wrapped exit code %d, want a plain error (run's own default of 1)", ee.code)
 				}
 				return
 			}
 			if !wrapped {
 				t.Fatalf("reportOutcome() = %v, want it to wrap an exit code", err)
 			}
-			if ece.code != tt.wantCode {
-				t.Errorf("exit code = %d, want %d", ece.code, tt.wantCode)
+			if ee.code != tt.wantCode {
+				t.Errorf("exit code = %d, want %d", ee.code, tt.wantCode)
 			}
 		})
 	}
 }
 
-// TestWrapExitCode_Table proves R-6bi10's exit branch on StartBackup's
+// TestWithExitStatus_Table proves R-6bi10's exit branch on StartBackup's
 // two coded refusals, and that every other error is left unwrapped for
 // run's own default of 1 (mutation: mapping every error to exit 1
 // would still pass a hand test that checks only the default case, so
 // this table asserts both coded rows fire their own code too).
-func TestWrapExitCode_Table(t *testing.T) {
+func TestWithExitStatus_Table(t *testing.T) {
 	tests := []struct {
 		name     string
 		err      error
@@ -290,22 +290,22 @@ func TestWrapExitCode_Table(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := backupExitCode(tt.err)
-			ece, wrapped := errors.AsType[*exitCodeErr](got)
+			got := withExitStatus(tt.err)
+			ee, wrapped := errors.AsType[*exitError](got)
 			if tt.wantCode == 0 {
 				if wrapped {
-					t.Errorf("backupExitCode(%v) wrapped exit code %d, want it left unwrapped", tt.err, ece.code)
+					t.Errorf("withExitStatus(%v) wrapped exit code %d, want it left unwrapped", tt.err, ee.code)
 				}
 				if !errors.Is(got, tt.err) {
-					t.Errorf("backupExitCode(%v) = %v, want it to still wrap the original error", tt.err, got)
+					t.Errorf("withExitStatus(%v) = %v, want it to still wrap the original error", tt.err, got)
 				}
 				return
 			}
 			if !wrapped {
-				t.Fatalf("backupExitCode(%v) = %v, want it to wrap an exit code", tt.err, got)
+				t.Fatalf("withExitStatus(%v) = %v, want it to wrap an exit code", tt.err, got)
 			}
-			if ece.code != tt.wantCode {
-				t.Errorf("exit code = %d, want %d", ece.code, tt.wantCode)
+			if ee.code != tt.wantCode {
+				t.Errorf("exit code = %d, want %d", ee.code, tt.wantCode)
 			}
 		})
 	}
@@ -835,8 +835,8 @@ func backupRunFor(ctx context.Context, environ []string, stdout io.Writer) (code
 	if err == nil {
 		return 0, nil
 	}
-	if ece, ok := errors.AsType[*exitCodeErr](err); ok {
-		return ece.code, err
+	if ee, ok := errors.AsType[*exitError](err); ok {
+		return ee.code, err
 	}
 	return 1, err
 }

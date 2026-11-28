@@ -104,7 +104,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 	jobID, err := runner.StartBackup(startCtx, actor)
 	cancelStart()
 	if err != nil {
-		return backupExitCode(err)
+		return withExitStatus(err)
 	}
 	if _, err := fmt.Fprintf(stdout, "backup %s: started\n", jobID); err != nil {
 		return err
@@ -208,7 +208,7 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 		_, err := fmt.Fprintln(stdout, msg)
 		return err
 	case ops.JobCanceled:
-		return &exitCodeErr{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.JobID)}
+		return &exitError{code: exitInterrupted, err: fmt.Errorf("backup %s: canceled", job.JobID)}
 	case ops.JobFailed:
 		return fmt.Errorf("backup %s: failed, code %s: %s", job.JobID, job.FailureCode, job.FailureMessage)
 	default:
@@ -219,16 +219,16 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 	}
 }
 
-// backupExitCode maps a StartBackup error to its exit status: unavailable
-// while backup integration is off, conflict while another backup holds
-// the kind lease, and every other error unwrapped, run's own default
-// of 1.
-func backupExitCode(err error) error {
+// withExitStatus wraps a StartBackup error in the exit status it maps
+// to: unavailable while backup integration is off, conflict while
+// another backup holds the kind lease. Every other error returns
+// unwrapped, for run's own default of 1.
+func withExitStatus(err error) error {
 	switch {
 	case errors.Is(err, ops.CodeUnavailable):
-		return &exitCodeErr{code: exitUnavailable, err: err}
+		return &exitError{code: exitUnavailable, err: err}
 	case errors.Is(err, ops.CodeConflict):
-		return &exitCodeErr{code: exitTempFail, err: err}
+		return &exitError{code: exitTempFail, err: err}
 	default:
 		return err
 	}

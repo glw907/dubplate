@@ -432,8 +432,8 @@ func restoreRunFor(ctx context.Context, environ []string, f restoreFlags, stdout
 	if err == nil {
 		return 0, nil
 	}
-	if ece, ok := errors.AsType[*exitCodeErr](err); ok {
-		return ece.code, err
+	if ee, ok := errors.AsType[*exitError](err); ok {
+		return ee.code, err
 	}
 	return 1, err
 }

@@ -48,7 +48,7 @@ func main() {
 }
 
 // run executes cmd under the signal-derived context and returns the
-// process's exit status: 0 for a nil error, the code an *exitCodeErr
+// process's exit status: 0 for a nil error, the code an *exitError
 // names, and 1 for any other error, which it prints.
 func run(cmd *cobra.Command) int {
 	err := executeWithSignalContext(cmd)
@@ -56,8 +56,8 @@ func run(cmd *cobra.Command) int {
 		return 0
 	}
 	fmt.Fprintln(os.Stderr, err)
-	if ece, ok := errors.AsType[*exitCodeErr](err); ok {
-		return ece.code
+	if ee, ok := errors.AsType[*exitError](err); ok {
+		return ee.code
 	}
 	return 1
 }
@@ -76,15 +76,15 @@ const (
 	exitInterrupted = 130 // 128+SIGINT: canceled by a signal or another process
 )
 
-// An exitCodeErr wraps an error with the process exit status its
+// An exitError wraps an error with the process exit status its
 // outcome carries, so run never matches on error text.
-type exitCodeErr struct {
+type exitError struct {
 	code int
 	err  error
 }
 
-func (e *exitCodeErr) Error() string { return e.err.Error() }
-func (e *exitCodeErr) Unwrap() error { return e.err }
+func (e *exitError) Error() string { return e.err.Error() }
+func (e *exitError) Unwrap() error { return e.err }
 
 // executeWithSignalContext runs cmd under a context canceled by SIGINT
 // or SIGTERM. Without it serve's graceful drain is unreachable: cobra's
