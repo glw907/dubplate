@@ -87,17 +87,18 @@ type Routes struct {
 	OperatorCSS    http.Handler
 }
 
-// New reads the build tree build, refuses on a placeholder-only tree
-// naming `npm run build`, builds each document's CSP header from its
-// own CSP meta, checks cfg.Palette against the bundle's own extracted
-// [data-theme=<name>] selectors, rewrites the documents into one
-// variant per stampable palette with the tier links and the head metas
-// in place, and returns the routes. A document with an inline script
-// its CSP does not hash, in the build or in any rewritten variant, a
-// palette the bundle does not declare, a bundle theme with no usable
-// neutral, or a missing build file is refused here, so a caller that
-// builds the routes before any listener opens refuses startup rather
-// than the first request.
+// New reads the build tree build and returns the routes. It builds
+// each document's CSP header from the document's own CSP meta. It
+// checks cfg.Palette against the [data-theme=<name>] selectors the
+// bundle declares. It rewrites each document into one variant per
+// stampable palette, with the tier links and the head metas in place.
+//
+// New refuses a placeholder-only tree, naming `npm run build`. It also
+// refuses a missing build file, a palette the bundle does not declare,
+// a bundle theme with no usable neutral, and an inline script a
+// document's CSP does not hash, in the build or in any variant. A
+// caller that builds the routes before any listener opens therefore
+// refuses startup rather than the first request.
 func New(build fs.FS, cfg Config) (Routes, error) {
 	placeholderOnly, err := isPlaceholderOnly(build)
 	if err != nil {

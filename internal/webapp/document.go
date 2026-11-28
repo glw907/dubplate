@@ -126,29 +126,15 @@ type icon struct {
 	sizes       string
 }
 
-// buildDocumentVariants rewrites raw once per entry in cfg.palettes and
-// returns one body per palette. The rewrite makes two edits and no
-// other. It substitutes cfg.placeholder with the composed theme name,
-// and it inserts the head block directly after the last stylesheet
-// link the build wrote: one <link rel="stylesheet"> per tier href, the
-// site-name meta, the robots meta when cfg.robots is set, the
-// palette's own theme-color metas, and the icon links, in that order.
-// Anchoring on the last link keeps every tier after all of the
-// bundle's own CSS however many stylesheets a page links, so a tier
-// declaration wins every tie of equal specificity by document order,
-// and it keeps every insertion in the head and outside every script
-// body. A document with no stylesheet link, or whose last one sits
-// outside <head>, is refused, naming it, since the tiers would then
-// have nothing to follow or would land in the body.
-//
-// The placeholder is substituted in the build's own bytes before the
-// head block goes in, so no operator value (the site name, a prefix in
-// an href) can supply a missing placeholder or add a second one; an
-// inserted value carrying the placeholder is refused outright.
-//
-// The variants are computed once, at startup; [documentHandler] never
-// touches raw again, so no request byte can reach a served document.
-// name identifies the document in a returned error.
+// buildDocumentVariants returns one body per entry in cfg.palettes,
+// keyed by palette. Each body is raw with cfg.placeholder replaced by
+// the composed theme name and, after the last stylesheet link, the
+// tier links, the site-name meta, the robots meta when cfg.robots is
+// set, the palette's theme-color metas, and the icon links. The block
+// is anchored after the last stylesheet link so tiers win ties of
+// equal specificity against the bundle's own CSS. The placeholder is
+// substituted before operator values go in, so none can supply or
+// repeat it. name identifies the document in a returned error.
 func buildDocumentVariants(name string, raw []byte, cfg variantConfig) (map[string][]byte, error) {
 	var shared bytes.Buffer
 	for _, href := range cfg.tierHrefs {
@@ -236,11 +222,8 @@ func tierHrefs(docPath string, names RouteNames, hasOperatorCSS bool) []string {
 }
 
 // linkTagRE finds every <link ...> opening tag in a built document.
-// hrefAttrRE and relAttrRE then search inside one matched tag's own
-// bytes for its href and rel attributes independently, rather than
-// assuming either attribute's order: the build writes href before rel,
-// and a regex anchored to one order would silently find nothing on the
-// other.
+// hrefAttrRE and relAttrRE each find one attribute inside a matched
+// tag, in either order.
 var (
 	linkTagRE  = regexp.MustCompile(`(?i)<link\b[^>]*>`)
 	hrefAttrRE = regexp.MustCompile(`(?i)\bhref\s*=\s*"([^"]*)"`)
