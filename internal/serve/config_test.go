@@ -317,6 +317,43 @@ func TestParseConfig(t *testing.T) {
 	}
 }
 
+// TestParsePrefix proves the prefix reader ignores the other two serve
+// keys: a bind list ParseConfig refuses leaves the prefix readable.
+func TestParsePrefix(t *testing.T) {
+	tests := []struct {
+		name    string
+		environ []string
+		want    string
+		wantErr error
+	}{
+		{name: "the default", want: "/dubplate"},
+		{name: "configured", environ: []string{"DUBPLATE_SERVE_PREFIX=/library"}, want: "/library"},
+		{
+			name:    "a refused bind list does not reach it",
+			environ: []string{"DUBPLATE_SERVE_PREFIX=/library", "DUBPLATE_SERVE_BIND_ADDRS=not-an-address", "DUBPLATE_SERVE_PORT=nope"},
+			want:    "/library",
+		},
+		{name: "invalid", environ: []string{"DUBPLATE_SERVE_PREFIX=library"}, wantErr: errInvalidPrefix},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParsePrefix(tt.environ)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("ParsePrefix() error = %v, want it to wrap %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ParsePrefix() error = %v, want nil", err)
+			}
+			if got.String() != tt.want {
+				t.Errorf("ParsePrefix() = %q, want %q", got.String(), tt.want)
+			}
+		})
+	}
+}
+
 // addrTexts returns each of addrs in its printed form, so a test
 // compares parsed addresses against literals.
 func addrTexts(addrs []netip.Addr) []string {

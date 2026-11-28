@@ -10,24 +10,18 @@ import (
 	"strings"
 )
 
-// TrustedProxyConfig carries the trusted-proxy configuration: the set
-// of peer addresses permitted to report a client address, and the
-// header they report it in. The zero value is mode off, under which
-// [ClientIP] returns [peerIP] unconditionally, so RemoteAddr is
-// the client address until an adopter configures otherwise.
+// TrustedProxyConfig is the set of peer addresses permitted to report
+// a client address, and the header they report it in. The zero value
+// is direct mode, under which [ClientIP] is always the TCP peer.
 type TrustedProxyConfig struct {
 	proxies map[netip.Addr]struct{}
 	header  string
 }
 
 // newTrustedProxyConfig builds a [TrustedProxyConfig] that trusts
-// header only when it arrives from one of proxies. An empty header
-// leaves mode off regardless of proxies.
-//
-// Each of proxies must already be unmapped and carry no zone: a peer
-// address and a header hop are both compared in that form, so an
-// IPv4-mapped or zoned entry never matches anything. A duplicate entry
-// collapses into the set.
+// header only from one of proxies; an empty header leaves direct mode.
+// Each of proxies must be unmapped and carry no zone, the form a peer
+// and a hop are compared in, or it never matches.
 func newTrustedProxyConfig(proxies []netip.Addr, header string) TrustedProxyConfig {
 	set := make(map[netip.Addr]struct{}, len(proxies))
 	for _, p := range proxies {
@@ -36,19 +30,15 @@ func newTrustedProxyConfig(proxies []netip.Addr, header string) TrustedProxyConf
 	return TrustedProxyConfig{proxies: set, header: header}
 }
 
-// validateProxyHeader reports why name cannot be a trusted-proxy client
-// address header, or nil when it can. name must be an RFC 9110 token:
-// [textproto.CanonicalMIMEHeaderKey] returns a name holding a space or
-// another byte outside the token set unmodified, so [http.Header]
-// would never match it. Past the grammar, a header is refused when the
-// strip would remove it before [ClientIP] reads it, when adding it to
-// the forwarded-address group would strip a header the shell depends
-// on from every untrusted peer, or when it carries no address list a
-// hop could parse. A header of the last kind would leave every client
-// keyed on the proxy's own address, so one client's flood would spend
-// the rate limits of the whole group. The comparison is
-// case-insensitive, and a name's underscore spelling is refused with
-// its dash spelling.
+// validateProxyHeader reports why name cannot be the trusted-proxy
+// client address header, or nil when it can. name must be an RFC 9110
+// token, since [http.Header] never matches a name
+// [textproto.CanonicalMIMEHeaderKey] leaves uncanonicalized. A header is
+// also refused when the strip removes it before [ClientIP] reads it,
+// when adding it to group 2 would strip a header the shell reads from
+// every untrusted peer, or when it carries no address list: that last
+// kind keys every client on the proxy's address, so one client's flood
+// spends the whole group's rate limits. The match is by [foldedKey].
 func validateProxyHeader(name string) error {
 	if name == "" {
 		return errors.New("empty header name")
@@ -62,22 +52,21 @@ func validateProxyHeader(name string) error {
 	return nil
 }
 
-// refusedProxyHeaders maps each canonical name [validateProxyHeader]
-// refuses to the reason it gives.
 var refusedProxyHeaders = newRefusedProxyHeaders()
 
 func newRefusedProxyHeaders() map[string]string {
 	refused := map[string]string{
-		"Forwarded":          "its for= parameters are not an address list, so every hop would be malformed",
-		"X-Forwarded-Host":   "a forwarded header that carries the original host and no client address, so every hop would be malformed",
-		"X-Forwarded-Proto":  "a forwarded header that carries the original scheme and no client address, so every hop would be malformed",
-		"X-Forwarded-Prefix": "a forwarded header that carries the original path prefix and no client address, so every hop would be malformed",
-		"Content-Type":       "the shell reads it to parse request bodies, and naming it would strip it from every untrusted peer",
-		"Host":               "an end-to-end header that carries no client address",
-		"Connection":         "a framing header that carries no client address",
-		"Content-Length":     "a framing header that carries no client address",
-		"Transfer-Encoding":  "a framing header that carries no client address",
-		"Authorization":      "an end-to-end header that carries no client address",
+		"Content-Type":      "the shell reads it to parse request bodies, and naming it would strip it from every untrusted peer",
+		"Host":              "an end-to-end header that carries no client address",
+		"Connection":        "a framing header that carries no client address",
+		"Content-Length":    "a framing header that carries no client address",
+		"Transfer-Encoding": "a framing header that carries no client address",
+		"Authorization":     "an end-to-end header that carries no client address",
+	}
+	for _, h := range forwardedAddressHeaders {
+		if h.refusal != "" {
+			refused[h.name] = h.refusal
+		}
 	}
 	for name := range hopByHopExempt {
 		refused[name] = "the shell reads it for sessions or the origin check, and naming it would strip it from every untrusted peer"
@@ -98,20 +87,15 @@ func isTokenChar(r rune) bool {
 	return strings.ContainsRune("!#$%&'*+-.^_`|~", r)
 }
 
-// proxyMode describes which client-IP source is live for a
-// [TrustedProxyConfig], in the form the doctor row renders
-// without re-deriving it from the configuration.
+// proxyMode is which client-IP source is live for a
+// [TrustedProxyConfig].
 type proxyMode int
 
 const (
-	// proxyDirect is the default: the TCP peer is the client address.
 	proxyDirect proxyMode = iota
-	// proxyTrusted trusts a configured header from a configured
-	// set of proxy addresses.
 	proxyTrusted
 )
 
-// String renders m for a doctor row or a log line.
 func (m proxyMode) String() string {
 	if m == proxyTrusted {
 		return "trusted proxy"
@@ -119,7 +103,6 @@ func (m proxyMode) String() string {
 	return "direct"
 }
 
-// mode reports which client-IP source is live for c.
 func (c TrustedProxyConfig) mode() proxyMode {
 	if c.header == "" {
 		return proxyDirect
@@ -127,13 +110,9 @@ func (c TrustedProxyConfig) mode() proxyMode {
 	return proxyTrusted
 }
 
-// peerIP returns the TCP peer address of r: RemoteAddr with its
-// port stripped. No header, argument, or [TrustedProxyConfig] changes
-// what it returns, which is what makes it the sole input to every
-// trust decision in this package. r.RemoteAddr always carries a port
-// under net/http; a value that does not parse as host:port is
-// returned verbatim.
-func peerIP(r *http.Request) string {
+// peerHost returns r.RemoteAddr with its port stripped, or verbatim
+// when it does not parse as host:port.
+func peerHost(r *http.Request) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
@@ -141,77 +120,57 @@ func peerIP(r *http.Request) string {
 	return host
 }
 
-// ClientIP reports the client address the shell holds accountable
-// for r. This is a separate job from [peerIP], which answers who dialed
-// the socket and never changes; with cfg's mode off the two answers are
-// the same address, and with mode on, ClientIP is the only one of the
-// two that consults cfg or a header at all.
-//
-// The configured header is trusted only when peerIP(r) is one of
-// cfg's configured proxies; a header arriving from any other peer is
-// discarded unread into the return value. A multi-hop header value is
-// parsed right to left, taking the first hop, scanning from the
-// right, that is not itself a configured proxy: each hop a trusted
-// proxy relays appends to the right, so an attacker cannot reach past
-// the trusted chain by prepending fake entries on the left, though an
-// attacker who is the nearest hop the chain cannot verify still
-// supplies the answer, since there is nothing further to check.
-//
-// Each hop is an address, or an address and port whose address is
-// kept; a hop with a zone, or one that parses as neither, is
-// malformed. A malformed rightmost untrusted hop ends the scan, so no
-// hop left of it is ever reached. The answer is the hop's unmapped
-// address in [netip.Addr.String] form. A malformed, empty, or
-// all-proxy header falls back to peerIP rather than an empty
-// string, since an empty rate-limiter key is one bucket every attacker
-// shares.
-//
-// Every line the header arrives on is read, not the first alone. RFC
-// 9110 makes repeated field lines equivalent to one comma-joined
-// value, and a proxy that appends its own line rather than extending
-// the existing one is ordinary; reading the first line would take the
-// leftmost, attacker-controlled end of the chain as though it were the
-// whole of it.
-func ClientIP(r *http.Request, cfg TrustedProxyConfig) string {
-	peer := peerIP(r)
-	if !cfg.trusts(peer) {
-		return peer
+// peerAddr returns the TCP peer address of r, unmapped to match the
+// configured proxies and bind addresses, and false when [peerHost] is
+// not an IP address. No header or configuration changes its answer,
+// which is what makes it the sole input to every trust decision in this
+// package.
+func peerAddr(r *http.Request) (netip.Addr, bool) {
+	addr, err := netip.ParseAddr(peerHost(r))
+	if err != nil {
+		return netip.Addr{}, false
 	}
-	if hop, ok := cfg.rightmostUntrusted(r.Header.Values(cfg.header)); ok {
-		return hop.String()
-	}
-	return peer
+	return addr.Unmap(), true
 }
 
-// trusts reports whether mode is on and peer, a [peerIP] answer,
-// is one of the configured proxies. The peer is parsed and unmapped
-// first, since net/http's RemoteAddr carries an IPv4 client of a
-// dual-stack listener in the mapped form ("::ffff:192.0.2.1") that a
-// configured dotted address never equals. A peer that does not parse
-// is never trusted.
-func (c TrustedProxyConfig) trusts(peer string) bool {
+// ClientIP reports the client address the shell holds accountable for
+// r. In direct mode it is the TCP peer as [peerHost] prints it.
+//
+// The configured header is read only when the peer is one of cfg's
+// proxies. Its hops are scanned right to left, across every line it
+// arrives on, since RFC 9110 makes repeated lines one comma-joined
+// value; the answer is the first hop that is not itself a configured
+// proxy, so entries prepended on the left never reach past the trusted
+// chain. Each hop is an address, or an address and port; one with a
+// zone, or that parses as neither, is malformed and ends the scan. The
+// answer is the hop's unmapped address in [netip.Addr.String] form. A
+// malformed, empty, or all-proxy header falls back to peerHost, never
+// an empty string, which would be one rate-limiter bucket every
+// attacker shares.
+func ClientIP(r *http.Request, cfg TrustedProxyConfig) string {
+	if peer, ok := peerAddr(r); ok && cfg.trusts(peer) {
+		if hop, ok := cfg.rightmostUntrusted(r.Header.Values(cfg.header)); ok {
+			return hop.String()
+		}
+	}
+	return peerHost(r)
+}
+
+// trusts reports whether peer, a [peerAddr] answer, is a configured
+// proxy in trusted mode.
+func (c TrustedProxyConfig) trusts(peer netip.Addr) bool {
 	if c.header == "" {
 		return false
 	}
-	addr, err := netip.ParseAddr(peer)
-	if err != nil {
-		return false
-	}
-	_, ok := c.proxies[addr.Unmap()]
+	_, ok := c.proxies[peer]
 	return ok
 }
 
 // rightmostUntrusted returns the rightmost hop across values that is
-// not a configured proxy, and false when the chain is empty, entirely
-// configured proxies, or its rightmost untrusted hop is malformed. The
-// lines are one chain: the last line's rightmost hop is the nearest, so
-// the scan runs backward through the lines and backward through each
-// line's own hops.
-//
-// A malformed hop ends the scan rather than being skipped. Every hop
-// left of the rightmost untrusted one was written by a party the chain
-// cannot verify, so an attacker who could make the scan step over a
-// planted malformed value would choose the answer outright.
+// not a configured proxy, and false when the chain is empty, all
+// proxies, or that hop is malformed. A malformed hop ends the scan
+// rather than being skipped: an attacker who could make the scan step
+// over a planted malformed value would choose the answer outright.
 func (c TrustedProxyConfig) rightmostUntrusted(values []string) (netip.Addr, bool) {
 	for _, value := range slices.Backward(values) {
 		for _, raw := range slices.Backward(strings.Split(value, ",")) {
@@ -232,13 +191,11 @@ func (c TrustedProxyConfig) rightmostUntrusted(values []string) (netip.Addr, boo
 	return netip.Addr{}, false
 }
 
-// parseHop parses one forwarding-header hop as an address, or as an
-// address and port whose address is kept, since a front that appends
-// the client's port would otherwise collapse every client onto one
-// limiter key. A hop with a zone is malformed: a zone names an
-// interface on the sender's host, which no client address carries. The
-// address is returned unmapped, the form a configured proxy is stored
-// in and a limiter keys on.
+// parseHop parses one hop as an address, or an address and port whose
+// address is kept, so a front that appends the client's port does not
+// collapse every client onto one limiter key. A zone, which no client
+// address carries, makes the hop malformed. The address is returned
+// unmapped.
 func parseHop(hop string) (netip.Addr, bool) {
 	addr, err := netip.ParseAddr(hop)
 	if err != nil {

@@ -8,27 +8,19 @@ import (
 	"unicode"
 )
 
-// errInvalidPrefix is the sentinel [NewPrefix] wraps when a candidate
-// prefix value fails construction validation.
 var errInvalidPrefix = errors.New("invalid serve prefix")
 
-// Prefix is the one path prefix dubplate owns end to end: every route
-// the shell registers lives under it, and every path outside it
-// answers 404. A Prefix is built once, from [NewPrefix], and carries
-// the owned value. [Shell.Register] builds each subtree's patterns
-// from it on segment boundaries, so a neighbor sharing the prefix's
-// bytes without the boundary is not owned.
+// Prefix is the one path prefix dubplate owns: every route the shell
+// registers lives under it, on segment boundaries, and every path
+// outside it answers 404.
 type Prefix struct {
 	value string
 }
 
 // NewPrefix validates value and returns the [Prefix] it names. value
 // must begin with a separator, carry no trailing separator, and carry
-// no character normalize would refuse in a request path: no
-// empty, ".", or ".." segment, no backslash, and no percent-encoded
-// byte. A failure wraps [errInvalidPrefix] rather than surfacing as a
-// runtime 500, since a misconfigured prefix is a construction-time
-// mistake rather than a per-request one.
+// nothing normalize would refuse in a request path: no empty, ".", or
+// ".." segment, no backslash, and no percent-encoded byte.
 func NewPrefix(value string) (Prefix, error) {
 	if err := validatePrefix(value); err != nil {
 		return Prefix{}, err
@@ -67,8 +59,7 @@ func validatePrefix(value string) error {
 	return nil
 }
 
-// String returns p's owned value, the form the shell uses to build
-// patterns for the subtrees it registers under p.
+// String returns p's owned value.
 func (p Prefix) String() string {
 	return p.value
 }

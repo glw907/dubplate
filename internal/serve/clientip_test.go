@@ -21,7 +21,7 @@ func addrs(ss ...string) []netip.Addr {
 // three IPv4 TEST-NET blocks and the IPv6 documentation prefix. Never
 // an estate address.
 
-func TestPeerAddress(t *testing.T) {
+func TestPeerHost(t *testing.T) {
 	tests := []struct {
 		name       string
 		remoteAddr string
@@ -39,15 +39,20 @@ func TestPeerAddress(t *testing.T) {
 			want:       "2001:db8::1",
 		},
 		{
+			name:       "a mapped peer keeps its mapped spelling",
+			remoteAddr: "[::ffff:192.0.2.10]:54321",
+			want:       "::ffff:192.0.2.10",
+		},
+		{
 			name:       "no port falls back to RemoteAddr verbatim",
 			remoteAddr: "not-an-address",
 			want:       "not-an-address",
 		},
 		{
 			// Threat-model claim 3: a client-address header naming a
-			// different address never changes peerIP's answer,
+			// different address never changes peerHost's answer,
 			// even though the peer here would be an allowlisted proxy
-			// under a live TrustedProxyConfig. peerIP takes no
+			// under a live TrustedProxyConfig. peerHost takes no
 			// TrustedProxyConfig at all, so mode cannot reach it.
 			name:       "claim 3: header naming a different address is ignored",
 			remoteAddr: "203.0.113.10:54321",
@@ -64,8 +69,67 @@ func TestPeerAddress(t *testing.T) {
 				r.Header.Set("X-Forwarded-For", tt.header)
 			}
 
-			if got := peerIP(r); got != tt.want {
-				t.Errorf("peerIP() = %q, want %q", got, tt.want)
+			if got := peerHost(r); got != tt.want {
+				t.Errorf("peerHost() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPeerAddr(t *testing.T) {
+	tests := []struct {
+		name       string
+		remoteAddr string
+		header     string
+		want       netip.Addr
+		wantOK     bool
+	}{
+		{
+			name:       "ipv4 peer with port",
+			remoteAddr: "203.0.113.10:54321",
+			want:       netip.AddrFrom4([4]byte{203, 0, 113, 10}),
+			wantOK:     true,
+		},
+		{
+			name:       "ipv6 peer bracketed with port",
+			remoteAddr: "[2001:db8::1]:54321",
+			want:       netip.AddrFrom16([16]byte{0x20, 0x01, 0x0d, 0xb8, 15: 0x01}),
+			wantOK:     true,
+		},
+		{
+			name:       "a mapped peer is unmapped",
+			remoteAddr: "[::ffff:192.0.2.10]:54321",
+			want:       netip.AddrFrom4([4]byte{192, 0, 2, 10}),
+			wantOK:     true,
+		},
+		{
+			name:       "a RemoteAddr that is not host:port is no address",
+			remoteAddr: "not-an-address",
+		},
+		{
+			name:       "a host that is not an IP address is no address",
+			remoteAddr: "pipe:54321",
+		},
+		{
+			name:       "a header naming a different address is ignored",
+			remoteAddr: "203.0.113.10:54321",
+			header:     "198.51.100.5",
+			want:       netip.AddrFrom4([4]byte{203, 0, 113, 10}),
+			wantOK:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := httptest.NewRequest("GET", "/", nil)
+			r.RemoteAddr = tt.remoteAddr
+			if tt.header != "" {
+				r.Header.Set("X-Forwarded-For", tt.header)
+			}
+
+			got, ok := peerAddr(r)
+			if got != tt.want || ok != tt.wantOK {
+				t.Errorf("peerAddr() = %v, %v, want %v, %v", got, ok, tt.want, tt.wantOK)
 			}
 		})
 	}
