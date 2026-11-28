@@ -53,7 +53,7 @@ func TestUnderscoreAndDashAreDistinctCanonicalKeys(t *testing.T) {
 }
 
 // expectedIdentitySpellings is written out independently of
-// identityExtras, so a strip that lost a name still fails this test.
+// identityHeaders, so a strip that lost a name still fails this test.
 var expectedIdentitySpellings = []string{
 	"Remote-User", "Remote_User",
 	"Remote-Name", "Remote_Name",
@@ -80,7 +80,7 @@ var expectedIdentitySpellings = []string{
 }
 
 func TestStripWrapRemovesEveryIdentitySpelling(t *testing.T) {
-	strip := NewStrip(TrustedProxyConfig{})
+	strip := newStrip(TrustedProxyConfig{})
 
 	r := httptest.NewRequest("GET", "/", nil)
 	for _, name := range expectedIdentitySpellings {
@@ -88,7 +88,7 @@ func TestStripWrapRemovesEveryIdentitySpelling(t *testing.T) {
 	}
 
 	var got recorder
-	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+	strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 	for _, name := range expectedIdentitySpellings {
 		if v := got.header.Get(name); v != "" {
@@ -103,7 +103,7 @@ func TestStripWrapClearsAnnouncedTrailerOnceBodyIsRead(t *testing.T) {
 	// clear it on that same pass, not only on r.Header up front.
 	var beforeHeader, afterHeader, afterTrailer string
 	var beforeTrailerPresent bool
-	srv := httptest.NewServer(NewStrip(TrustedProxyConfig{}).Wrap(
+	srv := httptest.NewServer(newStrip(TrustedProxyConfig{}).wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			beforeHeader = r.Header.Get("Remote-User")
 			_, beforeTrailerPresent = r.Trailer["Remote-User"]
@@ -215,7 +215,7 @@ func TestStripWrapConnectionListedRemoval(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strip := NewStrip(TrustedProxyConfig{})
+			strip := newStrip(TrustedProxyConfig{})
 
 			r := httptest.NewRequest("GET", "/", nil)
 			for _, c := range tt.connection {
@@ -226,7 +226,7 @@ func TestStripWrapConnectionListedRemoval(t *testing.T) {
 			}
 
 			var got recorder
-			strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+			strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 			for _, name := range tt.wantAbsent {
 				if v := got.header.Get(name); v != "" {
@@ -249,7 +249,7 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 	// carries the address of the trusted proxy the tests below
 	// configure (203.0.113.10), the value an attacker would spoof to
 	// impersonate the trusted peer; the group 2 trust decision must
-	// come from PeerAddress(r), Task 1's function, never from this
+	// come from peerIP(r), never from this
 	// header, so this value alone proves nothing about who dialed the
 	// socket.
 	family := map[string]string{
@@ -275,13 +275,13 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 		},
 		{
 			name:       "mode on, matching peer: family survives",
-			proxy:      NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For"),
+			proxy:      newTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For"),
 			remoteAddr: "203.0.113.10:1111",
 			wantAbsent: false,
 		},
 		{
 			name:       "mode on, non-matching peer: family removed",
-			proxy:      NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For"),
+			proxy:      newTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For"),
 			remoteAddr: "192.0.2.5:1111",
 			wantAbsent: true,
 		},
@@ -289,7 +289,7 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strip := NewStrip(tt.proxy)
+			strip := newStrip(tt.proxy)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = tt.remoteAddr
@@ -298,7 +298,7 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 			}
 
 			var got recorder
-			strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+			strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 			for name := range family {
 				v := got.header.Get(name)
@@ -328,7 +328,7 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 func TestStripWrapClearsUnannouncedTrailerOnceBodyIsRead(t *testing.T) {
 	var afterHeader, afterTrailer string
 	var trailerKeyPresent bool
-	srv := httptest.NewServer(NewStrip(TrustedProxyConfig{}).Wrap(
+	srv := httptest.NewServer(newStrip(TrustedProxyConfig{}).wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(io.Discard, r.Body) //nolint:errcheck // test drains to trigger trailer population
 			afterHeader = r.Header.Get("Remote-User")
@@ -393,7 +393,7 @@ var clientIPFamily = []string{
 }
 
 func TestStripWrapRemovesTheClientIPFamily(t *testing.T) {
-	strip := NewStrip(TrustedProxyConfig{})
+	strip := newStrip(TrustedProxyConfig{})
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "192.0.2.5:1111"
@@ -402,7 +402,7 @@ func TestStripWrapRemovesTheClientIPFamily(t *testing.T) {
 	}
 
 	var got recorder
-	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+	strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 	for _, name := range clientIPFamily {
 		if v := got.header.Get(name); v != "" {
@@ -432,15 +432,15 @@ func TestStripWrapRemovesTheConfiguredProxyHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			proxy := NewTrustedProxyConfig(addrs("203.0.113.10"), tt.header)
-			strip := NewStrip(proxy)
+			proxy := newTrustedProxyConfig(addrs("203.0.113.10"), tt.header)
+			strip := newStrip(proxy)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = "192.0.2.5:1111" // not a configured proxy
 			r.Header.Set(tt.header, "198.51.100.9")
 
 			var got recorder
-			strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+			strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 			if v := got.header.Get(tt.header); v != "" {
 				t.Errorf("handler received the configured header %s = %q from an untrusted peer, want removed", tt.header, v)
@@ -495,8 +495,8 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			proxy := NewTrustedProxyConfig(addrs(proxyAddr), "X-Forwarded-For")
-			strip := NewStrip(proxy)
+			proxy := newTrustedProxyConfig(addrs(proxyAddr), "X-Forwarded-For")
+			strip := newStrip(proxy)
 
 			r := httptest.NewRequest("GET", "/", nil)
 			r.RemoteAddr = tt.remoteAddr
@@ -505,7 +505,7 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 			r.Header.Set("Connection", tt.connection)
 
 			var got recorder
-			strip.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			strip.wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				got.header = r.Header.Clone()
 				if ip := ClientIP(r, proxy); ip != tt.wantIP {
 					t.Errorf("ClientIP = %q, want %q", ip, tt.wantIP)
@@ -525,8 +525,8 @@ func TestStripWrapTrustedPeerKeepsForwardedListedInConnection(t *testing.T) {
 // covers group 2's names and nothing else, so an ordinary header a
 // request lists in Connection is still removed from a trusted peer.
 func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
-	proxy := NewTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
-	strip := NewStrip(proxy)
+	proxy := newTrustedProxyConfig(addrs("203.0.113.10"), "X-Forwarded-For")
+	strip := newStrip(proxy)
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r.RemoteAddr = "203.0.113.10:1111"
@@ -534,7 +534,7 @@ func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
 	r.Header.Set("Connection", "X-House-Header")
 
 	var got recorder
-	strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+	strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 	if v := got.header.Get("X-House-Header"); v != "" {
 		t.Errorf("X-House-Header = %q, want removed: only group 2's own names are kept for a trusted peer", v)
@@ -551,7 +551,7 @@ func TestStripWrapConnectionStillRemovesAnOrdinaryListedHeader(t *testing.T) {
 // trailer.
 func TestStripWrapScrubsTrailerOnCloseWithoutRead(t *testing.T) {
 	var afterTrailer string
-	srv := httptest.NewServer(NewStrip(TrustedProxyConfig{}).Wrap(
+	srv := httptest.NewServer(newStrip(TrustedProxyConfig{}).wrap(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_ = r.Body.Close()
 			afterTrailer = r.Trailer.Get("Remote-User")
@@ -606,13 +606,13 @@ func TestStripWrapRemovesMixedSeparatorSpellings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			strip := NewStrip(TrustedProxyConfig{})
+			strip := newStrip(TrustedProxyConfig{})
 			r := httptest.NewRequest("GET", "/", nil)
 			r.Header[tt.key] = []string{"attacker"}
 			r.Trailer = http.Header{tt.key: []string{"attacker"}}
 
 			var got recorder
-			strip.Wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
+			strip.wrap(recordingHandler(&got)).ServeHTTP(httptest.NewRecorder(), r)
 
 			if v, ok := got.header[tt.key]; ok {
 				t.Errorf("handler received header %s = %q, want removed", tt.key, v)

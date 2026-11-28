@@ -4,43 +4,34 @@
 //
 // # Composition order
 //
-// [Shell.Handler] composes six steps, in this order, each wrapping the
-// next. The order is a property of the chain, never a feature of the
-// mux: no step is registered as a route, and no test in this package
-// proves the order by reading the chain's construction.
+// [Shell.Handler] composes these layers, outermost first, each wrapping
+// the next. No layer is registered as a route, so every path the
+// server answers passes through all of them.
 //
-//  0. The security headers (securityHeaders). X-Content-Type-Options:
-//     nosniff, Referrer-Policy: no-referrer, and, once
-//     [Shell.EnableHSTS] is called, Strict-Transport-Security. The
-//     step wraps everything, so a refusal by any later step, a 404
-//     included, carries them. A document's Content-Security-Policy is
-//     not among them: it is per document, set by the handler that
-//     serves it
-//     ([github.com/glw907/dubplate/internal/webapp.DocumentCSP]).
-//  1. The ingress strip ([Strip.Wrap]). It wraps everything, so no
-//     route is reachable with an identity header, a forwarded-address
-//     header, or a Connection-listed header still attached.
-//  2. Path normalization ([Normalize]). It refuses six shapes, each
-//     with a status and no partial routing, before any later step runs
-//     at all.
-//  3. The echo method refusal (refuseEchoMethods). TRACE and TRACK are
-//     refused here with a 405, before the origin check can claim them
-//     with a 403.
-//  4. The origin check (originCheck). It judges only a path
-//     normalization has admitted, and covers every registered subtree
-//     and every path outside the prefix alike, so no mount can forget
-//     to install it.
-//  5. Subtree dispatch. A path a registered subtree claims reaches
-//     that subtree; the claim is segment-aware, on case-sensitive
-//     bytes, never a plain string trim. Every other path, outside the
-//     owned prefix or under it, answers 404 from
-//     [http.NotFoundHandler].
+//  1. The security headers: X-Content-Type-Options: nosniff,
+//     Referrer-Policy: no-referrer, and, once [Shell.EnableHSTS] is
+//     called, Strict-Transport-Security. A refusal by any later layer,
+//     a 404 included, carries them. A document's
+//     Content-Security-Policy is set by the handler that serves it.
+//  2. The refusal record: one log record for each request a later
+//     layer refused, naming whether an identity header arrived with it.
+//  3. The direct-mode warning: logged once, the first time a loopback
+//     or private peer sends a forwarded-address header while no trusted
+//     proxy is configured.
+//  4. The ingress strip, which removes every identity header, every
+//     forwarded-address header from an untrusted peer, and every header
+//     the request's Connection header lists.
+//  5. Path normalization, which refuses an unsafe path shape before any
+//     routing.
+//  6. The echo-method refusal: TRACE and TRACK answer 405, before the
+//     origin check can answer them 403.
+//  7. The origin check, which refuses a cross-site state-changing
+//     request on every registered subtree and every path outside the
+//     prefix alike.
+//  8. Subtree dispatch. A path a registered subtree claims, on a
+//     segment boundary, reaches that subtree; every other path answers
+//     404.
 //
-// # The extension point
-//
-// A consumer registers a subtree under the owned prefix by name, at
-// construction time, through [Shell.Register]; the shell owns the mux
-// the registration lands in, and two registrations of the same name
-// panic, naming the subtree. The method takes an [http.Handler], the
-// stdlib's, and no interface of this package's own.
+// A consumer registers each subtree by name through [Shell.Register]
+// before calling [Shell.Handler].
 package serve

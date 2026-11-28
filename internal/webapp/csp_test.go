@@ -91,21 +91,21 @@ func TestDocumentCSP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := DocumentCSP("login.html", []byte(tt.doc))
+			got, err := documentCSP("login.html", []byte(tt.doc))
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("DocumentCSP error = %v, want %v", err, tt.wantErr)
+					t.Fatalf("documentCSPerror = %v, want %v", err, tt.wantErr)
 				}
 				if !strings.Contains(err.Error(), `"login.html"`) {
-					t.Errorf("DocumentCSP error = %q, want it to name the document", err)
+					t.Errorf("documentCSPerror = %q, want it to name the document", err)
 				}
 				return
 			}
 			if err != nil {
-				t.Fatalf("DocumentCSP error = %v, want nil", err)
+				t.Fatalf("documentCSPerror = %v, want nil", err)
 			}
 			if got != tt.want {
-				t.Errorf("DocumentCSP =\n%s\nwant\n%s", got, tt.want)
+				t.Errorf("documentCSP=\n%s\nwant\n%s", got, tt.want)
 			}
 		})
 	}
@@ -116,8 +116,8 @@ func TestDocumentCSP(t *testing.T) {
 // find the script without rerunning the build.
 func TestDocumentCSP_UnhashedScriptNamesItsHash(t *testing.T) {
 	doc := cspMeta("script-src 'self' '"+bootScriptHash+"'") + "<script>" + nextScript + "</script>"
-	_, err := DocumentCSP("members.html", []byte(doc))
+	_, err := documentCSP("members.html", []byte(doc))
 	if err == nil || !strings.Contains(err.Error(), nextScriptHash) {
-		t.Errorf("DocumentCSP error = %v, want it to name %s", err, nextScriptHash)
+		t.Errorf("documentCSPerror = %v, want it to name %s", err, nextScriptHash)
 	}
 }

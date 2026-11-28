@@ -22,7 +22,6 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
-	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/spf13/cobra"
 )
 
@@ -76,8 +75,8 @@ func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdo
 		auth.DoctorRows(cfg),
 		backup.DoctorRows(ctx, environ, time.Now(), report, history.LastSuccess),
 		unidecode.DoctorRows(stateDir),
-		serve.DoctorRows(ctx, environ, reg, cfg),
-		webapp.DoctorRows(cfg, webRowResolve(environ)),
+		serve.DoctorRows(ctx, environ, cfg),
+		webDoctorRows(environ, cfg),
 		intake.DoctorRows(cfg, report, volume),
 		settings.DoctorRows(environ, reg, report, stored),
 	)

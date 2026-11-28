@@ -1,13 +1,13 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"log/slog"
+	"strings"
 
 	"github.com/glw907/dubplate/internal/config"
+	"github.com/glw907/dubplate/internal/doctor"
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/webapp"
 	"github.com/glw907/dubplate/web"
@@ -57,58 +57,57 @@ func registerWebRoutes(routes registrar, wr webapp.Routes) {
 	routes.Register(faviconPNGRouteName, wr.Icons)
 	routes.Register(markRouteName, wr.Icons)
 	routes.Register(brandingRouteName, wr.Branding)
-	if wr.Operator != nil {
-		routes.Register(operatorCSSRouteName, wr.Operator)
+	if wr.OperatorCSS != nil {
+		routes.Register(operatorCSSRouteName, wr.OperatorCSS)
 	}
 }
 
-// newWebRoutes builds the web app's routes from web.Assets, as
+// newWebRoutes builds the web app's routes from [web.Build], as
 // [newWebRoutesFromFS] does from a given tree. It runs before any
 // listener opens, so a bad config value or build defect stops startup
 // rather than the first request. siteName enters every document as
 // the dubplate-site-name meta; logger takes the documents' request
 // records and the record a theme-color-less branding neutral writes.
 func newWebRoutes(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger) (webapp.Routes, error) {
-	buildFS, err := embeddedBuild()
-	if err != nil {
-		return webapp.Routes{}, err
-	}
-	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, buildFS)
+	return newWebRoutesFromFS(environ, prefix, siteName, private, logger, web.Build)
 }
 
-// webRowResolve is the resolution doctor's web row runs: [newWebRoutes]
-// with the inputs serve startup passes, over the embedded bundle and
-// the operator file, writing nothing. The logger discards: the record
-// newWebRoutes writes for a branding neutral that drops the
-// theme-color meta belongs to serve, and doctor's stdout is the table
-// alone.
-func webRowResolve(environ []string) func(*config.Config) error {
-	return func(cfg *config.Config) error {
-		prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
-		if err != nil {
-			return err
+// webDoctorRows renders the web row: "ok" when [newWebRoutes] builds
+// the routes from the inputs serve startup passes, and "invalid: " plus
+// the refusal otherwise, which fails the row. cfg is nil when
+// [config.Load] refused the environment, and the row then reads "not
+// checked" and adds no failure, since Load's report already fails
+// doctor. The logger discards: the record newWebRoutes writes for a
+// branding neutral that drops the theme-color meta belongs to serve,
+// and doctor's stdout is the table alone.
+func webDoctorRows(environ []string, cfg *config.Config) []doctor.Row {
+	row := doctor.Row{Name: "web", Status: "not checked"}
+	if cfg != nil {
+		if err := checkWebRoutes(environ, cfg); err != nil {
+			row.Status, row.Failed = "invalid: "+strings.ReplaceAll(err.Error(), "\n", "; "), true
+		} else {
+			row.Status = "ok"
 		}
-		prefix, err := serve.NewPrefix(prefixValue)
-		if err != nil {
-			return err
-		}
-		discard := slog.New(slog.NewTextHandler(io.Discard, nil))
-		_, err = newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, discard)
+	}
+	return []doctor.Row{row}
+}
+
+func checkWebRoutes(environ []string, cfg *config.Config) error {
+	prefixValue, err := config.ParseString(environ, serve.PrefixThreshold)
+	if err != nil {
 		return err
 	}
-}
-
-// embeddedBuild is [web.Assets] rooted at its build directory.
-func embeddedBuild() (fs.FS, error) {
-	buildFS, err := fs.Sub(web.Assets, "build")
+	prefix, err := serve.NewPrefix(prefixValue)
 	if err != nil {
-		return nil, fmt.Errorf("web: %w", err)
+		return err
 	}
-	return buildFS, nil
+	discard := slog.New(slog.NewTextHandler(io.Discard, nil))
+	_, err = newWebRoutes(environ, prefix, cfg.SiteName, privateFiles{stateDir: cfg.StateDir}, discard)
+	return err
 }
 
 // newWebRoutesFromFS is [newWebRoutes] over buildFS, so a test can
-// build any state a bad build can be in, since [web.Assets] is fixed
+// build any state a bad build can be in, since [web.Build] is fixed
 // at compile time. It resolves the web settings with [webapp.FromEnviron]
 // and hands them to [webapp.New].
 func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, private privateFiles, logger *slog.Logger, buildFS fs.FS) (webapp.Routes, error) {
@@ -121,9 +120,5 @@ func newWebRoutesFromFS(environ []string, prefix serve.Prefix, siteName string, 
 	cfg.SiteName = siteName
 	cfg.Logger = logger
 
-	routes, err := webapp.New(buildFS, cfg)
-	if errors.Is(err, webapp.ErrNoThemeSelector) {
-		return webapp.Routes{}, fmt.Errorf("%s: %q: %w", webapp.ThemePaletteKey, cfg.Palette, err)
-	}
-	return routes, err
+	return webapp.New(buildFS, cfg)
 }

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// identityExtras is the fixed set of trusted-header-SSO header names
+// identityHeaders is the fixed set of trusted-header-SSO header names
 // group 1 removes. Every name here is documented by the project that
 // owns it as a header it sets or reads to carry an authenticated
 // identity into a backend application; identitySpellings derives each
@@ -46,8 +46,8 @@ import (
 //   - Miniflux's AUTH_PROXY_HEADER names no fixed header at all; its
 //     own documentation states the value is empty by default and
 //     adopter-configured, so it contributes no name here. Its explicit
-//     pairing with TRUSTED_REVERSE_PROXY_NETWORKS is the shape R27
-//     already takes, not a header spelling.
+//     pairing with TRUSTED_REVERSE_PROXY_NETWORKS is the shape
+//     [TrustedProxyConfig] already takes, not a header spelling.
 //     https://miniflux.app/docs/configuration.html, read 2026-09-08.
 //   - oauth2-proxy's X-Auth-Request-User, X-Auth-Request-Email,
 //     X-Auth-Request-Groups, X-Auth-Request-Preferred-Username, and
@@ -99,7 +99,7 @@ import (
 //     authenticated.
 //     https://developers.cloudflare.com/cloudflare-one/tutorials/access-workers/,
 //     read 2026-09-08.
-var identityExtras = []string{
+var identityHeaders = []string{
 	"Remote-User",
 	"Remote-Name",
 	"Remote-Email",
@@ -130,7 +130,7 @@ var identityExtras = []string{
 // reverse proxy to remove and replace X-Forwarded-For arriving from an
 // untrusted client
 // (https://www.authelia.com/integration/proxies/forwarded-headers/,
-// read 2026-09-08). R-R extends the rule to the whole X-Forwarded-*
+// read 2026-09-08). The strip extends the rule to the whole X-Forwarded-*
 // family, since each remaining member steers an absolute URL a
 // downstream handler builds from client-asserted input.
 //
@@ -156,11 +156,9 @@ var identityExtras = []string{
 //     https://learn.microsoft.com/en-us/azure/frontdoor/front-door-http-headers-protocol,
 //     read 2026-09-08.
 //
-// Two candidates the review named are dropped. X-Client-Ip and
-// X-Cluster-Client-Ip are quoted constantly in client-IP-extraction
-// libraries, but no page owned by a front that sets either was found,
-// so neither ships on recollection. Both stay candidates for a later
-// rung that finds a citation.
+// X-Client-Ip and X-Cluster-Client-Ip are dropped: they are quoted
+// constantly in client-IP-extraction libraries, but no page owned by a
+// front that sets either was found, so neither ships on recollection.
 var forwardedAddressHeaders = []string{
 	"X-Forwarded-For",
 	"X-Real-Ip",
@@ -174,33 +172,26 @@ var forwardedAddressHeaders = []string{
 	"X-Azure-Clientip",
 }
 
-// group3KeepSet is R-S's carve-out: canonical header names
-// stripConnectionListed never deletes, whatever a request's Connection
-// header lists. Cookie, Origin, and Sec-Fetch-Site are end-to-end
-// headers a client has no business declaring hop-by-hop, and 5b's
-// origin check reads the latter two.
-//
-// The set holds header names and nothing else. The shell's own
-// session-cookie name was once compared against it as though it were
-// one, which it is not: a cookie name lives inside the Cookie header's
-// value, so keeping Cookie here is already what protects it, and
-// canonicalizing a cookie name as a header key compared two different
-// kinds of name.
-var group3KeepSet = map[string]struct{}{
+// hopByHopExempt holds the canonical header names stripConnectionListed
+// never deletes, whatever a request's Connection header lists. Cookie,
+// Origin, and Sec-Fetch-Site are end-to-end headers a client has no
+// business declaring hop-by-hop; the session cookie lives inside
+// Cookie's value, and the origin check reads the other two.
+var hopByHopExempt = map[string]struct{}{
 	"Cookie":         {},
 	"Origin":         {},
 	"Sec-Fetch-Site": {},
 }
 
-// identitySpellings is every name in identityExtras in its dash form
+// identitySpellings is every name in identityHeaders in its dash form
 // and, where a dash makes the two forms distinct, its all-underscore
 // form too. It is the set the boundary probe sends; group 1 itself
 // matches by [foldedKey], which also covers a name that mixes the two
 // separators.
-var identitySpellings = withUnderscoreTwins(identityExtras)
+var identitySpellings = withUnderscoreTwins(identityHeaders)
 
 // identityKeys is the [foldedKey] form of every name group 1 removes.
-var identityKeys = foldedKeys(identityExtras)
+var identityKeys = foldedKeys(identityHeaders)
 
 func withUnderscoreTwins(names []string) []string {
 	spellings := make([]string, 0, len(names)*2)
@@ -221,16 +212,16 @@ func foldedKeys(names []string) map[string]struct{} {
 	return keys
 }
 
-// Strip is the ingress strip: a wrapper that removes every
+// strip is the ingress strip: a wrapper that removes every
 // identity-header spelling, the forwarded-address family, and any
 // header a request's own Connection header lists, before the request
 // reaches the mux. It clears both r.Header and r.Trailer, so a value
 // smuggled in an announced trailer is removed on the same pass as one
-// arriving in a header field. The shell composes Strip as the
-// outermost routing step; Strip wraps the mux, never a handler, which
+// arriving in a header field. The shell composes strip as the
+// outermost routing step; strip wraps the mux, never a handler, which
 // is what makes the removal hold for every path without enumerating
 // them.
-type Strip struct {
+type strip struct {
 	proxy TrustedProxyConfig
 
 	// forwarded is group 2's removal set: forwardedAddressHeaders plus
@@ -246,16 +237,16 @@ type Strip struct {
 	forwardedCanon map[string]struct{}
 }
 
-// NewStrip builds a [Strip]. proxy is the trusted-proxy configuration
+// newStrip builds a [strip]. proxy is the trusted-proxy configuration
 // and the sole input to group 2's carve-out. Group 1's name set is
 // fixed, and no peer is exempt from it.
-func NewStrip(proxy TrustedProxyConfig) Strip {
+func newStrip(proxy TrustedProxyConfig) strip {
 	forwarded := forwardedAddressSet(proxy.header)
 	canon := make(map[string]struct{}, len(forwarded))
 	for _, name := range forwarded {
 		canon[textproto.CanonicalMIMEHeaderKey(name)] = struct{}{}
 	}
-	return Strip{
+	return strip{
 		proxy:          proxy,
 		forwarded:      forwarded,
 		forwardedCanon: canon,
@@ -277,9 +268,9 @@ func forwardedAddressSet(configured string) []string {
 	return append(slices.Clone(forwardedAddressHeaders), configured)
 }
 
-// Wrap returns an [http.Handler] that clears the strip's three groups
+// wrap returns an [http.Handler] that clears the strip's three groups
 // from r before calling next.
-func (s Strip) Wrap(next http.Handler) http.Handler {
+func (s strip) wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.stripIdentity(r)
 		s.stripForwardedAddress(r)
@@ -303,7 +294,7 @@ func (s Strip) Wrap(next http.Handler) http.Handler {
 // end of stream. Arming the scrub on the announcement would leave that
 // request's identity headers standing, which is the whole strip
 // bypassed by omitting one header.
-func (s Strip) stripIdentity(r *http.Request) {
+func (s strip) stripIdentity(r *http.Request) {
 	deleteIdentity(r.Header)
 	deleteIdentity(r.Trailer)
 	scrubTrailerOnRead(r)
@@ -395,10 +386,8 @@ func (b *trailerScrubbingBody) scrub() {
 }
 
 // stripForwardedAddress removes group 2 unless trusted-proxy mode is
-// on and the request's peer address is one of the configured proxies
-// (R27's carve-out), read through [TrustedProxyConfig] rather
-// than a second derivation of the peer address.
-func (s Strip) stripForwardedAddress(r *http.Request) {
+// on and the request's peer address is one of the configured proxies.
+func (s strip) stripForwardedAddress(r *http.Request) {
 	if s.trustsPeer(r) {
 		return
 	}
@@ -410,17 +399,17 @@ func (s Strip) stripForwardedAddress(r *http.Request) {
 // trustsPeer reports whether trusted-proxy mode is on and r arrived
 // from one of the configured proxies. Groups 2 and 3 both turn on this
 // one answer, so they cannot disagree about which peer is the front.
-func (s Strip) trustsPeer(r *http.Request) bool {
-	return s.proxy.trusts(PeerAddress(r))
+func (s strip) trustsPeer(r *http.Request) bool {
+	return s.proxy.trusts(peerIP(r))
 }
 
 // stripConnectionListed removes group 3: every header the request's
-// own Connection header lists, with two carve-outs (R-O). A listed
-// Upgrade keeps both Upgrade and Connection, since a websocket
-// handshake sends Connection: Upgrade alongside Upgrade: websocket and
-// the listed removal would otherwise delete the handshake it needs.
-// group3KeepSet is never removed by this rule (R-S), whatever
-// Connection says.
+// own Connection header lists, with two carve-outs. A listed Upgrade
+// keeps both Upgrade and Connection, since a websocket handshake sends
+// Connection: Upgrade alongside Upgrade: websocket and the listed
+// removal would otherwise delete the handshake it needs. A name in
+// hopByHopExempt is never removed by this rule, whatever Connection
+// says.
 //
 // The same argument covers group 2's names when the peer is trusted.
 // Group 2 preserves the forwarded-address headers a trusted front sets,
@@ -430,7 +419,7 @@ func (s Strip) trustsPeer(r *http.Request) bool {
 // trusted-proxy carve-out defeated by one token. The keep applies only
 // to a trusted peer: from any other peer group 2 has already deleted
 // those names, so there is nothing left for this rule to keep.
-func (s Strip) stripConnectionListed(r *http.Request) {
+func (s strip) stripConnectionListed(r *http.Request) {
 	tokens := connectionTokens(r.Header.Values("Connection"))
 	if len(tokens) == 0 {
 		return
@@ -451,7 +440,7 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 		if upgrade && (canon == "Upgrade" || canon == "Connection") {
 			continue
 		}
-		if _, keep := group3KeepSet[canon]; keep {
+		if _, keep := hopByHopExempt[canon]; keep {
 			continue
 		}
 		if keepForwarded {
@@ -470,8 +459,8 @@ func (s Strip) stripConnectionListed(r *http.Request) {
 func connectionTokens(values []string) []string {
 	var tokens []string
 	for _, v := range values {
-		for _, hop := range splitHops(v) {
-			if token := trimHop(hop); token != "" {
+		for hop := range strings.SplitSeq(v, ",") {
+			if token := strings.Trim(hop, " \t"); token != "" {
 				tokens = append(tokens, token)
 			}
 		}

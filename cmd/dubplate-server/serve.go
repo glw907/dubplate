@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"os"
 	"time"
@@ -23,7 +24,7 @@ import (
 	"github.com/glw907/dubplate/internal/serve"
 	"github.com/glw907/dubplate/internal/settings"
 	"github.com/glw907/dubplate/internal/store"
-	"github.com/glw907/dubplate/internal/webapp"
+	"github.com/glw907/dubplate/web"
 	"github.com/spf13/cobra"
 )
 
@@ -71,16 +72,16 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			if err != nil {
 				return err
 			}
-			prefix, addrs, port, err := serve.ParseConfig(environ)
+			listen, err := serve.ParseConfig(environ)
 			if err != nil {
 				return err
 			}
-			srv, err := newServeShell(cmd.Context(), environ, reg, prefix, addrs, cfg, slog.Default())
+			srv, err := newServeShell(cmd.Context(), environ, reg, listen.Prefix, listen.BindAddrs, cfg, slog.Default())
 			if err != nil {
 				return err
 			}
 			defer func() { err = errors.Join(err, srv.Close()) }()
-			return serve.Run(cmd.Context(), srv.shell.Logger(), srv.shell.Handler(), addrs, port)
+			return serve.Run(cmd.Context(), srv.shell.Logger(), srv.shell.Handler(), listen.BindAddrs, listen.Port)
 		},
 	}
 	cmd.SetOut(stdout)
@@ -117,12 +118,8 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 // Every identity header is stripped from every peer, a trusted proxy
 // included. The boundary probe mounts like every other route, so the
 // request it counts is one the strip has already cleared.
-func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger) (*server, error) {
-	buildFS, err := embeddedBuild()
-	if err != nil {
-		return nil, err
-	}
-	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, buildFS)
+func newServeShell(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger) (*server, error) {
+	return newServeShellVia(ctx, environ, reg, prefix, bindAddrs, cfg, logger, func(s *serve.Shell) registrar { return s }, web.Build)
 }
 
 // A server is what newServeShell builds: the shell, the store it holds
@@ -155,7 +152,7 @@ type registrar interface {
 // around it escapes the route inventory test unseen. The web routes
 // come from buildFS, so a test can serve a fixture tree where the
 // embedded one holds only the placeholder.
-func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []string, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
+func newServeShellVia(ctx context.Context, environ []string, reg *config.Registry, prefix serve.Prefix, bindAddrs []netip.Addr, cfg *config.Config, logger *slog.Logger, mount func(*serve.Shell) registrar, buildFS fs.FS) (_ *server, err error) {
 	proxyConfig, err := serve.ParseTrustedProxy(cfg)
 	if err != nil {
 		return nil, err
@@ -193,8 +190,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 	if err != nil {
 		return nil, err
 	}
-	strip := serve.NewStrip(proxyConfig)
-	shell := serve.NewShell(prefix, strip, logger)
+	shell := serve.NewShell(prefix, proxyConfig, logger)
 	routes := mount(shell)
 	if sendsHSTS(authConfig.PublicOrigin) {
 		shell.EnableHSTS()
@@ -242,10 +238,7 @@ func newServeShellVia(ctx context.Context, environ []string, reg *config.Registr
 		Now:      time.Now,
 		Logger:   shell.Logger(),
 	}
-	// The shell mounts a name and everything under it to one handler, so
-	// the probe answers the shell's 404 to any deeper path itself.
-	probePath := prefix.String() + "/" + serve.ProbeRouteName
-	routes.Register(serve.ProbeRouteName, webapp.ExactPaths(map[string]http.Handler{probePath: serve.NewProbeRoute(bindAddrs, proxyConfig)}))
+	routes.Register(serve.ProbeRouteName, serve.NewProbeRoute(prefix, bindAddrs, proxyConfig))
 
 	adminService := admin.New(admin.Config{
 		Store: h, Registry: reg, Environ: environ, Roster: roster,
