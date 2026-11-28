@@ -118,6 +118,81 @@ func newIconsRoute(build fs.FS, prefix string, names RouteNames) (http.Handler, 
 	return newStaticFiles(files), nil
 }
 
+// newAssets returns an http.Handler serving GET and HEAD only, looking
+// up each request path as an exact file under root: routePrefix is the
+// exact path a caller mounted root at (for example "<prefix>/_app"),
+// and a request path is served only when it is routePrefix followed by
+// a separator and a name root holds as a regular file. Every other
+// shape (routePrefix itself, a path under it naming a directory, and
+// a path naming no file) answers [http.NotFoundHandler]'s 404, with no
+// directory listing and no redirect, unlike [http.FileServerFS].
+//
+// A file under root's immutable directory is served public and
+// immutable for a year: the build names each one by its content's
+// hash, so a name never changes content. Every other file keeps a
+// stable name across builds and is served no-cache.
+func newAssets(root fs.FS, routePrefix string) http.Handler {
+	notFound := http.NotFoundHandler()
+	prefixSlash := routePrefix + "/"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !allowGetHead(w, r) {
+			return
+		}
+		if !strings.HasPrefix(r.URL.Path, prefixSlash) {
+			notFound.ServeHTTP(w, r)
+			return
+		}
+		name := strings.TrimPrefix(r.URL.Path, prefixSlash)
+		data, err := fs.ReadFile(root, name)
+		if err != nil {
+			notFound.ServeHTTP(w, r)
+			return
+		}
+		cacheControl := "no-cache"
+		if strings.HasPrefix(name, "immutable/") {
+			cacheControl = "public, max-age=31536000, immutable"
+		}
+		w.Header().Set("Cache-Control", cacheControl)
+		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
+	})
+}
+
+// stylesheetRoute serves css at exactly route and answers the shell's
+// 404 everywhere under it.
+func stylesheetRoute(route string, css []byte) http.Handler {
+	return exactPaths(map[string]http.Handler{route: newStylesheet(css)}, http.NotFoundHandler())
+}
+
+// newStylesheet returns an http.Handler serving GET and HEAD only,
+// answering body as text/css. body is fixed when the handler is built,
+// so the response reads nothing from the request. The response is
+// no-cache, since the stylesheet's content changes at a restart while
+// its name does not.
+func newStylesheet(body []byte) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !allowGetHead(w, r) {
+			return
+		}
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+		_, _ = w.Write(body)
+	})
+}
+
+// allowGetHead reports whether r's method is GET or HEAD, and answers
+// 405 with Allow: GET, HEAD when it is not, so the caller has only to
+// return. HEAD needs no separate branch: net/http's own server discards
+// a handler's written body on a HEAD request while still computing
+// Content-Length, so a caller can always write the full body.
+func allowGetHead(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
+		return true
+	}
+	w.Header().Set("Allow", "GET, HEAD")
+	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	return false
+}
+
 // readStaticDir returns every regular file directly under dir in fsys
 // whose name ends in suffix, as a staticFile of contentType keyed by
 // routePrefix followed by a separator and its name. Subdirectories are
