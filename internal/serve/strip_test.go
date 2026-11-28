@@ -249,7 +249,7 @@ func TestStripWrapGroup2ForwardedAddress(t *testing.T) {
 	// carries the address of the trusted proxy the tests below
 	// configure (203.0.113.10), the value an attacker would spoof to
 	// impersonate the trusted peer; the group 2 trust decision must
-	// come from peerIP(r), never from this
+	// come from peerAddr(r), never from this
 	// header, so this value alone proves nothing about who dialed the
 	// socket.
 	family := map[string]string{
