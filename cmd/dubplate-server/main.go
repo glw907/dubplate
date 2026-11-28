@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"os/user"
 	"syscall"
 	"time"
 
@@ -145,8 +144,6 @@ func loadWall(environ []string, reg *config.Registry) (*config.Config, error) {
 // newRootCmd builds the command tree over environ and reg. Its silence
 // covers every subcommand, so run is the only printer of an error.
 func newRootCmd(environ []string, reg *config.Registry) *cobra.Command {
-	operator := operatorVerbs{WriteWait: storeWait, LookupID: user.LookupId}
-
 	cmd := &cobra.Command{
 		Use:           "dubplate-server",
 		Short:         "organizes and serves one shared music library",
@@ -158,8 +155,8 @@ func newRootCmd(environ []string, reg *config.Registry) *cobra.Command {
 		newCheckCmd(environ, reg),
 		newDoctorCmd(environ, reg),
 		newServeCmd(environ, reg),
-		operator.newMemberCmd(environ, reg),
-		operator.newSettingsCmd(environ, reg),
+		newMemberCmd(environ, reg),
+		newSettingsCmd(environ, reg),
 		newBackupCmd(environ, reg),
 		newRestoreCmd(environ, reg),
 		newUnidecodeCmd(environ),

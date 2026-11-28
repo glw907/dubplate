@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"os/user"
 	"syscall"
 	"time"
 
@@ -110,7 +109,7 @@ func runBackup(ctx context.Context, environ []string, reg *config.Registry, stdo
 		}
 	}()
 
-	actor := identity.LocalActor(resolveActor(user.LookupId))
+	actor := identity.LocalActor(resolveActor())
 	startCtx, cancelStart := context.WithTimeout(opsCtx, storeWait)
 	jobID, err := runner.StartBackup(startCtx, actor)
 	cancelStart()
