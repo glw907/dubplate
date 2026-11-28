@@ -60,7 +60,7 @@ type NonceSweep struct {
 // caller runs [NonceStore.RunSweep] thereafter.
 func OpenNonceStore(ctx context.Context, authDir *Dir, retention settings.Reader[time.Duration], linkExpiryCeiling time.Duration, now time.Time) (*NonceStore, NonceSweep, error) {
 	s := &NonceStore{
-		authDir:              authDir,
+		authDir:           authDir,
 		dir:               authDir.subdir(nonceSubdir),
 		retention:         retention,
 		linkExpiryCeiling: linkExpiryCeiling,
