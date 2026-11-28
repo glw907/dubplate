@@ -105,17 +105,32 @@ func iconsHandler(build fs.FS, prefix string, names RouteNames) (http.Handler, e
 	if len(files) == 0 {
 		return nil, errors.New("no .svg file embedded under web/build/mark/")
 	}
-	for _, favicon := range []struct{ name, contentType string }{
-		{names.FaviconSVG, "image/svg+xml"},
-		{names.FaviconPNG, "image/png"},
-	} {
-		data, err := fs.ReadFile(build, favicon.name)
+	for _, f := range favicons(names) {
+		data, err := fs.ReadFile(build, f.name)
 		if err != nil {
 			return nil, fmt.Errorf("webapp: favicon: %w", err)
 		}
-		files[prefix+"/"+favicon.name] = newStaticFile(data, favicon.contentType)
+		files[prefix+"/"+f.name] = newStaticFile(data, f.contentType)
 	}
 	return staticFilesHandler(files), nil
+}
+
+// favicon is one form of the favicon: its name in the build, which is
+// also its route under the owned prefix, its Content-Type, and the
+// sizes its icon link declares, "" for the scalable form.
+type favicon struct {
+	name        string
+	contentType string
+	sizes       string
+}
+
+// favicons returns the favicon's forms, the files [iconsHandler] serves
+// and the icon links every document carries.
+func favicons(names RouteNames) []favicon {
+	return []favicon{
+		{name: names.FaviconSVG, contentType: "image/svg+xml"},
+		{name: names.FaviconPNG, contentType: "image/png", sizes: "32x32"},
+	}
 }
 
 // assetsHandler returns an http.Handler serving GET and HEAD only,

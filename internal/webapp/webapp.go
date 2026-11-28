@@ -135,9 +135,9 @@ func New(build fs.FS, cfg Config) (Routes, error) {
 	}
 
 	hasOperatorCSS := cfg.OperatorCSS != nil
-	icons := []icon{
-		{href: cfg.Prefix + "/" + cfg.Names.FaviconSVG, contentType: "image/svg+xml"},
-		{href: cfg.Prefix + "/" + cfg.Names.FaviconPNG, contentType: "image/png", sizes: "32x32"},
+	var icons []icon
+	for _, f := range favicons(cfg.Names) {
+		icons = append(icons, icon{href: cfg.Prefix + "/" + f.name, contentType: f.contentType, sizes: f.sizes})
 	}
 	var routes Routes
 	groups := make(map[*http.Handler]map[string]http.Handler)
