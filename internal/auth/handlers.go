@@ -328,7 +328,7 @@ func (h *endpoints) sendLink(ctx context.Context, now time.Time, expiry time.Dur
 	if err != nil {
 		return err
 	}
-	link, err := LinkURL(h.cfg.PublicOrigin, h.cfg.Prefix, token)
+	link, err := linkURL(h.cfg.PublicOrigin, h.cfg.Prefix, token)
 	if err != nil {
 		return err
 	}

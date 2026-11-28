@@ -490,8 +490,8 @@ func TestSweepNonces_StopsWithContext(t *testing.T) {
 }
 
 // TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree holds
-// security review finding 2, R-5c9's routing test: a link minted
-// from the prefix and the public origin
+// security review finding 2, R-5c9's routing test: the link a member
+// is mailed, built from the prefix and the public origin
 // [newServeShell] itself resolves, lands on a path the owned prefix
 // owns and a registered "login" subtree answers. It runs for both
 // public-URL forms, a bare origin and one carrying a trailing
@@ -508,7 +508,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 
 	for i, origin := range origins {
 		t.Run(origin, func(t *testing.T) {
-			environ := replaceKey(serveAuthEnviron(t), "DUBPLATE_PUBLIC_URL", origin)
+			environ := replaceKey(rosterAPIEnviron(t), "DUBPLATE_PUBLIC_URL", origin)
 
 			cfg, err := config.Load(environ, productionRegistry())
 			if err != nil {
@@ -527,14 +527,7 @@ func TestNewServeShell_MintedLinkRoutesToRegisteredLoginSubtree(t *testing.T) {
 			shell := srv.shell
 			handlersConfig := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(srv.store, productionRegistry())))
 
-			link, err := auth.LinkURL(handlersConfig.PublicOrigin, handlersConfig.Prefix, "fixture-token")
-			if err != nil {
-				t.Fatalf("auth.LinkURL: %v", err)
-			}
-			u, err := url.Parse(link)
-			if err != nil {
-				t.Fatalf("parse minted link: %v", err)
-			}
+			_, u := requestedLink(t, handlersConfig, srv.store, rosterMemberAddress)
 			if !strings.HasPrefix(u.Path, prefix.String()+"/") {
 				t.Fatalf("minted link path %q is not owned by the prefix %q", u.Path, prefix.String())
 			}
@@ -575,6 +568,34 @@ func handlersConfigFor(prefix serve.Prefix, ac auth.Config) auth.HandlersConfig 
 		BodyCapCeiling:     auth.RequestBodyCapCeiling,
 		GenericAnswer:      ac.GenericAnswer,
 	}
+}
+
+// requestedLink posts a link request for address to the handlers hc
+// configures, with h's roster and a sender that captures the mail, and
+// returns the one mail's body and the https link it carries.
+func requestedLink(t *testing.T, hc auth.HandlersConfig, h *store.Handle, address string) (string, *url.URL) {
+	t.Helper()
+	var mailed []string
+	hc.Roster = member.NewRoster(h, nil, nil)
+	hc.Limiter = auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10})
+	hc.ClientIP = func(*http.Request) string { return "192.0.2.50" }
+	hc.Now = time.Now
+	hc.Logger = discardTestLogger()
+	hc.Send = func(_ context.Context, _, _, body string) error {
+		mailed = append(mailed, body)
+		return nil
+	}
+	rec := authRoutePOST(auth.NewHandlers(hc).RequestLink, "/request-link", "address="+url.QueryEscape(address))
+	if rec.Code != http.StatusOK || len(mailed) != 1 {
+		t.Fatalf("request = %d %s with %d mails, want 200 and one mail", rec.Code, rec.Body.String(), len(mailed))
+	}
+	for field := range strings.FieldsSeq(mailed[0]) {
+		if u, err := url.Parse(field); err == nil && u.Scheme == "https" {
+			return mailed[0], u
+		}
+	}
+	t.Fatalf("mail body %q carries no https link", mailed[0])
+	return "", nil
 }
 
 // rosterAdminAddress and rosterMemberAddress are the two fixture
@@ -1594,9 +1615,9 @@ func TestNewServeShell_MembersRoute(t *testing.T) {
 	}
 }
 
-// TestNewServeShell_MintedLinkNeverLogsItsToken proves a link built
-// through auth.LinkURL answers the login/link document with no-store,
-// which binds the link's path to the document route, and that across
+// TestNewServeShell_MintedLinkNeverLogsItsToken proves a link carrying
+// its token as t answers the login/link document with no-store, and
+// that across
 // that request, a trailing-slash GET, a POST, and a request
 // normalization refuses, each carrying the token in its query, no
 // record the shell's logger receives contains the token.
@@ -1613,31 +1634,19 @@ func TestNewServeShell_MintedLinkNeverLogsItsToken(t *testing.T) {
 	}
 	handler := shell.Handler()
 
-	link, err := auth.LinkURL(environValue(environ, "DUBPLATE_PUBLIC_URL"), "/dubplate", token)
-	if err != nil {
-		t.Fatalf("auth.LinkURL: %v", err)
-	}
-	u, err := url.Parse(link)
-	if err != nil {
-		t.Fatalf("parse minted link: %v", err)
-	}
-	if u.Query().Get("t") != token {
-		t.Fatalf("minted link %q does not carry the token as t", link)
-	}
-
 	plain := httptest.NewRecorder()
 	handler.ServeHTTP(plain, httptest.NewRequest(http.MethodGet, "/dubplate/login/link", nil))
 	login := httptest.NewRecorder()
 	handler.ServeHTTP(login, httptest.NewRequest(http.MethodGet, "/dubplate/login", nil))
 
-	query := "?" + u.RawQuery
+	query := "?t=" + token
 	tests := []struct {
 		name   string
 		method string
 		target string
 		status int
 	}{
-		{name: "the minted link", method: http.MethodGet, target: u.Path + query, status: http.StatusOK},
+		{name: "the minted link", method: http.MethodGet, target: "/dubplate/login/link" + query, status: http.StatusOK},
 		{name: "trailing slash", method: http.MethodGet, target: "/dubplate/login/link/" + query, status: http.StatusNotFound},
 		{name: "POST", method: http.MethodPost, target: "/dubplate/login/link" + query, status: http.StatusMethodNotAllowed},
 		{name: "refused by normalization", method: http.MethodGet, target: "/dubplate/login/./link" + query, status: http.StatusBadRequest},
@@ -2013,31 +2022,12 @@ func TestNewServeShell_AdminRowAppliesByMode(t *testing.T) {
 	writeAdminRows(t, h, rowB)
 
 	t.Run("a link minted after the write carries B's expiry", func(t *testing.T) {
-		var mailed []string
 		hc := handlersConfigFor(prefix, authConfigFor(t, cfg, settings.NewAccessor(h, productionRegistry())))
-		hc.Roster = member.NewRoster(h, nil, nil)
-		hc.Limiter = auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10})
-		hc.ClientIP = func(*http.Request) string { return "192.0.2.50" }
-		hc.Now = time.Now
-		hc.Logger = discardTestLogger()
-		hc.Send = func(_ context.Context, _, _, body string) error {
-			mailed = append(mailed, body)
-			return nil
+		body, link := requestedLink(t, hc, h, rosterMemberAddress)
+		if !strings.Contains(body, "expires in 40 minutes") {
+			t.Errorf("mail body %q, want B's 40 minutes", body)
 		}
-		rec := authRoutePOST(auth.NewHandlers(hc).RequestLink, "/request-link", "address="+url.QueryEscape(rosterMemberAddress))
-		if rec.Code != http.StatusOK || len(mailed) != 1 {
-			t.Fatalf("request = %d %s with %d mails, want 200 and one mail", rec.Code, rec.Body.String(), len(mailed))
-		}
-		if !strings.Contains(mailed[0], "expires in 40 minutes") {
-			t.Errorf("mail body %q, want B's 40 minutes", mailed[0])
-		}
-		var token string
-		for field := range strings.FieldsSeq(mailed[0]) {
-			if u, err := url.Parse(field); err == nil && u.Scheme == "https" {
-				token = u.Query().Get("t")
-			}
-		}
-		tok, err := auth.VerifyLink([]byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET")), nil, token, time.Now())
+		tok, err := auth.VerifyLink([]byte(environValue(environ, "DUBPLATE_MAGIC_LINK_SECRET")), nil, link.Query().Get("t"), time.Now())
 		if err != nil {
 			t.Fatalf("VerifyLink: %v", err)
 		}

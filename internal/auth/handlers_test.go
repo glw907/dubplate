@@ -802,9 +802,9 @@ func TestRequestLink_MailCopy(t *testing.T) {
 	}
 
 	token := tokenFromMail(t, m)
-	link, err := LinkURL(handlerOrigin, handlerPrefix, token)
+	link, err := linkURL(handlerOrigin, handlerPrefix, token)
 	if err != nil {
-		t.Fatalf("LinkURL: %v", err)
+		t.Fatalf("linkURL: %v", err)
 	}
 	stripped := strings.Replace(m.body, link, "", 1)
 	for _, forbidden := range []string{"member@example.com", "admin@example.com", "music.example.com"} {
