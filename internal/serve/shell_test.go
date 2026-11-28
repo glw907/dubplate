@@ -18,9 +18,9 @@ import (
 // extension-point assertions do not exercise.
 func newTestShell(t *testing.T) *Shell {
 	t.Helper()
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
 	return NewShell(prefix, TrustedProxyConfig{}, nil)
 }
@@ -141,9 +141,9 @@ func TestOrderRawVsDecodedRefusedBeforeAnyHandler(t *testing.T) {
 // chain's construction.
 func TestRefusalLogsIdentityAlreadyGone(t *testing.T) {
 	handler := &capturingHandler{}
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
 	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(handler))
 
@@ -360,9 +360,9 @@ func TestRegisterAfterHandlerPanics(t *testing.T) {
 func TestRefusalRecordOnlyForTheShellsOwnRefusals(t *testing.T) {
 	newShellWithLog := func(t *testing.T) (*Shell, *capturingHandler) {
 		t.Helper()
-		prefix, err := NewPrefix(testPrefix)
+		prefix, err := newPrefix(testPrefix)
 		if err != nil {
-			t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+			t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 		}
 		log := &capturingHandler{}
 		return NewShell(prefix, TrustedProxyConfig{}, slog.New(log)), log
@@ -501,9 +501,9 @@ func TestIdentitySpellingPresentReadsKeyPresence(t *testing.T) {
 // cheapest refusal in the shell becomes its most expensive log line.
 func TestRefusalLogBoundsThePath(t *testing.T) {
 	capture := &capturingHandler{}
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
 	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(capture))
 
@@ -622,9 +622,9 @@ func TestEchoMethodsRefusedBeforeRouting(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			capture := &capturingHandler{}
-			prefix, err := NewPrefix(testPrefix)
+			prefix, err := newPrefix(testPrefix)
 			if err != nil {
-				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+				t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 			}
 			shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(capture))
 
@@ -772,9 +772,9 @@ func TestOriginCheckRunsAfterNormalize(t *testing.T) {
 // shell's own, so it writes the one structured record the shell keeps
 // for every ingress refusal, and names the path it refused.
 func TestOriginRefusalEmitsTheRefusalRecord(t *testing.T) {
-	prefix, err := NewPrefix(testPrefix)
+	prefix, err := newPrefix(testPrefix)
 	if err != nil {
-		t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+		t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 	}
 	log := &capturingHandler{}
 	shell := NewShell(prefix, TrustedProxyConfig{}, slog.New(log))
@@ -828,9 +828,9 @@ func TestDirectModeWarnsOnceOnForwardedFromLocalPeer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			prefix, err := NewPrefix(testPrefix)
+			prefix, err := newPrefix(testPrefix)
 			if err != nil {
-				t.Fatalf("NewPrefix(%q): %v", testPrefix, err)
+				t.Fatalf("newPrefix(%q): %v", testPrefix, err)
 			}
 			var buf strings.Builder
 			shell := NewShell(prefix, tt.proxy, slog.New(slog.NewTextHandler(&buf, nil)))

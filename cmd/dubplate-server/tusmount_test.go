@@ -100,7 +100,7 @@ func TestTusPatchOutlivesTheServerTimeouts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	shellPrefix, err := serve.NewPrefix(prefix)
+	shellPrefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=" + prefix})
 	if err != nil {
 		t.Fatal(err)
 	}

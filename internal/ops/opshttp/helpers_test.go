@@ -16,6 +16,7 @@ import (
 	"github.com/glw907/dubplate/internal/identity"
 	"github.com/glw907/dubplate/internal/ops"
 	"github.com/glw907/dubplate/internal/reject"
+	"github.com/glw907/dubplate/internal/serve"
 )
 
 // testHandle is a well-formed record id: 32 lowercase hex characters.
@@ -183,6 +184,16 @@ func adminSuccesses() map[ops.Op]fakeAnswer {
 // mountPrefix is the owned prefix every test mount serves under.
 const mountPrefix = "/dub"
 
+// testPrefix returns mountPrefix as the shell's [serve.Prefix].
+func testPrefix(t *testing.T) serve.Prefix {
+	t.Helper()
+	prefix, err := serve.ParsePrefix([]string{"DUBPLATE_SERVE_PREFIX=" + mountPrefix})
+	if err != nil {
+		t.Fatalf("serve.ParsePrefix: %v", err)
+	}
+	return prefix
+}
+
 // grant is a verifier admitting every request as who's network actor,
 // granted p.
 func grant(who identity.Identity, p ops.Privilege) Verifier {
@@ -219,7 +230,7 @@ func newFixture(t *testing.T, decide Verifier) *fixture {
 		f.verified++
 		return decide(w, r)
 	}
-	h, err := NewMount(f.admin, f.subs, mountPrefix, verify, slog.New(slog.NewTextHandler(f.log, nil)))
+	h, err := NewMount(f.admin, f.subs, testPrefix(t), verify, slog.New(slog.NewTextHandler(f.log, nil)))
 	if err != nil {
 		t.Fatalf("NewMount: %v", err)
 	}

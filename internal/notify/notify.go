@@ -39,14 +39,14 @@ var errInvalidTo = errors.New("invalid to address")
 // errSend reports that connecting to or talking with the SMTP server
 // failed. The error text carries the host, port, and go-mail's failure
 // reason and code, but never the recipient list: go-mail's own
-// *SendError.Error appends "affected recipient(s): <address>". A Config
+// *SendError.Error appends "affected recipient(s): <address>". A config
 // go-mail refuses to build a client from fails before any connection
 // and is not errSend.
 var errSend = errors.New("send failed")
 
-// Config names the five SMTP values a Mailer needs. The caller resolves
-// them; Send reads no environment variable of its own.
-type Config struct {
+// smtpConfig holds the five SMTP values a Mailer needs. Send reads no
+// environment variable of its own.
+type smtpConfig struct {
 	Host     string
 	Port     int
 	User     string
@@ -56,14 +56,11 @@ type Config struct {
 
 // Mailer sends mail over one SMTP transport.
 type Mailer struct {
-	cfg  Config
+	cfg  smtpConfig
 	from *netmail.Address
 }
 
-// New returns a Mailer that delivers through the SMTP server cfg
-// describes. It refuses a cfg whose From is not one RFC 5322 mailbox
-// free of CR and LF.
-func New(cfg Config) (*Mailer, error) {
+func newMailer(cfg smtpConfig) (*Mailer, error) {
 	from, err := parseFrom(cfg.From)
 	if err != nil {
 		return nil, err
