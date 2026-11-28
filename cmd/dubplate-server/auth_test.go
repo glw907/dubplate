@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -99,7 +98,7 @@ func TestRegisterAuthConfig_RetiresAuthAndIdentityReservedClass(t *testing.T) {
 func TestDoctorCmd_UnsetSelectorExitsNonzero(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	cmd.SetOut(&stdout)
 
 	if err := cmd.Execute(); err == nil {
@@ -185,22 +184,20 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 		t.Fatalf("write roster fixture: %v", err)
 	}
 
-	operator := testOperatorVerbs()
 	verbs := []struct {
 		name string
 		args []string
-		cmd  func(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command
 	}{
-		{"check", []string{"check"}, newCheckCmd},
-		{"doctor", []string{"doctor"}, newDoctorCmd},
-		{"serve", []string{"serve"}, newServeCmd},
-		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}, operator.newMemberCmd},
-		{"member remove", []string{"member", "remove", "a@example.test"}, operator.newMemberCmd},
-		{"member demote", []string{"member", "demote", "a@example.test"}, operator.newMemberCmd},
-		{"member list", []string{"member", "list"}, operator.newMemberCmd},
-		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}, operator.newSettingsCmd},
-		{"backup", []string{"backup"}, newBackupCmd},
-		{"restore", []string{"restore", "--snapshot", "latest"}, newRestoreCmd},
+		{"check", []string{"check"}},
+		{"doctor", []string{"doctor"}},
+		{"serve", []string{"serve"}},
+		{"member add", []string{"member", "add", "a@example.test", "--name", "A", "--username", "a"}},
+		{"member remove", []string{"member", "remove", "a@example.test"}},
+		{"member demote", []string{"member", "demote", "a@example.test"}},
+		{"member list", []string{"member", "list"}},
+		{"settings reset", []string{"settings", "reset", "DUBPLATE_JOB_RETENTION"}},
+		{"backup", []string{"backup"}},
+		{"restore", []string{"restore", "--snapshot", "latest"}},
 	}
 
 	for _, value := range []struct{ name, set string }{
@@ -213,10 +210,7 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 			for _, v := range verbs {
 				t.Run(v.name, func(t *testing.T) {
 					var stdout, stderr bytes.Buffer
-					root := &cobra.Command{Use: "dubplate-server", SilenceUsage: true, SilenceErrors: true}
-					root.AddCommand(v.cmd(environ, productionRegistry(), &stdout, &stderr))
-					root.SetArgs(v.args)
-					err := root.Execute()
+					err := rootFor(environ, productionRegistry(), &stdout, &stderr, v.args...).Execute()
 
 					if v.name == "doctor" {
 						// doctor prints the load error no row claims.
@@ -257,7 +251,7 @@ func TestRosterFileKey_Superseded(t *testing.T) {
 				walk(sub)
 			}
 		}
-		walk(newRootCmd())
+		walk(newRootCmd(nil, productionRegistry()))
 		slices.Sort(leaves)
 
 		want := []string{"backup", "check", "doctor", "member add", "member demote", "member list", "member remove",

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -61,12 +60,10 @@ const (
 // resolution and store open happens before [serve.Run] opens a
 // listener, so an unsatisfied wall refuses at startup in the words
 // doctor reports.
-func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:           "serve",
-		Short:         "Run the HTTP server",
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func newServeCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "serve",
+		Short: "Run the HTTP server",
 		RunE: func(cmd *cobra.Command, _ []string) (err error) {
 			cfg, err := loadConfig(environ, reg)
 			if err != nil {
@@ -84,9 +81,6 @@ func newServeCmd(environ []string, reg *config.Registry, stdout, stderr io.Write
 			return serve.Run(cmd.Context(), srv.shell.Logger(), srv.shell.Handler(), listen.BindAddrs, listen.Port)
 		},
 	}
-	cmd.SetOut(stdout)
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // newServeShell builds the shell the serve verb runs, owning prefix, and

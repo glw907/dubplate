@@ -19,22 +19,19 @@ const unidecodeInstallTimeout = 30 * time.Second
 
 // newUnidecodeCmd builds the unidecode subcommand's parent: today it
 // carries the install verb alone.
-func newUnidecodeCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
+func newUnidecodeCmd(environ []string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:           "unidecode",
-		Short:         "Manage the pinned Unidecode transliteration table",
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Use:   "unidecode",
+		Short: "Manage the pinned Unidecode transliteration table",
 	}
-	cmd.SetErr(stderr)
-	cmd.AddCommand(newUnidecodeInstallCmd(environ, stdout, stderr))
+	cmd.AddCommand(newUnidecodeInstallCmd(environ))
 	return cmd
 }
 
 // newUnidecodeInstallCmd builds the install verb: it reads
 // DUBPLATE_STATE_DIR alone, never config.Load, because setup runs it
 // before the rest of the wall may be rendered.
-func newUnidecodeInstallCmd(environ []string, stdout, stderr io.Writer) *cobra.Command {
+func newUnidecodeInstallCmd(environ []string) *cobra.Command {
 	var from string
 	cmd := &cobra.Command{
 		Use:   "install",
@@ -44,17 +41,14 @@ func newUnidecodeInstallCmd(environ []string, stdout, stderr io.Writer) *cobra.C
 				"builds its transliteration table into the state directory. Offline,\n"+
 				"download the wheel yourself and pass --from its path.",
 			unidecode.Version, unidecode.WheelURL, unidecode.WheelSHA256),
-		SilenceUsage:  true,
-		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if err := runUnidecodeInstall(cmd.Context(), environ, from, stdout); err != nil {
+			if err := runUnidecodeInstall(cmd.Context(), environ, from, cmd.OutOrStdout()); err != nil {
 				return fmt.Errorf("unidecode install: %w", err)
 			}
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&from, "from", "", "install from a local wheel file instead of downloading")
-	cmd.SetErr(stderr)
 	return cmd
 }
 

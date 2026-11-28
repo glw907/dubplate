@@ -29,18 +29,14 @@ import (
 // of the config wall, one block per family, deriving every row it can
 // from reg. The exit status is 1 when [config.Load] refuses environ or
 // any row it prints reports a failure, and 0 otherwise.
-func newDoctorCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:           "doctor",
-		Short:         "Report the configuration wall",
-		SilenceUsage:  true,
-		SilenceErrors: true,
+func newDoctorCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "doctor",
+		Short: "Report the configuration wall",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runDoctor(cmd.Context(), environ, reg, stdout)
+			return runDoctor(cmd.Context(), environ, reg, cmd.OutOrStdout())
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // runDoctor runs every doctor probe, then prints the rows in order. It

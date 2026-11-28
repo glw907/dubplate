@@ -72,7 +72,7 @@ func TestCheckCmd_SettingsRow_Reseed(t *testing.T) {
 	environ = append(environ, "DUBPLATE_BACKUP_SNAPSHOT_KEEP=20")
 
 	var stdout, stderr bytes.Buffer
-	cmd := newCheckCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "check")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil: a disagreement is not a refusal", err)
 	}
@@ -108,7 +108,7 @@ func TestCheckCmd_SettingsRow_AdminConflict(t *testing.T) {
 	environ = append(environ, "DUBPLATE_BACKUP_GUARD_FRACTION=0.3")
 
 	var stdout, stderr bytes.Buffer
-	cmd := newCheckCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "check")
 	err = cmd.Execute()
 	if err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: the environment disagrees with the administrator's value")
@@ -231,7 +231,7 @@ func TestCheckCmd(t *testing.T) {
 			}
 
 			var stdout, stderr bytes.Buffer
-			cmd := newCheckCmd(environ, freshRegistry(), &stdout, &stderr)
+			cmd := rootFor(environ, freshRegistry(), &stdout, &stderr, "check")
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
@@ -286,7 +286,7 @@ func TestCheckCmd_EmptyEnvironment(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := newCheckCmd(nil, reg, &stdout, &stderr)
+	cmd := rootFor(nil, reg, &stdout, &stderr, "check")
 	cmd.SetOut(&stdout)
 	err := cmd.Execute()
 
@@ -314,7 +314,7 @@ func TestCheckCmd_StoreRow(t *testing.T) {
 		environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 
 		var stdout, stderr bytes.Buffer
-		cmd := newCheckCmd(environ, freshRegistry(), &stdout, &stderr)
+		cmd := rootFor(environ, freshRegistry(), &stdout, &stderr, "check")
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v, want nil", err)
 		}
@@ -330,7 +330,7 @@ func TestCheckCmd_StoreRow(t *testing.T) {
 		environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 		var stdout, stderr bytes.Buffer
-		cmd := newCheckCmd(environ, freshRegistry(), &stdout, &stderr)
+		cmd := rootFor(environ, freshRegistry(), &stdout, &stderr, "check")
 		err := cmd.Execute()
 		if err == nil {
 			t.Fatal("Execute() error = nil, want a refusal: the database is an unfinished create, not a store")
@@ -371,7 +371,7 @@ func TestCheckCmd_BusyTimeoutBounds(t *testing.T) {
 			store.Register(reg)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newCheckCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "check")
 			err := cmd.Execute()
 
 			if tt.wantOK {
@@ -475,7 +475,7 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 
 			t.Run("check", func(t *testing.T) {
 				var stdout, stderr bytes.Buffer
-				err := newCheckCmd(environ, productionRegistry(), &stdout, &stderr).Execute()
+				err := rootFor(environ, productionRegistry(), &stdout, &stderr, "check").Execute()
 				if (err != nil) != tt.wantFail {
 					t.Fatalf("Execute() error = %v, wantFail %v; stdout %q", err, tt.wantFail, stdout.String())
 				}
@@ -499,7 +499,7 @@ func TestCheckAndDoctor_AuthSettingsEveryStoreState(t *testing.T) {
 
 			t.Run("doctor", func(t *testing.T) {
 				var stdout, stderr bytes.Buffer
-				err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute()
+				err := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor").Execute()
 				if tt.wantFail && err == nil {
 					t.Fatalf("Execute() error = nil, want a refusal; stdout %q", stdout.String())
 				}

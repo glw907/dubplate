@@ -11,13 +11,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// rootFor returns the root command over environ and reg, writing to
+// stdout and stderr, with args as its command line.
+func rootFor(environ []string, reg *config.Registry, stdout, stderr io.Writer, args ...string) *cobra.Command {
+	root := newRootCmd(environ, reg)
+	root.SetOut(stdout)
+	root.SetErr(stderr)
+	root.SetArgs(args)
+	return root
+}
+
 // TestRootCmd_UnknownSubcommand proves the fix for the silent-failure
 // defect: with SilenceUsage and SilenceErrors set, cobra itself
 // writes nothing to either stream on an unrecognized subcommand,
 // leaving main's own stderr print (see main.go) as the single place
 // the error reaches the operator.
 func TestRootCmd_UnknownSubcommand(t *testing.T) {
-	cmd := newRootCmd()
+	cmd := newRootCmd(nil, productionRegistry())
 	cmd.SetArgs([]string{"bogus"})
 
 	var stdout, stderr bytes.Buffer
@@ -40,35 +50,26 @@ func TestRootCmd_UnknownSubcommand(t *testing.T) {
 	}
 }
 
-// TestNewRootCmd_ConstructsIndependentRegistries proves R12's
-// double-registration hazard is gone under R1's value registry:
-// newRootCmd runs more than once in a test binary (this file's own
-// TestRootCmd_UnknownSubcommand), and each call builds its own fresh
-// *config.Registry rather than sharing one. A registry panics on a
-// duplicate key (internal/config/registry.go), so a newRootCmd that
-// leaked a shared registry across calls would panic here on the
-// second construction; this replaces the retired
-// TestNewRootCmd_RegistersShadowThresholdsOnce, whose own proof read
-// config.Thresholds(), a package-level function Task 3 retires along
-// with registeredThresholds. internal/config/registry_test.go's own
-// TestNewRegistry_Independent proves the same property at the
-// registry's own level.
-func TestNewRootCmd_ConstructsIndependentRegistries(t *testing.T) {
+// TestNewProductionRegistry_ConstructsIndependentRegistries proves each
+// call builds its own registry rather than sharing one. A registry
+// panics on a duplicate key, so a shared one would panic here on the
+// second construction.
+func TestNewProductionRegistry_ConstructsIndependentRegistries(t *testing.T) {
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				t.Fatalf("first newRootCmd() panicked: %v", r)
+				t.Fatalf("first newProductionRegistry() panicked: %v", r)
 			}
 		}()
-		newRootCmd()
+		newProductionRegistry()
 	}()
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				t.Fatalf("second newRootCmd() panicked: %v", r)
+				t.Fatalf("second newProductionRegistry() panicked: %v", r)
 			}
 		}()
-		newRootCmd()
+		newProductionRegistry()
 	}()
 }
 
@@ -149,7 +150,7 @@ func TestExecuteWithSignalContext_GivesTheCommandACancellableContext(t *testing.
 // TestNewRootCmd_RegistersRestore proves the root command carries the
 // restore verb.
 func TestNewRootCmd_RegistersRestore(t *testing.T) {
-	found, _, err := newRootCmd().Find([]string{"restore"})
+	found, _, err := newRootCmd(nil, productionRegistry()).Find([]string{"restore"})
 	if err != nil {
 		t.Fatalf("Find(restore): %v", err)
 	}

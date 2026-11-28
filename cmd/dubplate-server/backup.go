@@ -31,8 +31,8 @@ const backupPollInterval = 200 * time.Millisecond
 // status, and exits with the status its outcome maps to. Its Long text
 // lists every exit status this file assigns, so an operator reading
 // --help sees the same table the verb's tests assert against.
-func newBackupCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
-	cmd := &cobra.Command{
+func newBackupCmd(environ []string, reg *config.Registry) *cobra.Command {
+	return &cobra.Command{
 		Use:   "backup",
 		Short: "Snapshot the library database and sync it to remote storage",
 		Long: `Snapshot the library database and sync it to remote storage.
@@ -43,15 +43,11 @@ Exit statuses:
   69   backup integration is disabled (DUBPLATE_BACKUP_ENABLED)
   75   a backup is already running
   130  canceled by any means: a signal (SIGINT, SIGTERM, SIGHUP) or another process's cancel`,
-		Args:          cobra.NoArgs,
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runBackup(cmd.Context(), environ, reg, stdout, stderr)
+			return runBackup(cmd.Context(), environ, reg, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
-	cmd.SetErr(stderr)
-	return cmd
 }
 
 // runBackup loads the wall, opens the store in write mode, and runs

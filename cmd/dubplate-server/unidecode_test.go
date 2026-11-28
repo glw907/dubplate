@@ -80,9 +80,7 @@ func TestUnidecodeInstall_InstallsUnderTheStateDir(t *testing.T) {
 // is added at the command boundary, once, to a refusal from below it.
 func TestUnidecodeInstallCmd_NamesTheVerbOnce(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	cmd := newUnidecodeInstallCmd(nil, &stdout, &stderr)
-	cmd.SetArgs(nil)
-	err := cmd.Execute()
+	err := rootFor(nil, productionRegistry(), &stdout, &stderr, "unidecode", "install").Execute()
 	if err == nil || err.Error() != "unidecode install: DUBPLATE_STATE_DIR is not set" {
 		t.Fatalf("error = %v, want %q", err, "unidecode install: DUBPLATE_STATE_DIR is not set")
 	}
@@ -149,7 +147,7 @@ func TestDoctorCmd_UnidecodeRow(t *testing.T) {
 			}
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, freshRegistry(), &stdout, &stderr)
+			cmd := rootFor(environ, freshRegistry(), &stdout, &stderr, "doctor")
 			err := cmd.Execute()
 
 			if tt.wantFail && err == nil {
@@ -189,7 +187,7 @@ func TestDoctorCmd_UnidecodeRowCreatesNothing(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd([]string{"DUBPLATE_STATE_DIR=" + stateDir}, config.NewRegistry(), &stdout, &stderr)
+	cmd := rootFor([]string{"DUBPLATE_STATE_DIR=" + stateDir}, config.NewRegistry(), &stdout, &stderr, "doctor")
 	_ = cmd.Execute()
 
 	after, err := os.ReadDir(stateDir)

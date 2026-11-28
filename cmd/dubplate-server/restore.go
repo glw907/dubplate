@@ -97,7 +97,7 @@ func (f restoreFlags) check() error {
 // wall, and runs [backup.Restore] on a context that SIGINT, SIGTERM, and
 // SIGHUP cancel. Its Long text lists every exit status the verb
 // assigns.
-func newRestoreCmd(environ []string, reg *config.Registry, stdout, stderr io.Writer) *cobra.Command {
+func newRestoreCmd(environ []string, reg *config.Registry) *cobra.Command {
 	var f restoreFlags
 	cmd := &cobra.Command{
 		Use:   "restore",
@@ -113,11 +113,9 @@ Exit statuses:
   1    a flag, load, or store refusal, or a failed step
   75   another process holds the store's lock
   130  interrupted by a signal (SIGINT, SIGTERM, SIGHUP); restore --resume finishes a restore that wrote a restore-intent record`,
-		Args:          cobra.NoArgs,
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runRestore(cmd.Context(), environ, reg, f, stdout, stderr)
+			return runRestore(cmd.Context(), environ, reg, f, cmd.OutOrStdout(), cmd.ErrOrStderr())
 		},
 	}
 	fl := cmd.Flags()
@@ -128,7 +126,6 @@ Exit statuses:
 	fl.BoolVar(&f.library, "library", false, "also restore the library tree from the remote, with --snapshot")
 	fl.BoolVar(&f.intoNonempty, "into-nonempty", false, "with --library, permit a library root that holds files; each file the copy replaces is kept in a sibling directory")
 	fl.BoolVar(&f.discardCurrent, "discard-current", false, "move a current store that cannot be opened aside, unopened")
-	cmd.SetErr(stderr)
 	return cmd
 }
 

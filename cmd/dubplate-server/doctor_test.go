@@ -120,7 +120,7 @@ func TestDoctorCmd(t *testing.T) {
 			reg := freshRegistry()
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			cmd.SetOut(&stdout)
 			err := cmd.Execute()
 
@@ -415,7 +415,7 @@ func TestDoctorCmd_BackupRowsWithFlagOn(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -500,7 +500,7 @@ func TestDoctorCmd_IdentitySourceRows(t *testing.T) {
 			environ = append(environ, tt.extra...)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, registry(), &stdout, &stderr)
+			cmd := rootFor(environ, registry(), &stdout, &stderr, "doctor")
 			_ = cmd.Execute()
 
 			out := stdout.String()
@@ -574,7 +574,7 @@ func TestDoctorCmd_AuthSettingRefusals(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			environ := append(doctorEnviron(t), tt.env...)
 			var stdout, stderr bytes.Buffer
-			if err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute(); err == nil {
+			if err := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor").Execute(); err == nil {
 				t.Fatal("Execute() error = nil, want a refusal")
 			}
 			out := stdout.String()
@@ -662,7 +662,7 @@ func TestDoctorCmd_ShortPreviousSecretMakesSourceUnsatisfied(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: the previous secret is below the floor")
 	}
@@ -692,7 +692,7 @@ func TestDoctorCmd_SelectedSourcePrintsOneLine(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: both secrets are below the floor")
 	}
@@ -751,7 +751,7 @@ func TestDoctorCmd_SourceLineNamesFailingKey(t *testing.T) {
 			reg := productionRegistry()
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			if err := cmd.Execute(); err == nil {
 				t.Fatal("Execute() error = nil, want a refusal")
 			}
@@ -784,7 +784,7 @@ func TestDoctorCmd_SourceLineNamesTwoFailingKeysAtOnce(t *testing.T) {
 	reg := productionRegistry()
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: both secrets are below the floor")
 	}
@@ -1014,7 +1014,7 @@ func doctorLines(t *testing.T, reg *config.Registry) []string {
 	t.Helper()
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	_ = cmd.Execute()
 	return strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
 }
@@ -1028,7 +1028,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, freshRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, freshRegistry(), &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1045,7 +1045,7 @@ func TestDoctorCmd_LiteralSpotCheck(t *testing.T) {
 	// source, so this half runs against the production registry and a
 	// fully satisfied environment instead.
 	var authStdout, authStderr bytes.Buffer
-	authCmd := newDoctorCmd(doctorEnviron(t), productionRegistry(), &authStdout, &authStderr)
+	authCmd := rootFor(doctorEnviron(t), productionRegistry(), &authStdout, &authStderr, "doctor")
 	if err := authCmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1107,7 +1107,7 @@ func TestDoctorCmd_ClassRows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(tt.setup(doctorEnviron(t)), productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(tt.setup(doctorEnviron(t)), productionRegistry(), &stdout, &stderr, "doctor")
 			_ = cmd.Execute() // an unparseable flag fails Load; the table still prints
 			if !strings.Contains(stdout.String(), tt.want) {
 				t.Errorf("stdout = %q, want it to contain %q", stdout.String(), tt.want)
@@ -1143,7 +1143,7 @@ func TestDoctorCmd_IntegrationRow(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(append(slices.Clone(environ), tt.extra...), reg, &stdout, &stderr)
+			cmd := rootFor(append(slices.Clone(environ), tt.extra...), reg, &stdout, &stderr, "doctor")
 			_ = cmd.Execute()
 
 			want := fmt.Sprintf("%-32s %s\n", "backup", tt.want)
@@ -1175,7 +1175,7 @@ func TestDoctorCmd_FloatThreshold(t *testing.T) {
 	environ := replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", stateDir)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil", err)
 	}
@@ -1197,7 +1197,7 @@ func TestDoctorCmd_RefusedSettingPrintsOnce(t *testing.T) {
 	)
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+	cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("Execute() error = nil, want a refusal: the lifetime is above its ceiling")
 	}
@@ -1261,7 +1261,7 @@ func TestDoctorCmd_StoreBusyTimeoutDefault(t *testing.T) {
 			environ := append(replaceKey(baseEnviron(), "DUBPLATE_STATE_DIR", t.TempDir()), tt.extra...)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			_ = cmd.Execute()
 
 			want := fmt.Sprintf("%-32s %s\n", "DUBPLATE_STORE_BUSY_TIMEOUT", tt.want)
@@ -1305,7 +1305,7 @@ func TestDoctorCmd_StoreBusyTimeoutOutOfRange(t *testing.T) {
 				"DUBPLATE_STORE_BUSY_TIMEOUT="+tt.value)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+			cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 			err := cmd.Execute()
 
 			if !tt.wantErr {
@@ -1348,7 +1348,7 @@ func TestDoctorCmd_AbsentStoreCreatesNothing(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := newDoctorCmd(environ, reg, &stdout, &stderr)
+	cmd := rootFor(environ, reg, &stdout, &stderr, "doctor")
 	_ = cmd.Execute()
 
 	after, err := os.ReadDir(stateDir)
@@ -1392,7 +1392,7 @@ func TestDoctorCmd_SettingsRow_ExitCode(t *testing.T) {
 			environ = append(environ, "DUBPLATE_BACKUP_GUARD_FRACTION="+tt.env)
 
 			var stdout, stderr bytes.Buffer
-			cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+			cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 			err = cmd.Execute()
 			if tt.wantFail && err == nil {
 				t.Error("Execute() error = nil, want a refusal")
@@ -1668,7 +1668,7 @@ func TestDoctorCmd_AuthSettingsGolden(t *testing.T) {
 	seedDoctorAdmin(t, environ)
 
 	var stdout, stderr bytes.Buffer
-	if err := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr).Execute(); err != nil {
+	if err := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor").Execute(); err != nil {
 		t.Fatalf("Execute() error = %v, want nil; stdout %q", err, stdout.String())
 	}
 	for _, w := range want {
@@ -1760,7 +1760,7 @@ func TestDoctorCmd_AdminEmailRow(t *testing.T) {
 		environ := withEnv(doctorEnviron(t), "DUBPLATE_ADMIN_EMAIL=plain@example.test")
 		roster(t, environValue(environ, "DUBPLATE_STATE_DIR"))
 		var stdout, stderr bytes.Buffer
-		cmd := newDoctorCmd(environ, productionRegistry(), &stdout, &stderr)
+		cmd := rootFor(environ, productionRegistry(), &stdout, &stderr, "doctor")
 		if err := cmd.Execute(); err != nil {
 			t.Fatalf("Execute() error = %v, want nil: a warning never fails doctor", err)
 		}
