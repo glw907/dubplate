@@ -20,32 +20,25 @@ import (
 // prefix.
 const ProbeRouteName = "boundary-probe"
 
-// probeSentinel is the header the probe request sends and lists in its
-// own Connection header. Only a strip removes it: net/http's server
-// leaves a Connection-listed header in place, which the route's
-// no-strip test proves over a real socket.
+// probeSentinel is the header the probe sends and lists in Connection.
+// Only a strip removes it: net/http's server leaves a Connection-listed
+// header in place.
 const probeSentinel = "Dubplate-Probe-Sentinel"
 
-// probeCounts is the probe route's answer: how many of the headers the
-// strip exists to remove reached the route. Identity counts the keys
-// group 1 matches, Forwarded counts group 2's, and Sentinel is 1 when
-// the Connection-listed sentinel arrived. It carries counts only, never
-// a header value or an address. A trusted peer receives the identity
-// count alone, as [NewProbeRoute] describes.
+// probeCounts is the probe route's answer: how many keys of group 1
+// and group 2 reached the route, and 1 when the sentinel did. It
+// carries counts only, never a header value or an address.
 type probeCounts struct {
 	Identity  int `json:"identity"`
 	Forwarded int `json:"forwarded"`
 	Sentinel  int `json:"sentinel"`
 }
 
-// newProbeRequest builds the one probe request every caller sends: a
-// GET for the probe route under prefix on host, carrying every group 1
-// spelling in both forms, every group 2 name the strip built for proxy
-// removes, the configured client-address header included, and the
-// sentinel listed in Connection. Each header is added with
-// [http.Header.Add], which canonicalizes the name exactly as the
-// receiving server's parser does, so the request carries one canonical
-// key per distinct name. host is a host:port the URL can carry.
+// newProbeRequest builds the probe request: a GET for the probe route
+// under prefix on host, a host:port, carrying every group 1 spelling,
+// every group 2 name the strip built for proxy removes, the configured
+// client-address header included, and the sentinel listed in
+// Connection.
 func newProbeRequest(ctx context.Context, prefix Prefix, host string, proxy TrustedProxyConfig) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+host+prefix.String()+"/"+ProbeRouteName, nil)
 	if err != nil {
@@ -67,24 +60,17 @@ func newProbeRequest(ctx context.Context, prefix Prefix, host string, proxy Trus
 // from a permitted peer with the [probeCounts] of the request it
 // received, and every other request, from any peer, with
 // [http.NotFoundHandler]'s 404, so a stranger cannot tell the route
-// from an unknown path. The path is checked first, then the peer, then
-// the method.
+// from an unknown path.
 //
-// A permitted peer is one whose [peerAddr] is a loopback address or
-// one of bindAddrs, the addresses the server listens on, each unmapped
-// the same way. [ClientIP] is
-// never consulted, so no forwarded header can make a peer local.
+// A permitted peer is one whose [peerAddr] is loopback or one of
+// bindAddrs. [ClientIP] is never consulted, so no forwarded header can
+// make a peer local.
 //
-// A permitted peer that is also one of proxy's trusted proxies
-// receives a JSON object holding the identity count alone. The strip
-// keeps group 2 for that peer by design, so a forwarded count would
-// read as a failure it is not, and group 1 applies to every peer, so
-// the identity count still proves the strip. A same-host front relays
+// A permitted peer that is also a trusted proxy receives the identity
+// count alone: the strip keeps group 2 for it by design, so a forwarded
+// count would read as a failure it is not. A same-host front relays
 // strangers from that address, and what reaches them is that one
 // count, zero while the strip works.
-//
-// The forwarded count reads the strip's own group 2 set for proxy, the
-// configured client-address header included.
 func NewProbeRoute(prefix Prefix, bindAddrs []netip.Addr, proxy TrustedProxyConfig) http.Handler {
 	path := prefix.String() + "/" + ProbeRouteName
 	local := make(map[netip.Addr]struct{}, len(bindAddrs))
@@ -131,10 +117,9 @@ func NewProbeRoute(prefix Prefix, bindAddrs []netip.Addr, proxy TrustedProxyConf
 	})
 }
 
-// countPresent returns how many keys of h carry at least one value and
-// name one of names under [foldedKey], the comparison group 1's removal
-// uses, so any spelling the strip would match is a spelling the count
-// sees. Two spellings of one name are two keys and count twice.
+// countPresent returns how many keys of h carry a value and name one
+// of names under [foldedKey], so any spelling the strip would match is
+// counted. Two spellings of one name count twice.
 func countPresent(h http.Header, names []string) int {
 	want := make(map[string]struct{}, len(names))
 	for _, name := range names {
@@ -149,34 +134,28 @@ func countPresent(h http.Header, names []string) int {
 	return n
 }
 
-// The boundary probe's bounds: the dial and the response each get a
-// bound, so a host that drops the handshake and a listener that
-// accepts and never answers both end the row in bounded time.
+// The boundary probe's bounds, so a host that drops the handshake and a
+// listener that never answers both end the row in bounded time.
 const (
 	probeDialBound     = 2 * time.Second
 	probeResponseBound = 2 * time.Second
 )
 
-// probeAnswerCap bounds how much of the route's answer doctor reads.
-// The counts object is a few dozen bytes; anything past this is not
-// the route's answer.
+// probeAnswerCap bounds how much of the route's answer doctor reads; the
+// counts object is a few dozen bytes.
 const probeAnswerCap = 4 << 10
 
-// probeResult is one address's part of the probe row.
+// probeResult is one address's part of the probe row. answered is true
+// when the route returned its counts, so the row's trailer applies.
 type probeResult struct {
-	status string
-	failed bool
-	// answered is true when the route returned its counts, so the
-	// row's trailer applies.
+	status   string
+	failed   bool
 	answered bool
 }
 
-// probeAddress probes the server listening on ip and port with the
-// probe request built for proxy. The dial binds ip as its local
-// address, so the peer the server sees is the address it was
-// configured to listen on, which the route permits. trusted reports
-// whether ip is one of proxy's addresses, whose answer carries the
-// identity count alone.
+// probeAddress probes the server listening on ip and port. The dial
+// binds ip as its local address, so the server sees a peer the route
+// permits. trusted reports whether ip is one of proxy's addresses.
 func probeAddress(ctx context.Context, prefix Prefix, ip netip.Addr, port int, proxy TrustedProxyConfig, trusted bool) probeResult {
 	dialer := net.Dialer{
 		Timeout:   probeDialBound,
@@ -204,11 +183,9 @@ func probeAddress(ctx context.Context, prefix Prefix, ip netip.Addr, port int, p
 	return countsResult(counts)
 }
 
-// probeExchange writes the probe request built for proxy on conn and
-// reads the route's counts, all before ctx's deadline: the caller
-// bounds the exchange by bounding ctx. For a trusted peer only the
-// identity count is required, and the other two read as zero whatever
-// the body holds. The error it returns is the text the row prints after
+// probeExchange writes the probe request on conn and reads the route's
+// counts before ctx's deadline. For a trusted peer only the identity
+// count is required. The error is the text the row prints after
 // "unexpected answer: ".
 func probeExchange(ctx context.Context, conn net.Conn, prefix Prefix, host string, proxy TrustedProxyConfig, trusted bool) (probeCounts, error) {
 	if deadline, ok := ctx.Deadline(); ok {
@@ -265,12 +242,8 @@ type probeAnswer struct {
 	Sentinel  *int `json:"sentinel"`
 }
 
-// errProbeTimeout is the answer error for a connection that accepted
-// and did not answer within [probeResponseBound].
 var errProbeTimeout = errors.New("timeout")
 
-// answerError maps a deadline expiry to [errProbeTimeout] and passes
-// any other error through.
 func answerError(err error) error {
 	if isTimeout(err) {
 		return errProbeTimeout
@@ -278,15 +251,11 @@ func answerError(err error) error {
 	return err
 }
 
-// isTimeout reports whether err is a [net.Error] that timed out.
 func isTimeout(err error) bool {
 	var ne net.Error
 	return errors.As(err, &ne) && ne.Timeout()
 }
 
-// countsResult renders the route's counts: "refused" when every
-// count is zero, and otherwise each group that reached the route,
-// which fails the row.
 func countsResult(c probeCounts) probeResult {
 	var passed []string
 	if c.Identity > 0 {

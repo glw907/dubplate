@@ -8,97 +8,42 @@ import (
 	"strings"
 )
 
-// identityHeaders is the fixed set of trusted-header-SSO header names
-// group 1 removes. Every name here is documented by the project that
-// owns it as a header it sets or reads to carry an authenticated
-// identity into a backend application; identitySpellings derives each
-// name's underscore twin, so a new entry is one line.
+// identityHeaders is group 1: the trusted-header-SSO names the project
+// that owns each documents as carrying an authenticated identity into a
+// backend. Names are in [textproto.CanonicalMIMEHeaderKey] form, and
+// identitySpellings adds each one's underscore twin.
 //
-// Names are written in [textproto.CanonicalMIMEHeaderKey] form, which
-// is not always the casing the citing project prints. Header names are
-// case-insensitive and every removal below canonicalizes both sides, so
-// the two spellings name the same header; the citations keep the
-// project's own casing.
+//   - Remote-User, -Name, -Email, -Groups: Authelia,
+//     https://www.authelia.com/integration/trusted-header-sso/introduction/
+//   - X-Forwarded-User, -Email, -Preferred-Username, -Groups, and
+//     -Access-Token: oauth2-proxy's pass_user_headers and
+//     pass_access_token,
+//     https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview
+//   - X-Forwarded-Uri, X-Forwarded-Method: Traefik ForwardAuth,
+//     https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/
+//   - Cf-Access-Jwt-Assertion, Cf-Access-Authenticated-User-Email:
+//     Cloudflare Access,
+//     https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/validating-json/
+//     and https://developers.cloudflare.com/cloudflare-one/tutorials/access-workers/
+//   - X-Webauth-User: Grafana's auth.proxy and Gitea's reverse-proxy
+//     authentication,
+//     https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/
+//     and https://docs.gitea.com/administration/config-cheat-sheet/
+//   - X-Authentik-Username, -Email, -Groups, -Uid, -Jwt: authentik's
+//     proxy provider, https://docs.goauthentik.io/add-secure-apps/providers/proxy/
+//   - X-Original-Url: authentik's nginx forward-auth, which a backend
+//     reads as the request's own target,
+//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/server_nginx/
+//   - Tailscale-User-Login, Tailscale-User-Name: tailscale serve,
+//     https://tailscale.com/kb/1312/serve
 //
-// Every candidate cited, and every one dropped:
-//
-//   - Remote-User, Remote-Name, Remote-Email, Remote-Groups: Authelia's
-//     trusted-header-SSO response headers, injected by the reverse
-//     proxy into the request the backend application receives.
-//     https://www.authelia.com/integration/trusted-header-sso/introduction/,
-//     read 2026-09-08.
-//   - X-Forwarded-User, X-Forwarded-Email, X-Forwarded-Preferred-Username,
-//     X-Forwarded-Groups: oauth2-proxy's pass_user_headers set (on by
-//     default), forwarded to the upstream application.
-//     X-Forwarded-Access-Token: oauth2-proxy's pass_access_token
-//     header, carrying the OAuth access token to the upstream
-//     application.
-//     https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview,
-//     read 2026-09-08.
-//   - Cf-Access-Jwt-Assertion: Cloudflare Access's documented
-//     application-token request header, set on every request Access
-//     forwards to the origin.
-//     https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/validating-json/,
-//     read 2026-09-08.
-//
-// Dropped candidates, each with the reason it was not admitted:
-//
-//   - Miniflux's AUTH_PROXY_HEADER names no fixed header at all; its
-//     own documentation states the value is empty by default and
-//     adopter-configured, so it contributes no name here. Its explicit
-//     pairing with TRUSTED_REVERSE_PROXY_NETWORKS is the shape
-//     [TrustedProxyConfig] already takes, not a header spelling.
-//     https://miniflux.app/docs/configuration.html, read 2026-09-08.
-//   - oauth2-proxy's X-Auth-Request-User, X-Auth-Request-Email,
-//     X-Auth-Request-Groups, X-Auth-Request-Preferred-Username, and
-//     X-Auth-Request-Access-Token are documented as response headers
-//     oauth2-proxy returns to the proxy under --set-xauthrequest for
-//     Nginx's auth_request mode, not headers the project documents as
-//     arriving on an inbound request to the backend application.
-//   - Cf-Access-Client-Id and Cf-Access-Client-Secret authenticate a
-//     Cloudflare Access service token: a caller who lacks the secret
-//     cannot forge them, so removing them defends against nothing this
-//     strip is for and would break service-token integrations.
-//   - X-Original-Method and X-Rewrite-URL are quoted widely in
-//     third-party auth_request material, but no page owned by nginx,
-//     ingress-nginx, Traefik, or authentik was found stating either, so
-//     both are dropped rather than shipped on recollection.
-//
-// Further names, each with the page that states it:
-//
-//   - X-WEBAUTH-USER: Grafana's auth.proxy default header_name, the
-//     header Grafana reads as the authenticated user.
-//     https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/,
-//     read 2026-09-08. It is also Gitea's
-//     REVERSE_PROXY_AUTHENTICATION_USER default.
-//     https://docs.gitea.com/administration/config-cheat-sheet/,
-//     read 2026-09-08.
-//   - X-authentik-username, X-authentik-email, X-authentik-groups,
-//     X-authentik-uid, X-authentik-jwt: authentik's proxy provider sets
-//     them on the request the upstream application receives, and its
-//     Traefik integration lists them in authResponseHeaders.
-//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/ and
-//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/server_traefik/,
-//     both read 2026-09-08.
-//   - Tailscale-User-Login, Tailscale-User-Name: tailscale serve adds
-//     them to the request it proxies to the local backend.
-//     https://tailscale.com/kb/1312/serve, read 2026-09-08.
-//   - X-Original-URL: authentik's nginx forward-auth configuration sets
-//     it so the outpost can route the authentication request, which
-//     makes it a value a downstream application reads as the request's
-//     own target.
-//     https://docs.goauthentik.io/add-secure-apps/providers/proxy/server_nginx/,
-//     read 2026-09-08.
-//   - X-Forwarded-Uri, X-Forwarded-Method: Traefik's ForwardAuth
-//     middleware sets both on the request it sends to the
-//     authentication server.
-//     https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/forwardauth/,
-//     read 2026-09-08.
-//   - Cf-Access-Authenticated-User-Email: Cloudflare's own Access
-//     tutorial reads it off the incoming request as the email Access
-//     authenticated.
-//     https://developers.cloudflare.com/cloudflare-one/tutorials/access-workers/,
-//     read 2026-09-08.
+// Cf-Access-Client-Id and Cf-Access-Client-Secret are left out: they
+// authenticate a service token a forger cannot hold, so removing them
+// defends nothing and breaks service-token integrations. oauth2-proxy's
+// X-Auth-Request-* names are left out too, since they are response
+// headers to the proxy, not request headers to a backend. A name ships
+// only when a page owned by its project states it, which keeps out
+// X-Original-Method and X-Rewrite-Url.
 var identityHeaders = []string{
 	"Remote-User",
 	"Remote-Name",
@@ -124,41 +69,24 @@ var identityHeaders = []string{
 	"X-Original-Url",
 }
 
-// forwardedAddressHeaders is group 2: the address- and origin-asserting
-// headers a client could otherwise use to spoof its own network
-// position. Authelia's forwarded-headers documentation requires a
-// reverse proxy to remove and replace X-Forwarded-For arriving from an
-// untrusted client
-// (https://www.authelia.com/integration/proxies/forwarded-headers/,
-// read 2026-09-08). The strip extends the rule to the whole X-Forwarded-*
-// family, since each remaining member steers an absolute URL a
-// downstream handler builds from client-asserted input.
+// forwardedAddressHeaders is group 2: the headers asserting a client's
+// address or origin, which a client reaching the shell directly could
+// otherwise spoof. Authelia requires a proxy to replace an untrusted
+// client's X-Forwarded-For
+// (https://www.authelia.com/integration/proxies/forwarded-headers/), and
+// the strip extends that to the X-Forwarded-* family, since each member
+// steers an absolute URL a handler builds. The last four are the
+// client-address headers fronts set:
 //
-// The last four names are the client-address headers real fronts set,
-// each cited by the front that sets it. A client reaching the shell
-// directly can spell any of them, and a handler that reads one would
-// take the client's own claim as the front's:
+//   - Cf-Connecting-Ip, True-Client-Ip: Cloudflare,
+//     https://developers.cloudflare.com/fundamentals/reference/http-headers/
+//   - Fastly-Client-Ip: Fastly,
+//     https://www.fastly.com/documentation/reference/http/http-headers/Fastly-Client-IP
+//   - X-Azure-Clientip: Azure Front Door,
+//     https://learn.microsoft.com/en-us/azure/frontdoor/front-door-http-headers-protocol
 //
-//   - Cf-Connecting-Ip: Cloudflare "provides the client IP address
-//     connecting to Cloudflare to the origin web server".
-//     True-Client-Ip: the same page's Enterprise-plan equivalent, which
-//     "provides the original client IP address to the origin web
-//     server".
-//     https://developers.cloudflare.com/fundamentals/reference/http-headers/,
-//     read 2026-09-08.
-//   - Fastly-Client-Ip: Fastly adds it, set to client.ip, when a
-//     request arrives without one.
-//     https://www.fastly.com/documentation/reference/http/http-headers/Fastly-Client-IP,
-//     read 2026-09-08.
-//   - X-Azure-Clientip: Azure Front Door appends it to every request it
-//     sends to the backend, carrying "the client IP address associated
-//     with the request being processed".
-//     https://learn.microsoft.com/en-us/azure/frontdoor/front-door-http-headers-protocol,
-//     read 2026-09-08.
-//
-// X-Client-Ip and X-Cluster-Client-Ip are dropped: they are quoted
-// constantly in client-IP-extraction libraries, but no page owned by a
-// front that sets either was found, so neither ships on recollection.
+// X-Client-Ip and X-Cluster-Client-Ip are left out: no front that sets
+// either documents it.
 var forwardedAddressHeaders = []forwardedHeader{
 	{name: "X-Forwarded-For"},
 	{name: "X-Real-Ip"},
@@ -180,8 +108,6 @@ type forwardedHeader struct {
 	refusal string
 }
 
-// forwardedAddressNames is the name of every forwardedAddressHeaders
-// entry, in order.
 var forwardedAddressNames = func() []string {
 	names := make([]string, 0, len(forwardedAddressHeaders))
 	for _, h := range forwardedAddressHeaders {
@@ -190,11 +116,9 @@ var forwardedAddressNames = func() []string {
 	return names
 }()
 
-// hopByHopExempt holds the canonical header names stripConnectionListed
-// never deletes, whatever a request's Connection header lists. Cookie,
-// Origin, and Sec-Fetch-Site are end-to-end headers a client has no
-// business declaring hop-by-hop; the session cookie lives inside
-// Cookie's value, and the origin check reads the other two.
+// hopByHopExempt holds the names stripConnectionListed never deletes,
+// whatever Connection lists: the session cookie lives in Cookie, and the
+// origin check reads Origin and Sec-Fetch-Site.
 var hopByHopExempt = map[string]struct{}{
 	"Cookie":         {},
 	"Origin":         {},
@@ -202,13 +126,11 @@ var hopByHopExempt = map[string]struct{}{
 }
 
 // identitySpellings is every name in identityHeaders in its dash form
-// and, where a dash makes the two forms distinct, its all-underscore
-// form too. It is the set the boundary probe sends; group 1 itself
-// matches by [foldedKey], which also covers a name that mixes the two
-// separators.
+// and, where distinct, its all-underscore form: the set the boundary
+// probe sends. Group 1 itself matches by [foldedKey], which also covers
+// a name mixing the two separators.
 var identitySpellings = withUnderscoreTwins(identityHeaders)
 
-// identityKeys is the [foldedKey] form of every name group 1 removes.
 var identityKeys = foldedKeys(identityHeaders)
 
 func withUnderscoreTwins(names []string) []string {
@@ -230,34 +152,25 @@ func foldedKeys(names []string) map[string]struct{} {
 	return keys
 }
 
-// strip is the ingress strip: a wrapper that removes every
-// identity-header spelling, the forwarded-address family, and any
-// header a request's own Connection header lists, before the request
-// reaches the mux. It clears both r.Header and r.Trailer, so a value
-// smuggled in an announced trailer is removed on the same pass as one
-// arriving in a header field. The shell composes strip as the
-// outermost routing step; strip wraps the mux, never a handler, which
-// is what makes the removal hold for every path without enumerating
-// them.
+// strip is the ingress strip. It removes group 1, every identity
+// spelling, from every peer; group 2, the forwarded-address headers,
+// from every peer but a trusted proxy; and group 3, every header the
+// request's own Connection header lists. It wraps the mux rather than
+// any handler, so the removal holds for every path.
 type strip struct {
 	proxy TrustedProxyConfig
 
-	// forwarded is group 2's removal set: forwardedAddressHeaders plus
-	// the trusted-proxy configuration's own header name, derived once at
-	// construction. The configured name has to join the set, since an
-	// adopter who configures a name outside the fixed family
-	// (Cf-Connecting-Ip, True-Client-Ip) would otherwise leave the one
-	// header [ClientIP] actually reads free for any client to set.
+	// forwarded is group 2: forwardedAddressNames plus the configured
+	// client-address header, which must join the set or a name outside
+	// the fixed family would leave the one header [ClientIP] reads free
+	// for any client to set.
 	forwarded []string
 
-	// forwardedCanon is forwarded in canonical form, the shape
-	// stripConnectionListed compares a Connection token against.
+	// forwardedCanon is forwarded in canonical form, for comparing a
+	// Connection token.
 	forwardedCanon map[string]struct{}
 }
 
-// newStrip builds a [strip]. proxy is the trusted-proxy configuration
-// and the sole input to group 2's carve-out. Group 1's name set is
-// fixed, and no peer is exempt from it.
 func newStrip(proxy TrustedProxyConfig) strip {
 	forwarded := forwardedAddressSet(proxy.header)
 	canon := make(map[string]struct{}, len(forwarded))
@@ -272,8 +185,7 @@ func newStrip(proxy TrustedProxyConfig) strip {
 }
 
 // forwardedAddressSet returns group 2's names: the fixed family plus
-// configured, the trusted-proxy header an adopter named, when that name
-// is not already one of them.
+// configured, when that name is not already one of them.
 func forwardedAddressSet(configured string) []string {
 	if configured == "" {
 		return forwardedAddressNames
@@ -286,8 +198,6 @@ func forwardedAddressSet(configured string) []string {
 	return append(slices.Clone(forwardedAddressNames), configured)
 }
 
-// wrap returns an [http.Handler] that clears the strip's three groups
-// from r before calling next.
 func (s strip) wrap(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s.stripIdentity(r)
@@ -297,21 +207,14 @@ func (s strip) wrap(next http.Handler) http.Handler {
 	})
 }
 
-// stripIdentity removes group 1: every identity spelling from r.Header
-// and r.Trailer on the same pass, then wraps r.Body so the same names
-// are deleted from r.Trailer again once the client's trailer section
-// has actually arrived. The up-front delete removes an announced key
-// before the body is read; net/http's mergeSetHeader re-adds that key
-// once the trailer's value arrives, so the read-time scrub is what
-// removes a value smuggled after the body.
-//
-// The body is wrapped unconditionally, never only when the request
-// announced a Trailer header. A chunked request may send a trailer
-// section it never announced: r.Trailer is nil at wrap time, and
-// mergeSetHeader installs the wire trailer's own map wholesale at
-// end of stream. Arming the scrub on the announcement would leave that
-// request's identity headers standing, which is the whole strip
-// bypassed by omitting one header.
+// stripIdentity removes group 1 from r.Header and r.Trailer, then wraps
+// r.Body to remove it from r.Trailer again once the trailer section
+// arrives: net/http's mergeSetHeader re-adds an announced trailer key at
+// end of stream, and installs an unannounced one's map wholesale. The
+// body is wrapped whether or not a Trailer header was announced, since
+// a chunked request may send a trailer it never announced, and arming
+// the scrub on the announcement would let omitting one header bypass
+// the strip.
 func (s strip) stripIdentity(r *http.Request) {
 	deleteIdentity(r.Header)
 	deleteIdentity(r.Trailer)
@@ -322,19 +225,15 @@ func (s strip) stripIdentity(r *http.Request) {
 // every underscore read as a dash, then canonicalized. A downstream
 // that treats "-" and "_" alike (CGI's HTTP_ variables, nginx with
 // underscores_in_headers) reads every key sharing one folded form as
-// the same header, and a name of three or more segments has mixed
-// spellings no dash-or-underscore list enumerates, so the strip
-// compares folded forms rather than spellings.
+// one header, and a name of three or more segments has mixed spellings
+// no list enumerates.
 func foldedKey(k string) string {
 	return textproto.CanonicalMIMEHeaderKey(strings.ReplaceAll(k, "_", "-"))
 }
 
 // deleteIdentity deletes from h every key whose [foldedKey] is in
-// identityKeys. It ranges over the keys h actually holds, so a spelling
-// no list names, a lowercase key a handler set directly among them, is
-// matched all the same. The Go specification permits deleting the
-// current entry inside a range over a map, and delete on a nil map is a
-// no-op.
+// identityKeys, ranging over the keys h holds so a spelling no list
+// names still matches.
 func deleteIdentity(h http.Header) {
 	for k := range h {
 		if _, ok := identityKeys[foldedKey(k)]; ok {
@@ -347,13 +246,6 @@ func sameHeaderName(a, b string) bool {
 	return textproto.CanonicalMIMEHeaderKey(a) == textproto.CanonicalMIMEHeaderKey(b)
 }
 
-// scrubTrailerOnRead wraps r.Body so that once the client's trailer
-// section has arrived, every key [deleteIdentity] matches is deleted
-// from r.Trailer again. net/http's mergeSetHeader (transfer.go) copies
-// the wire trailer's values into r.Trailer unconditionally once the
-// body reaches io.EOF, which re-adds any name the up-front delete
-// removed; wrapping the body is the one point that reliably runs after
-// that merge.
 func scrubTrailerOnRead(r *http.Request) {
 	if r.Body == nil {
 		return
@@ -362,15 +254,9 @@ func scrubTrailerOnRead(r *http.Request) {
 }
 
 // trailerScrubbingBody deletes the identity keys from its request's
-// Trailer the moment the wrapped reader signals end of stream, which
-// is when net/http has just finished populating that map with the
-// values the client sent.
-//
-// It holds the request rather than the Trailer map it had at wrap
-// time. For a request that announced no trailer, r.Trailer is nil
-// until end of stream and mergeSetHeader then assigns the wire
-// trailer's own map to the field; a captured nil map would leave the
-// scrub deleting from nothing while the request carried the values.
+// Trailer at end of stream, just after net/http has filled it. It holds
+// the request rather than the map: for an unannounced trailer, r.Trailer
+// is nil until net/http assigns the wire trailer's map at end of stream.
 type trailerScrubbingBody struct {
 	io.ReadCloser
 	req *http.Request
@@ -384,27 +270,20 @@ func (b *trailerScrubbingBody) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// Close closes the wrapped body and scrubs again. net/http's own body
-// Close drains the remaining chunked stream inside its own reader
-// rather than through this wrapper's Read, so a handler that closes the
-// body without reading it reaches end of stream, and mergeSetHeader
-// populates r.Trailer, with the Read-armed scrub never having fired.
-// Without this method that handler would go on to read a smuggled
-// identity value straight out of r.Trailer.
+// Close closes the wrapped body and scrubs again. net/http's Close
+// drains a chunked body inside its own reader, never through Read, so a
+// handler that closes the body unread still has r.Trailer filled with
+// whatever the client sent.
 func (b *trailerScrubbingBody) Close() error {
 	err := b.ReadCloser.Close()
 	b.scrub()
 	return err
 }
 
-// scrub deletes every identity key from the request's Trailer. It is
-// idempotent, so the two arming points may both fire on one request.
 func (b *trailerScrubbingBody) scrub() {
 	deleteIdentity(b.req.Trailer)
 }
 
-// stripForwardedAddress removes group 2 unless trusted-proxy mode is
-// on and the request's peer address is one of the configured proxies.
 func (s strip) stripForwardedAddress(r *http.Request) {
 	if s.trustsPeer(r) {
 		return
@@ -414,30 +293,20 @@ func (s strip) stripForwardedAddress(r *http.Request) {
 	}
 }
 
-// trustsPeer reports whether trusted-proxy mode is on and r arrived
-// from one of the configured proxies. Groups 2 and 3 both turn on this
-// one answer, so they cannot disagree about which peer is the front.
+// trustsPeer reports whether r arrived from a configured proxy. Groups
+// 2 and 3 both turn on this one answer, so they cannot disagree about
+// which peer is the front.
 func (s strip) trustsPeer(r *http.Request) bool {
 	peer, ok := peerAddr(r)
 	return ok && s.proxy.trusts(peer)
 }
 
-// stripConnectionListed removes group 3: every header the request's
-// own Connection header lists, with two carve-outs. A listed Upgrade
-// keeps both Upgrade and Connection, since a websocket handshake sends
-// Connection: Upgrade alongside Upgrade: websocket and the listed
-// removal would otherwise delete the handshake it needs. A name in
-// hopByHopExempt is never removed by this rule, whatever Connection
-// says.
-//
-// The same argument covers group 2's names when the peer is trusted.
-// Group 2 preserves the forwarded-address headers a trusted front sets,
-// and a client behind that front can put "X-Forwarded-For" in its own
-// Connection header; deleting it here would undo the preservation and
-// collapse [ClientIP] to the front's own address, which is the whole
-// trusted-proxy carve-out defeated by one token. The keep applies only
-// to a trusted peer: from any other peer group 2 has already deleted
-// those names, so there is nothing left for this rule to keep.
+// stripConnectionListed removes group 3, every header the request's
+// Connection header lists, with three exceptions. A listed Upgrade keeps
+// Upgrade and Connection, which a websocket handshake needs. A name in
+// hopByHopExempt is kept. From a trusted peer, group 2's names are kept:
+// a client behind the front could otherwise list X-Forwarded-For in its
+// own Connection header and collapse [ClientIP] to the front's address.
 func (s strip) stripConnectionListed(r *http.Request) {
 	tokens := connectionTokens(r.Header.Values("Connection"))
 	if len(tokens) == 0 {
@@ -471,10 +340,8 @@ func (s strip) stripConnectionListed(r *http.Request) {
 	}
 }
 
-// connectionTokens flattens every value a request sent under the
-// Connection key (a client may repeat the header, and each instance
-// may itself be comma-separated) into the individual header names it
-// lists.
+// connectionTokens flattens every Connection value, each possibly
+// comma-separated, into the header names it lists.
 func connectionTokens(values []string) []string {
 	var tokens []string
 	for _, v := range values {
