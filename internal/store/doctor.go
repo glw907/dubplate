@@ -28,7 +28,7 @@ const doctorRowName = "store"
 // State is zero, which [State.Vouches] refuses, and its Facts is nil.
 func Doctor(ctx context.Context, environ []string, readers ...Reader) (row doctor.Row, report Report) {
 	notChecked := doctor.Row{Name: doctorRowName, Status: "not checked"}
-	stateDir, ok := config.Lookup(environ, "DUBPLATE_STATE_DIR")
+	stateDir, ok := config.Lookup(environ, config.StateDirKey)
 	if !ok {
 		return notChecked, Report{}
 	}

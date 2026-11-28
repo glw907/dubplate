@@ -62,7 +62,7 @@ func runDoctor(ctx context.Context, environ []string, reg *config.Registry, stdo
 	for i, row := range wall {
 		wall[i] = member.RefineAdminEmail(row, report, roster)
 	}
-	stateDir, _ := config.Lookup(environ, "DUBPLATE_STATE_DIR")
+	stateDir, _ := config.Lookup(environ, config.StateDirKey)
 	rows := slices.Concat(
 		wall,
 		[]doctor.Row{storeRow},
