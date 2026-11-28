@@ -36,7 +36,7 @@ func TestDirStatus(t *testing.T) {
 			},
 		},
 		{
-			name: "an auth dirOpen built",
+			name: "an auth dir Open built",
 			setup: func(t *testing.T, stateDir string) (string, int) {
 				if _, err := Open(stateDir); err != nil {
 					t.Fatalf("fixture state: Open: %v", err)
