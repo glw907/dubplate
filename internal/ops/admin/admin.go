@@ -45,9 +45,9 @@ type Config struct {
 	Environ []string
 	Roster  *member.Roster
 
-	// Window reads the re-authentication window in force. It is read
-	// before each gated write, outside the write's transaction.
-	Window settings.Reader[time.Duration]
+	// Settings reads the re-authentication window in force, before
+	// each gated write and outside the write's transaction.
+	Settings *settings.Accessor
 
 	// Send delivers one mail. It is notify.Mailer's Send in
 	// production.
@@ -60,41 +60,42 @@ type Config struct {
 
 // A Service is the admin operations' implementation for serve.
 type Service struct {
-	cfg      Config
-	settings map[string]config.Setting
+	cfg         Config
+	window      settings.Reader[time.Duration]
+	sensitivity map[string]config.Sensitivity
 }
 
 var _ ops.Admin = (*Service)(nil)
 
 // New returns a [Service] over cfg.
 func New(cfg Config) *Service {
-	byKey := make(map[string]config.Setting)
+	sensitivity := make(map[string]config.Sensitivity)
 	for _, s := range cfg.Registry.Settings() {
-		byKey[s.Key] = s
+		sensitivity[s.Key] = s.Sensitivity
 	}
-	return &Service{cfg: cfg, settings: byKey}
+	return &Service{cfg: cfg, window: cfg.Settings.DurationReader(reauthWindowSetting), sensitivity: sensitivity}
 }
 
-// requireFresh is the re-authentication gate: it refuses unless the
-// session behind actor was signed in, its anchor, less than the window
-// in force before now. A refresh never moves the anchor, so staying
-// signed in never renews it, and a local actor's zero anchor is never
-// fresh. A window that cannot be read refuses the call rather than
-// falling back to a default. It first refuses any actor off the cookie
-// channel, since the roster treats a command-line actor as the box
-// operator and skips its admin check.
+// requireFresh is the re-authentication gate: it refuses unless actor's
+// session was signed in (its anchor) within the window in force. A
+// refresh never moves the anchor, so staying signed in never renews it,
+// and a local actor's zero anchor is never fresh. A window that cannot
+// be read refuses the call rather than falling back to a default. It
+// first refuses any actor off the cookie channel, since the roster
+// treats a command-line actor as the box operator and skips its admin
+// check.
 func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error {
 	if actor.Channel() != identity.ChannelCookie {
-		return ops.NewForbiddenError("this change needs a member's session")
+		return ops.NewError(ops.CodeForbidden, "this change needs a member's session")
 	}
-	window, err := s.cfg.Window(ctx)
+	window, err := s.window(ctx)
 	if err != nil {
 		return fmt.Errorf("read the re-authentication window: %w", err)
 	}
 	// An anchor ahead of the clock was minted under a clock since stepped
 	// back, so its age is unknown and it is no fresher than a stale one.
 	if elapsed := s.cfg.Now().Sub(actor.Anchor()); elapsed < 0 || elapsed >= window {
-		return ops.NewReauthenticationRequiredError("this change needs a sign-in from the last " + window.String())
+		return ops.NewError(ops.CodeReauthenticationRequired, "this change needs a sign-in from the last "+window.String())
 	}
 	return nil
 }
@@ -105,9 +106,19 @@ func (s *Service) requireFresh(ctx context.Context, actor identity.Actor) error 
 // the zero id.
 func memberID(v id.ID) (identity.UserID, error) {
 	if v.IsZero() {
-		return identity.UserID{}, ops.NewInvalidRequestError("user_id is missing or names no member")
+		return identity.UserID{}, ops.NewError(ops.CodeInvalidRequest, "user_id is missing or names no member")
 	}
 	return identity.UserID(v), nil
+}
+
+// bounded runs write under writeWait and maps its refusal.
+func bounded(ctx context.Context, write func(context.Context) error) error {
+	ctx, cancel := context.WithTimeout(ctx, writeWait)
+	defer cancel()
+	if err := write(ctx); err != nil {
+		return refusal(err)
+	}
+	return nil
 }
 
 // refusal maps a write's error to the operation's answer: an [*ops.Error]
@@ -118,34 +129,33 @@ func refusal(err error) error {
 	var answer *ops.Error
 	switch {
 	case errors.Is(err, store.ErrBusy), errors.Is(err, context.DeadlineExceeded):
-		answer = ops.NewUnavailableError("the server is busy; try again").WithDetail(ops.DetailBusy)
+		answer = ops.NewError(ops.CodeUnavailable, "the server is busy; try again").WithDetail(ops.DetailBusy)
 	case errors.Is(err, member.ErrActorNotAdmin):
-		answer = ops.NewForbiddenError("")
+		answer = ops.NewError(ops.CodeForbidden, "")
 	case errors.Is(err, member.ErrMemberNotFound):
-		answer = ops.NewNotFoundError("no member has that user_id")
+		answer = ops.NewError(ops.CodeNotFound, "no member has that user_id")
 	case errors.Is(err, member.ErrNoAdmin):
-		answer = ops.NewConflictError("the group must keep at least one admin").WithDetail(ops.DetailLastAdmin)
+		answer = ops.NewError(ops.CodeConflict, "the group must keep at least one admin").WithDetail(ops.DetailLastAdmin)
 	case errors.Is(err, member.ErrDuplicateAddress):
-		answer = ops.NewConflictError("a member already signs in with that address").WithDetail(ops.DetailDuplicateAddress)
+		answer = ops.NewError(ops.CodeConflict, "a member already signs in with that address").WithDetail(ops.DetailDuplicateAddress)
 	case errors.Is(err, member.ErrDuplicateUsername):
-		answer = ops.NewConflictError("that username is taken").WithDetail(ops.DetailDuplicateUsername)
+		answer = ops.NewError(ops.CodeConflict, "that username is taken").WithDetail(ops.DetailDuplicateUsername)
 	case errors.Is(err, member.ErrInvalidMemberAddress):
-		answer = ops.NewInvalidRequestError("the address is not one a member can sign in with").WithDetail(ops.DetailInvalidAddress)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the address is not one a member can sign in with").WithDetail(ops.DetailInvalidAddress)
 	case errors.Is(err, member.ErrInvalidDisplayName):
-		answer = ops.NewInvalidRequestError("the display name is too long or carries a hidden character").WithDetail(ops.DetailInvalidDisplayName)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the display name is too long or carries a hidden character").WithDetail(ops.DetailInvalidDisplayName)
 	case errors.Is(err, member.ErrBlankDisplayName):
-		answer = ops.NewInvalidRequestError("the display name is blank").WithDetail(ops.DetailBlankDisplayName)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the display name is blank").WithDetail(ops.DetailBlankDisplayName)
 	case errors.Is(err, member.ErrInvalidUsername):
-		answer = ops.NewInvalidRequestError("the username is too long or has the wrong shape").WithDetail(ops.DetailInvalidUsername)
+		answer = ops.NewError(ops.CodeInvalidRequest, "the username is too long or has the wrong shape").WithDetail(ops.DetailInvalidUsername)
 	case errors.Is(err, member.ErrMissingUsername):
-		answer = ops.NewInvalidRequestError("a username is required").WithDetail(ops.DetailMissingUsername)
+		answer = ops.NewError(ops.CodeInvalidRequest, "a username is required").WithDetail(ops.DetailMissingUsername)
 	case errors.Is(err, settings.ErrEnvironmentSets):
-		answer = ops.NewConflictError("the server's environment file sets this key").WithDetail(ops.DetailEnvironmentSets)
+		answer = ops.NewError(ops.CodeConflict, "the server's environment file sets this key").WithDetail(ops.DetailEnvironmentSets)
 	case errors.Is(err, settings.ErrNotSetting), errors.Is(err, settings.ErrInvalidValue):
-		// The seed rule that phrases these reads store-homed keys
-		// alone, so the reason never carries a wall or integration
-		// value.
-		answer = ops.NewInvalidRequestError(err.Error())
+		// err's text names only store-homed keys, so it is safe as the
+		// wire reason.
+		answer = ops.NewError(ops.CodeInvalidRequest, err.Error())
 	default:
 		return err
 	}

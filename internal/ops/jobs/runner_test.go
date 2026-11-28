@@ -81,7 +81,7 @@ func TestStartBackup_FlagOff(t *testing.T) {
 
 	_, err = r.StartBackup(deadline(t), testActor)
 	var opsErr *ops.Error
-	if !errors.As(err, &opsErr) || !errors.Is(err, ops.ErrUnavailable) {
+	if !errors.As(err, &opsErr) || !errors.Is(err, ops.CodeUnavailable) {
 		t.Fatalf("StartBackup() = %v, want an unavailable *ops.Error", err)
 	}
 	if opsErr.Reason != "backup integration disabled" {
@@ -138,7 +138,7 @@ func TestStartBackup_KindLeaseBusy(t *testing.T) {
 
 		second := newRunnerFor(t, h, nil, succeed)
 		_, err = second.StartBackup(deadline(t), testActor)
-		if !errors.Is(err, ops.ErrConflict) {
+		if !errors.Is(err, ops.CodeConflict) {
 			t.Fatalf("second StartBackup() = %v, want a conflict", err)
 		}
 		if !strings.Contains(err.Error(), jobID.String()) {
@@ -157,7 +157,7 @@ func TestStartBackup_KindLeaseBusy(t *testing.T) {
 		dead := plant(t, h, record{state: "running", owner: newInstance(), started: time.Now().UnixMicro()})
 
 		_, err = r.StartBackup(deadline(t), testActor)
-		if !errors.Is(err, ops.ErrConflict) {
+		if !errors.Is(err, ops.CodeConflict) {
 			t.Fatalf("StartBackup() = %v, want a conflict", err)
 		}
 		if want := "a previous run's transfer is still running"; !strings.Contains(err.Error(), want) {
@@ -284,7 +284,7 @@ func TestStartBackup_ReleasesKindLease(t *testing.T) {
 
 // TestOperationBoundary_ContextCanceled pins R-6bii5's seam boundary: a
 // caller whose context is already canceled at the method's return
-// sees an error matching [ops.ErrCanceled], never the store's own
+// sees an error matching [ops.CodeCanceled], never the store's own
 // classification of the aborted call.
 func TestOperationBoundary_ContextCanceled(t *testing.T) {
 	_, h := newStore(t)
@@ -295,8 +295,8 @@ func TestOperationBoundary_ContextCanceled(t *testing.T) {
 	cancel()
 
 	_, err := r.JobStatus(ctx, testActor, id.ID(planted))
-	if !errors.Is(err, ops.ErrCanceled) {
-		t.Fatalf("JobStatus() with an already-canceled context = %v, want it to match ops.ErrCanceled", err)
+	if !errors.Is(err, ops.CodeCanceled) {
+		t.Fatalf("JobStatus() with an already-canceled context = %v, want it to match ops.CodeCanceled", err)
 	}
 	opsErr, ok := errors.AsType[*ops.Error](err)
 	if !ok {
@@ -320,18 +320,18 @@ func TestOperationBoundary_ContextAliveClassifiesItsOwnError(t *testing.T) {
 	}
 
 	_, err = r.JobStatus(deadline(t), testActor, missing)
-	if !errors.Is(err, ops.ErrNotFound) {
-		t.Fatalf("JobStatus() for a missing id = %v, want it to match ops.ErrNotFound", err)
+	if !errors.Is(err, ops.CodeNotFound) {
+		t.Fatalf("JobStatus() for a missing id = %v, want it to match ops.CodeNotFound", err)
 	}
-	if errors.Is(err, ops.ErrCanceled) {
-		t.Fatalf("JobStatus() for a missing id also matches ops.ErrCanceled, want it not to")
+	if errors.Is(err, ops.CodeCanceled) {
+		t.Fatalf("JobStatus() for a missing id also matches ops.CodeCanceled, want it not to")
 	}
 }
 
 // TestCancelJob_ContextCanceledDuringWrite pins R-6bii5's write-pool
 // row: a context canceled while CancelJob waits for the write pool's
 // one connection, held here by a concurrent Update on the same
-// handle, answers ops.ErrCanceled well before the store's busy
+// handle, answers ops.CodeCanceled well before the store's busy
 // timeout, because database/sql's connection wait honors ctx directly
 // rather than falling through to SQLite's busy handler.
 func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
@@ -366,8 +366,8 @@ func TestCancelJob_ContextCanceledDuringWrite(t *testing.T) {
 		t.Fatalf("the blocking Update: %v", updateErr)
 	}
 
-	if !errors.Is(err, ops.ErrCanceled) {
-		t.Fatalf("CancelJob() while the write pool was held = %v, want it to match ops.ErrCanceled", err)
+	if !errors.Is(err, ops.CodeCanceled) {
+		t.Fatalf("CancelJob() while the write pool was held = %v, want it to match ops.CodeCanceled", err)
 	}
 	if elapsed >= testBusy {
 		t.Errorf("CancelJob() took %v to answer, want well under the %v busy timeout", elapsed, testBusy)
@@ -389,8 +389,8 @@ func TestStartBackup_AfterCloseRefused(t *testing.T) {
 	}
 	jobID, err := r.StartBackup(deadline(t), testActor)
 	r.wg.Wait()
-	if !errors.Is(err, ops.ErrUnavailable) {
-		t.Errorf("StartBackup after Close = %v, %v; want an error matching ops.ErrUnavailable", jobID, err)
+	if !errors.Is(err, ops.CodeUnavailable) {
+		t.Errorf("StartBackup after Close = %v, %v; want an error matching ops.CodeUnavailable", jobID, err)
 	}
 	if n := countRecords(t, h); n != 0 {
 		t.Errorf("StartBackup after Close left %d records, want 0", n)

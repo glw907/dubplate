@@ -6,7 +6,6 @@ import (
 
 	"github.com/glw907/dubplate/internal/auth"
 	"github.com/glw907/dubplate/internal/config"
-	"github.com/glw907/dubplate/internal/settings"
 )
 
 // reauthWindowFloor is the re-authentication window's floor. A session's
@@ -55,12 +54,12 @@ var reauthWindowBelowCap = config.CorrelatedRule{
 		if window < limit {
 			return nil
 		}
-		refusal := fmt.Sprintf("%s %q is not below %s %q", reauthWindowSetting.Key, values[reauthWindowSetting.Key],
+		problem := fmt.Sprintf("%s %q is not below %s %q", reauthWindowSetting.Key, values[reauthWindowSetting.Key],
 			auth.SessionAbsoluteCapSetting.Key, values[auth.SessionAbsoluteCapSetting.Key])
 		if limit <= reauthWindowFloor {
-			return fmt.Errorf("%s: raise %s above %s, the window's floor", refusal, auth.SessionAbsoluteCapSetting.Key, reauthWindowFloor)
+			return fmt.Errorf("%s: raise %s above %s, the window's floor", problem, auth.SessionAbsoluteCapSetting.Key, reauthWindowFloor)
 		}
-		return fmt.Errorf("%s: lower %s below the cap, or raise %s", refusal, reauthWindowSetting.Key, auth.SessionAbsoluteCapSetting.Key)
+		return fmt.Errorf("%s: lower %s below the cap, or raise %s", problem, reauthWindowSetting.Key, auth.SessionAbsoluteCapSetting.Key)
 	},
 }
 
@@ -70,10 +69,4 @@ var reauthWindowBelowCap = config.CorrelatedRule{
 func Register(reg *config.Registry) {
 	reg.AddSetting(reauthWindowSetting)
 	reg.AddCorrelatedRule(reauthWindowBelowCap)
-}
-
-// ReauthWindow returns the read of the re-authentication window in
-// force through acc, for [Config].Window.
-func ReauthWindow(acc *settings.Accessor) settings.Reader[time.Duration] {
-	return acc.DurationReader(reauthWindowSetting)
 }

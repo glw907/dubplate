@@ -8,83 +8,50 @@ import (
 	"go/parser"
 	"go/token"
 	"maps"
-	"slices"
 	"strconv"
 	"testing"
 
 	"github.com/glw907/dubplate/internal/reject"
 )
 
-// TestSentinelCodes pins R-6bi5's literal wire codes against the
-// package's declared sentinels: a caller over HTTP reads one of these
-// exact strings, so a drifted string here is a wire break no compiler
-// catches.
-func TestSentinelCodes(t *testing.T) {
-	tests := []struct {
-		name     string
-		buildErr func(reason string) *Error
-		wantCode Code
-		sentinel error
-	}{
-		{"unavailable", NewUnavailableError, CodeUnavailable, ErrUnavailable},
-		{"not found", NewNotFoundError, CodeNotFound, ErrNotFound},
-		{"conflict", NewConflictError, CodeConflict, ErrConflict},
-		{"invalid request", NewInvalidRequestError, CodeInvalidRequest, ErrInvalidRequest},
-		{"canceled", NewCanceledError, CodeCanceled, ErrCanceled},
-		{"forbidden", NewForbiddenError, CodeForbidden, ErrForbidden},
-		{"internal", NewInternalError, CodeInternal, ErrInternal},
-		{"unauthenticated", NewUnauthenticatedError, CodeUnauthenticated, ErrUnauthenticated},
-		{"reauthentication required", NewReauthenticationRequiredError, CodeReauthenticationRequired, ErrReauthenticationRequired},
+// TestCodes pins the literal wire codes: a caller over HTTP reads one of
+// these exact strings, so a drifted string here is a wire break no
+// compiler catches. Each code is also its error text, and an [*Error]
+// built with it, wrapped, matches that code with errors.Is and no other.
+func TestCodes(t *testing.T) {
+	want := map[Code]string{
+		CodeUnavailable:              "unavailable",
+		CodeNotFound:                 "not_found",
+		CodeConflict:                 "conflict",
+		CodeInvalidRequest:           "invalid_request",
+		CodeCanceled:                 "canceled",
+		CodeForbidden:                "forbidden",
+		CodeInternal:                 "internal",
+		CodeUnauthenticated:          "unauthenticated",
+		CodeReauthenticationRequired: "reauthentication_required",
 	}
-	wantLiterals := map[string]Code{
-		"unauthenticated":           "unauthenticated",
-		"reauthentication required": "reauthentication_required",
-		"unavailable":               "unavailable",
-		"not found":                 "not_found",
-		"conflict":                  "conflict",
-		"invalid request":           "invalid_request",
-		"canceled":                  "canceled",
-		"forbidden":                 "forbidden",
-		"internal":                  "internal",
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.wantCode != wantLiterals[tt.name] {
-				t.Fatalf("test table's own wantCode %q disagrees with the pinned literal %q", tt.wantCode, wantLiterals[tt.name])
+	for code, literal := range want {
+		t.Run(literal, func(t *testing.T) {
+			if string(code) != literal || code.Error() != literal {
+				t.Errorf("code %q has error text %q, want %q", string(code), code.Error(), literal)
 			}
-			got := tt.buildErr("a reason")
-			if got.Code != tt.wantCode {
-				t.Errorf("Code = %q, want %q", got.Code, tt.wantCode)
-			}
-			if !errors.Is(got, tt.sentinel) {
-				t.Errorf("wraps %v, want it to wrap %v", got, tt.sentinel)
+			err := fmt.Errorf("wrapped: %w", NewError(code, "a reason"))
+			for other := range want {
+				if got := errors.Is(err, other); got != (other == code) {
+					t.Errorf("errors.Is(%v, %s) = %v, want %v", err, other, got, other == code)
+				}
 			}
 		})
 	}
 }
 
-// TestNewError_UnregisteredSentinelPanics proves newError refuses any
-// sentinel absent from codes, the mechanism that would catch a new
-// sentinel added to the vocabulary without a codes entry: a test that
-// only pinned the five already registered above could not tell that
-// mechanism from one that always returns the same code.
-func TestNewError_UnregisteredSentinelPanics(t *testing.T) {
+func TestNewError_UnavailableNeedsAReason(t *testing.T) {
 	defer func() {
 		if recover() == nil {
-			t.Fatal("newError did not panic for an unregistered sentinel")
+			t.Fatal(`NewError(CodeUnavailable, "") did not panic`)
 		}
 	}()
-	unregistered := errors.New("ops test: not a declared sentinel")
-	_ = newError(unregistered, "reason")
-}
-
-func TestNewUnavailableError_EmptyReasonPanics(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("NewUnavailableError(\"\") did not panic")
-		}
-	}()
-	_ = NewUnavailableError("")
+	_ = NewError(CodeUnavailable, "")
 }
 
 func TestError_ErrorString(t *testing.T) {
@@ -93,8 +60,8 @@ func TestError_ErrorString(t *testing.T) {
 		err  *Error
 		want string
 	}{
-		{"with reason", NewNotFoundError("job abc123 not found"), "not_found: job abc123 not found"},
-		{"without reason", NewCanceledError(""), "canceled"},
+		{"with reason", NewError(CodeNotFound, "job abc123 not found"), "not_found: job abc123 not found"},
+		{"without reason", NewError(CodeCanceled, ""), "canceled"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -105,27 +72,28 @@ func TestError_ErrorString(t *testing.T) {
 	}
 }
 
-// TestCodeOf pins R-6bii5's classifier: the first [*Error] in the
-// chain wins, else a canceled context answers [CodeCanceled], else
-// [CodeInternal] covers everything else, a deadline included.
+// TestCodeOf pins the classifier: the first [*Error] in the chain
+// wins, else a canceled context answers [CodeCanceled], else
+// [CodeInternal] covers everything else, a deadline and nil included.
 func TestCodeOf(t *testing.T) {
 	tests := []struct {
 		name string
 		err  error
 		want Code
 	}{
-		{"unavailable, wrapped", fmt.Errorf("read status: %w", NewUnavailableError("off")), CodeUnavailable},
-		{"not found, wrapped", fmt.Errorf("read status: %w", NewNotFoundError("gone")), CodeNotFound},
-		{"conflict, wrapped", fmt.Errorf("read status: %w", NewConflictError("busy")), CodeConflict},
-		{"invalid request, wrapped", fmt.Errorf("read status: %w", NewInvalidRequestError("bad")), CodeInvalidRequest},
-		{"canceled sentinel, wrapped", fmt.Errorf("read status: %w", NewCanceledError("")), CodeCanceled},
-		{"forbidden, wrapped", fmt.Errorf("read status: %w", NewForbiddenError("")), CodeForbidden},
-		{"internal sentinel, wrapped", fmt.Errorf("read status: %w", NewInternalError("")), CodeInternal},
-		{"unauthenticated, wrapped", fmt.Errorf("read status: %w", NewUnauthenticatedError("")), CodeUnauthenticated},
-		{"reauthentication required, wrapped", fmt.Errorf("write: %w", NewReauthenticationRequiredError("")), CodeReauthenticationRequired},
+		{"unavailable, wrapped", fmt.Errorf("read status: %w", NewError(CodeUnavailable, "off")), CodeUnavailable},
+		{"not found, wrapped", fmt.Errorf("read status: %w", NewError(CodeNotFound, "gone")), CodeNotFound},
+		{"conflict, wrapped", fmt.Errorf("read status: %w", NewError(CodeConflict, "busy")), CodeConflict},
+		{"invalid request, wrapped", fmt.Errorf("read status: %w", NewError(CodeInvalidRequest, "bad")), CodeInvalidRequest},
+		{"canceled, wrapped", fmt.Errorf("read status: %w", NewError(CodeCanceled, "")), CodeCanceled},
+		{"forbidden, wrapped", fmt.Errorf("read status: %w", NewError(CodeForbidden, "")), CodeForbidden},
+		{"internal, wrapped", fmt.Errorf("read status: %w", NewError(CodeInternal, "")), CodeInternal},
+		{"unauthenticated, wrapped", fmt.Errorf("read status: %w", NewError(CodeUnauthenticated, "")), CodeUnauthenticated},
+		{"reauthentication required, wrapped", fmt.Errorf("write: %w", NewError(CodeReauthenticationRequired, "")), CodeReauthenticationRequired},
 		{"context.Canceled in the chain, no *Error", fmt.Errorf("write pool: %w", context.Canceled), CodeCanceled},
 		{"context.DeadlineExceeded alone", fmt.Errorf("write pool: %w", context.DeadlineExceeded), CodeInternal},
 		{"any other error", errors.New("sql: database is closed"), CodeInternal},
+		{"nil", nil, CodeInternal},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -136,32 +104,15 @@ func TestCodeOf(t *testing.T) {
 	}
 }
 
-// TestCodes proves the coverage guard's source: exactly the nine
-// literal wire codes, so a sentinel added to codes without a
-// corresponding contract case would grow this set past nine.
-func TestCodes(t *testing.T) {
-	want := []Code{
-		"unavailable", "not_found", "conflict", "invalid_request",
-		"canceled", "forbidden", "internal",
-		"unauthenticated", "reauthentication_required",
-	}
-	got := Codes()
-	slices.Sort(got)
-	slices.Sort(want)
-	if !slices.Equal(got, want) {
-		t.Errorf("Codes() = %v, want %v", got, want)
-	}
-}
-
 // TestError_WithDetail proves a detail rides an error without changing
-// its code, its sentinel, or the error it was built from.
+// its code or the error it was built from.
 func TestError_WithDetail(t *testing.T) {
-	base := NewConflictError("the last admin")
+	base := NewError(CodeConflict, "the last admin")
 	got := base.WithDetail(DetailLastAdmin)
 	if got.Detail != "last_admin" {
 		t.Errorf("Detail = %q, want %q", got.Detail, "last_admin")
 	}
-	if got.Code != CodeConflict || got.Reason != "the last admin" || !errors.Is(got, ErrConflict) {
+	if got.Code != CodeConflict || got.Reason != "the last admin" || !errors.Is(got, CodeConflict) {
 		t.Errorf("WithDetail changed the error: %+v", got)
 	}
 	if base.Detail != "" {
@@ -174,13 +125,13 @@ func TestError_WithDetail(t *testing.T) {
 }
 
 func TestError_WithRejects(t *testing.T) {
-	base := NewInvalidRequestError("the manifest was refused")
+	base := NewError(CodeInvalidRequest, "the manifest was refused")
 	rejects := Rejects{Submission: []reject.Reason{reject.Of(reject.NoAudio)}, Files: []FileReason{}}
 	got := base.WithRejects(rejects)
 	if got.Rejects == nil || len(got.Rejects.Submission) != 1 || got.Rejects.Submission[0].Code != reject.NoAudio {
 		t.Errorf("Rejects = %+v, want the no_audio submission reason", got.Rejects)
 	}
-	if got.Code != CodeInvalidRequest || got.Reason != "the manifest was refused" || !errors.Is(got, ErrInvalidRequest) {
+	if got.Code != CodeInvalidRequest || got.Reason != "the manifest was refused" || !errors.Is(got, CodeInvalidRequest) {
 		t.Errorf("WithRejects changed the error: %+v", got)
 	}
 	if base.Rejects != nil {
@@ -192,7 +143,7 @@ func TestError_WithRejects(t *testing.T) {
 	}
 }
 
-// TestDetailConstants pins the thirteen wire details as literals read from
+// TestDetailConstants pins the wire details as literals read from
 // the source file the parity and deck gates parse: exactly these
 // names, each with exactly this value.
 func TestDetailConstants(t *testing.T) {

@@ -37,8 +37,8 @@ const HANDLERS_PATH = join('..', 'internal', 'auth', 'handlers.go');
 const DETAILS_PATH = join('..', 'internal', 'ops', 'details.go');
 const ERRORS_PATH = join('..', 'internal', 'ops', 'errors.go');
 
-/** `internal/ops/details.go`'s own `Detail<Name> = "value"` declaration shape. */
-const GO_DETAIL_CONST = /\bDetail[A-Za-z]+\s*=\s*"([^"]*)"/g;
+/** `internal/ops/details.go`'s own `Detail<Name> Detail = "value"` declaration shape. */
+const GO_DETAIL_CONST = /\bDetail[A-Za-z]+\s+Detail\s*=\s*"([^"]*)"/g;
 
 /** `internal/ops/errors.go`'s own `Code<Name> Code = "value"` declaration shape. */
 const GO_CODE_CONST = /\bCode[A-Za-z]+\s+Code\s*=\s*"([^"]*)"/g;

@@ -140,7 +140,7 @@ func TestGate_AnchorInsideTheWindowCommits(t *testing.T) {
 			before := snapshot(t, f.h)
 			err := c.call(writeCtx(t), f, actor(alice, stale))
 			wantCode(t, err, ops.CodeReauthenticationRequired, "")
-			if !errors.Is(err, ops.ErrReauthenticationRequired) {
+			if !errors.Is(err, ops.CodeReauthenticationRequired) {
 				t.Errorf("err = %v, want it to wrap ErrReauthenticationRequired", err)
 			}
 			if after := snapshot(t, f.h); after != before {

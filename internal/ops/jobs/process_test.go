@@ -311,7 +311,7 @@ func TestCrossProcess_Conflict(t *testing.T) {
 	r := newRunnerFor(t, h, nil, succeed)
 
 	_, err := r.StartBackup(deadline(t), testActor)
-	if !errors.Is(err, ops.ErrConflict) {
+	if !errors.Is(err, ops.CodeConflict) {
 		t.Fatalf("StartBackup() = %v, want a conflict", err)
 	}
 	if !strings.Contains(err.Error(), c.jobID.String()) {

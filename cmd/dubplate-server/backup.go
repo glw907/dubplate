@@ -240,9 +240,9 @@ func reportOutcome(stdout io.Writer, job ops.JobStatus) error {
 // of 1.
 func backupExitCode(err error) error {
 	switch {
-	case errors.Is(err, ops.ErrUnavailable):
+	case errors.Is(err, ops.CodeUnavailable):
 		return &exitCodeErr{code: exitUnavailable, err: err}
-	case errors.Is(err, ops.ErrConflict):
+	case errors.Is(err, ops.CodeConflict):
 		return &exitCodeErr{code: exitTempFail, err: err}
 	default:
 		return err
