@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"unicode"
@@ -108,11 +109,20 @@ func subtreeNameRefusal(name string) string {
 func (s *Shell) Handler() http.Handler {
 	s.handlerBuilt = true
 
-	protected := s.origin.wrap(s.dispatch())
-	guarded := refuseEchoMethods(protected)
-	normalized := normalize(guarded)
-	stripped := s.strip.wrap(normalized)
-	return securityHeaders(s.hsts, s.logRefusal(s.warnForwardedFromLocalPeer(stripped)))
+	chain := []func(http.Handler) http.Handler{
+		s.securityHeaders,
+		s.logRefusal,
+		s.warnForwardedFromLocalPeer,
+		s.strip.wrap,
+		normalize,
+		refuseEchoMethods,
+		s.origin.wrap,
+	}
+	h := s.dispatch()
+	for _, step := range slices.Backward(chain) {
+		h = step(h)
+	}
+	return h
 }
 
 // warnForwardedFromLocalPeer wraps next, the strip, and in direct mode

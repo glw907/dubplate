@@ -28,10 +28,11 @@ func (s *Shell) EnableHSTS() {
 
 // securityHeaders sets the headers every response the shell answers
 // carries, whichever step answers it: X-Content-Type-Options: nosniff,
-// Referrer-Policy: no-referrer, and, when hsts is set,
+// Referrer-Policy: no-referrer, and, once [Shell.EnableHSTS] is called,
 // Strict-Transport-Security. It sets them before next runs, so a
 // handler that answers by [http.Error] or [http.NotFound] keeps them.
-func securityHeaders(hsts bool, next http.Handler) http.Handler {
+func (s *Shell) securityHeaders(next http.Handler) http.Handler {
+	hsts := s.hsts
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		h.Set("X-Content-Type-Options", "nosniff")
