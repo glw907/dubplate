@@ -209,3 +209,21 @@ func ParseString(environ []string, t Threshold) (string, error) {
 
 	return v, nil
 }
+
+// Resolve resolves t against environ under t.Kind, through the Parse
+// function for that kind, so the value is an int, a time.Duration, a
+// float64, or a string.
+func Resolve(environ []string, t Threshold) (any, error) {
+	switch t.Kind {
+	case KindInt:
+		return ParseInt(environ, t)
+	case KindDuration:
+		return ParseDuration(environ, t)
+	case KindFloat:
+		return ParseFloat(environ, t)
+	case KindString:
+		return ParseString(environ, t)
+	default:
+		return nil, fmt.Errorf("%v: %w", t.Kind, errUnnamedKind)
+	}
+}
