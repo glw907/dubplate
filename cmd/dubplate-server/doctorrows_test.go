@@ -311,11 +311,13 @@ func startServeOnHeldPort(t *testing.T, extra ...string) []string {
 		_ = l.Close()
 		t.Fatalf("serve.ParseConfig: %v", err)
 	}
-	srv, err := newServeShellVia(t.Context(), environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, discardTestLogger(),
-		func(s *serve.Shell) registrar { return s }, newFixtureBuildFS(1, 1))
+	orig := webBuild
+	webBuild = newFixtureBuildFS(1, 1)
+	t.Cleanup(func() { webBuild = orig })
+	srv, err := newServeShell(t.Context(), environ, productionRegistry(), listen.Prefix, listen.BindAddrs, cfg, discardTestLogger())
 	if err != nil {
 		_ = l.Close()
-		t.Fatalf("newServeShellVia: %v", err)
+		t.Fatalf("newServeShell: %v", err)
 	}
 	t.Cleanup(func() {
 		if err := srv.Close(); err != nil {
