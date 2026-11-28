@@ -71,15 +71,16 @@ func withStore(ctx context.Context, environ []string, reg *config.Registry, fn f
 	return fn(ctx, h, cfg.StateDir)
 }
 
-// writingRoster returns a roster over h that may write, opening the
-// auth dir under stateDir for the epochs a removal and a re-add bump.
-// Only a writing verb calls it, so member list opens no auth dir.
-func writingRoster(h *store.Handle, stateDir, verb string) (*member.Roster, error) {
+// writingRoster returns a roster over h that may write and logs its
+// audit records through logger, opening the auth dir under stateDir for
+// the epochs a removal and a re-add bump. Only a writing verb calls it,
+// so member list opens no auth dir.
+func writingRoster(h *store.Handle, stateDir, verb string, logger *slog.Logger) (*member.Roster, error) {
 	authDir, err := auth.Open(stateDir)
 	if err != nil {
 		return nil, fmt.Errorf("member %s: %w", verb, err)
 	}
-	return member.NewRoster(h, auth.NewEpochStore(authDir), time.Now), nil
+	return member.NewRoster(h, auth.NewEpochStore(authDir, logger), time.Now, logger), nil
 }
 
 // newMemberAddCmd builds "member add <address>". cobra's required-flag
@@ -95,7 +96,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, stateDir string) error {
-				roster, err := writingRoster(h, stateDir, "add")
+				roster, err := writingRoster(h, stateDir, "add", verbLogger(cmd.ErrOrStderr()))
 				if err != nil {
 					return err
 				}
@@ -105,7 +106,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry) *cobra.Command {
 					Username:    username,
 					Admin:       admin,
 				}
-				_, err = roster.AddMember(ctx, candidate, identity.LocalActor(resolveActor()), verbLogger(cmd.ErrOrStderr()))
+				_, err = roster.AddMember(ctx, candidate, identity.LocalActor(resolveActor()))
 				return err
 			})
 		},
@@ -123,7 +124,7 @@ func newMemberAddCmd(environ []string, reg *config.Registry) *cobra.Command {
 }
 
 // A rosterChange is a roster write on one member, named by id.
-type rosterChange func(r *member.Roster, ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error
+type rosterChange func(r *member.Roster, ctx context.Context, id identity.UserID, by identity.Actor) error
 
 // newMemberRemoveCmd builds "member remove <address>": it tombstones
 // the member, deletes their preferences, and revokes their sessions.
@@ -146,7 +147,7 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, stateDir string) error {
-				roster, err := writingRoster(h, stateDir, verb)
+				roster, err := writingRoster(h, stateDir, verb, verbLogger(cmd.ErrOrStderr()))
 				if err != nil {
 					return err
 				}
@@ -154,7 +155,7 @@ func newMemberChangeCmd(verb, short string, environ []string, reg *config.Regist
 				if err != nil {
 					return err
 				}
-				return change(roster, ctx, target.ID, identity.LocalActor(resolveActor()), verbLogger(cmd.ErrOrStderr()))
+				return change(roster, ctx, target.ID, identity.LocalActor(resolveActor()))
 			})
 		},
 	}
@@ -170,7 +171,7 @@ func newMemberListCmd(environ []string, reg *config.Registry) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return withStore(cmd.Context(), environ, reg, func(ctx context.Context, h *store.Handle, _ string) error {
-				members, err := member.NewRoster(h, nil, nil).List(ctx)
+				members, err := member.NewRoster(h, nil, nil, nil).List(ctx)
 				if err != nil {
 					return err
 				}

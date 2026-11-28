@@ -154,14 +154,14 @@ func TestRosterResetServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open the auth dir: %v", err)
 	}
-	roster := member.NewRoster(h, auth.NewEpochStore(authDir), time.Now)
+	roster := member.NewRoster(h, auth.NewEpochStore(authDir, discardTestLogger()), time.Now, discardTestLogger())
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	for _, m := range []member.Member{
 		{Address: renderedNewMemberAddress, DisplayName: "New", Username: "newmember"},
 		{Address: "capture-added@example.test", DisplayName: "Capture", Username: "capture-added"},
 	} {
-		if _, err := roster.AddMember(ctx, m, identity.LocalActor("operator"), discardTestLogger()); err != nil {
+		if _, err := roster.AddMember(ctx, m, identity.LocalActor("operator")); err != nil {
 			t.Fatalf("add %s: %v", m.Address, err)
 		}
 	}

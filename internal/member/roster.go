@@ -134,7 +134,7 @@ type Member struct {
 // A roster write calls Revoke last inside its transaction, so an error
 // rolls the write back. auth's epoch store is the production Revoker.
 type Revoker interface {
-	Revoke(ctx context.Context, address string, at time.Time, logger *slog.Logger) error
+	Revoke(ctx context.Context, address string, at time.Time) error
 }
 
 // Roster is the member store: it answers a lookup, lists the
@@ -144,6 +144,7 @@ type Roster struct {
 	users   *store.Handle
 	revoker Revoker
 	now     func() time.Time
+	logger  *slog.Logger
 }
 
 // NewRoster returns a roster over the users table of the store h
@@ -152,12 +153,13 @@ type Roster struct {
 // through its own handle are seen at the next call. h must stay open
 // for the roster's life.
 //
-// revoker and now serve the writes alone: a removal and a re-add
-// revoke the address through revoker at the time now returns, and every
-// write stamps its row with it. A roster that only reads, such as
-// member list's, passes nil for both and so opens no auth dir.
-func NewRoster(h *store.Handle, revoker Revoker, now func() time.Time) *Roster {
-	return &Roster{users: h, revoker: revoker, now: now}
+// revoker, now, and logger serve the writes alone: a removal and a
+// re-add revoke the address through revoker at the time now returns,
+// every write stamps its row with it, and each committed write logs
+// its audit record through logger. A roster that only reads, such as
+// member list's, passes nil for all three and so opens no auth dir.
+func NewRoster(h *store.Handle, revoker Revoker, now func() time.Time, logger *slog.Logger) *Roster {
+	return &Roster{users: h, revoker: revoker, now: now, logger: logger}
 }
 
 // checkActor refuses the zero Actor, which names nobody, and a local
@@ -373,16 +375,16 @@ func (r *Roster) List(ctx context.Context) ([]Member, error) {
 // Every check runs before the write commits, so a refused candidate or
 // actor changes nothing. A nil error returns the member as stored, its
 // ID the one the write inserted or reactivated.
-func (r *Roster) AddMember(ctx context.Context, candidate Member, by identity.Actor, logger *slog.Logger) (Member, error) {
+func (r *Roster) AddMember(ctx context.Context, candidate Member, by identity.Actor) (Member, error) {
 	member, err := checkAddition(candidate, by)
 	if err != nil {
 		return Member{}, err
 	}
-	member, err = r.addUser(ctx, member, by, logger)
+	member, err = r.addUser(ctx, member, by)
 	if err != nil {
 		return Member{}, err
 	}
-	logChange(ctx, logger, "roster member added", by, member.Address, "admin", member.Admin)
+	r.logChange(ctx, "roster member added", by, member.Address, "admin", member.Admin)
 	return member, nil
 }
 
@@ -429,7 +431,7 @@ func scanMember(scan func(dest ...any) error) (Member, error) {
 // case-insensitively refuses the add; the table must hold a live admin
 // once the write lands; and a reactivation then revokes the address,
 // last, as a removal does. It returns member with the ID the row holds.
-func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, logger *slog.Logger) (Member, error) {
+func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor) (Member, error) {
 	err := r.users.Update(ctx, func(ctx context.Context, tx *store.Tx) error {
 		if err := authorizeActor(ctx, tx, by); err != nil {
 			return err
@@ -483,7 +485,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 		if !reactivate {
 			return nil
 		}
-		return r.revoker.Revoke(ctx, member.Address, now, logger)
+		return r.revoker.Revoke(ctx, member.Address, now)
 	})
 	if err != nil {
 		return Member{}, err
@@ -511,7 +513,7 @@ func (r *Roster) addUser(ctx context.Context, member Member, by identity.Actor, 
 // last-admin guard and before the commit. A failed revocation rolls
 // the removal back. A commit that fails after one leaves a live member
 // signed out, the safe direction.
-func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error {
+func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identity.Actor) error {
 	if err := checkActor(by); err != nil {
 		return fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
@@ -535,12 +537,12 @@ func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identi
 		if err := requireLiveAdmin(ctx, tx); err != nil {
 			return err
 		}
-		return r.revoker.Revoke(ctx, address, now, logger)
+		return r.revoker.Revoke(ctx, address, now)
 	})
 	if err != nil {
 		return err
 	}
-	logChange(ctx, logger, "roster member removed", by, address)
+	r.logChange(ctx, "roster member removed", by, address)
 	return nil
 }
 
@@ -556,7 +558,7 @@ func (r *Roster) RemoveMember(ctx context.Context, id identity.UserID, by identi
 // demotion that would leave no live admin is [ErrNoAdmin], read inside
 // the write, so of two concurrent demotions of the last two admins the
 // second is refused. Every refusal changes nothing.
-func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identity.Actor, logger *slog.Logger) error {
+func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identity.Actor) error {
 	if err := checkActor(by); err != nil {
 		return fmt.Errorf("%w: %w", errRosterRecordInvalid, err)
 	}
@@ -577,7 +579,7 @@ func (r *Roster) DemoteMember(ctx context.Context, id identity.UserID, by identi
 	if err != nil || !target.Admin {
 		return err
 	}
-	logChange(ctx, logger, "roster member demoted", by, target.Address)
+	r.logChange(ctx, "roster member demoted", by, target.Address)
 	return nil
 }
 
@@ -611,7 +613,7 @@ func requireLiveAdmin(ctx context.Context, tx *store.Tx) error {
 // logChange writes the audit record for a committed roster write: msg,
 // then by, its channel, the address, any further key and value pairs in
 // args, and by's client address.
-func logChange(ctx context.Context, logger *slog.Logger, msg string, by identity.Actor, address string, args ...any) {
+func (r *Roster) logChange(ctx context.Context, msg string, by identity.Actor, address string, args ...any) {
 	attrs := append([]any{"actor", by.String(), "channel", by.Channel().String(), "address", address}, args...)
-	logger.Log(ctx, slog.LevelInfo, msg, append(attrs, "client_ip", by.ClientIP())...)
+	r.logger.Log(ctx, slog.LevelInfo, msg, append(attrs, "client_ip", by.ClientIP())...)
 }

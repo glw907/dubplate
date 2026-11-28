@@ -576,7 +576,7 @@ func handlersConfigFor(prefix serve.Prefix, ac auth.Config) auth.HandlersConfig 
 func requestedLink(t *testing.T, hc auth.HandlersConfig, h *store.Handle, address string) (string, *url.URL) {
 	t.Helper()
 	var mailed []string
-	hc.Roster = member.NewRoster(h, nil, nil)
+	hc.Roster = member.NewRoster(h, nil, nil, nil)
 	hc.Limiter = auth.NewLimiter(auth.Limits{LinkRequestsPerAddress: 10, LinkRequestsPerClient: 10, ConsumptionAttemptsPerClient: 10, LinkMailCeiling: 10})
 	hc.ClientIP = func(*http.Request) string { return "192.0.2.50" }
 	hc.Now = time.Now

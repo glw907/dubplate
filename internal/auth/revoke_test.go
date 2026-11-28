@@ -61,8 +61,8 @@ func newRevokeFixture(t *testing.T) revokeFixture {
 		t.Fatalf("Open: %v", err)
 	}
 	fx.authDir = authDir
-	fx.epoch = NewEpochStore(authDir)
-	fx.roster = member.NewRoster(fx.h, fx.epoch, fx.clock.now)
+	fx.epoch = NewEpochStore(authDir, discardLogger())
+	fx.roster = member.NewRoster(fx.h, fx.epoch, fx.clock.now, discardLogger())
 	return fx
 }
 
@@ -102,7 +102,7 @@ func TestRosterRemoval_RevokesSessions(t *testing.T) {
 		t.Fatalf("the pre-removal session does not verify before the removal: %v", err)
 	}
 
-	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, operatorActor, slog.New(slog.DiscardHandler)); err != nil {
+	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, operatorActor); err != nil {
 		t.Fatalf("RemoveMember: %v", err)
 	}
 	if _, err := fx.verifyAliceAt(t, minted); !errors.Is(err, errSessionRevoked) {
@@ -120,7 +120,7 @@ func TestRosterRemoval_RevokesSessions(t *testing.T) {
 	readdedAt := rosterNow.Add(time.Hour)
 	fx.clock.set(readdedAt)
 	readd := member.Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
-	if _, err := fx.roster.AddMember(writeCtx(t), readd, operatorActor, slog.New(slog.DiscardHandler)); err != nil {
+	if _, err := fx.roster.AddMember(writeCtx(t), readd, operatorActor); err != nil {
 		t.Fatalf("re-add: %v", err)
 	}
 	if _, err := fx.verifyAliceAt(t, minted); !errors.Is(err, errSessionRevoked) {
@@ -188,11 +188,11 @@ func TestEpochStoreRevoke(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Open: %v", err)
 			}
-			epoch := NewEpochStore(authDir)
+			var logBuf bytes.Buffer
+			epoch := NewEpochStore(authDir, slog.New(slog.NewJSONHandler(&logBuf, nil)))
 			tt.prepare(t, authDir, epoch)
 
-			var logBuf bytes.Buffer
-			err = epoch.Revoke(t.Context(), "alice@example.com", rosterNow, slog.New(slog.NewJSONHandler(&logBuf, nil)))
+			err = epoch.Revoke(t.Context(), "alice@example.com", rosterNow)
 			if tt.wantErr {
 				if err == nil || errors.Is(err, errEpochBackward) {
 					t.Fatalf("Revoke = %v, want the bump's error", err)
@@ -223,16 +223,15 @@ func TestRosterWrites_EpochBackwardCommits(t *testing.T) {
 	if err := fx.epoch.bump("alice@example.com", later); err != nil {
 		t.Fatalf("Bump the later epoch: %v", err)
 	}
-	logger := slog.New(slog.DiscardHandler)
 
-	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, operatorActor, logger); err != nil {
+	if err := fx.roster.RemoveMember(writeCtx(t), aliceID, operatorActor); err != nil {
 		t.Fatalf("removal against a later epoch = %v, want nil", err)
 	}
 	if !fx.tombstoned(t, "alice@example.com") {
 		t.Error("the removal against a later epoch did not commit")
 	}
 	readd := member.Member{Address: "alice@example.com", DisplayName: "Alice", Username: "alice"}
-	if _, err := fx.roster.AddMember(writeCtx(t), readd, operatorActor, logger); err != nil {
+	if _, err := fx.roster.AddMember(writeCtx(t), readd, operatorActor); err != nil {
 		t.Fatalf("re-add against a later epoch = %v, want nil", err)
 	}
 	if fx.tombstoned(t, "alice@example.com") {

@@ -128,5 +128,5 @@ func newRosterOver(t *testing.T, rows ...userRow) (*member.Roster, *store.Handle
 		}
 	}
 	insertUsers(t, h, rows...)
-	return member.NewRoster(h, newEpochStore(t, t.TempDir()), fixedNow(rosterNow)), h
+	return member.NewRoster(h, newEpochStore(t, t.TempDir()), fixedNow(rosterNow), discardLogger()), h
 }

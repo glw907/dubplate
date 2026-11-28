@@ -28,17 +28,16 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 		t.Fatalf("OpenServe: %v", err)
 	}
 	t.Cleanup(func() { _ = h.Close() })
-	roster := member.NewRoster(h, nil, time.Now)
+	roster := member.NewRoster(h, nil, time.Now, slog.New(slog.DiscardHandler))
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
-	logger := slog.New(slog.DiscardHandler)
 	operator := identity.LocalActor("operator")
 
 	for _, m := range []member.Member{
 		{Address: "admin@example.com", DisplayName: "Admin", Username: "admin", Admin: true},
 		{Address: "member@example.com", DisplayName: "Member", Username: "member"},
 	} {
-		if _, err := roster.AddMember(ctx, m, operator, logger); err != nil {
+		if _, err := roster.AddMember(ctx, m, operator); err != nil {
 			t.Fatalf("seed %s: %v", m.Username, err)
 		}
 	}
@@ -53,7 +52,7 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 
 	add := func(address, displayName, username string) func() error {
 		return func() error {
-			_, err := roster.AddMember(ctx, member.Member{Address: address, DisplayName: displayName, Username: username}, operator, logger)
+			_, err := roster.AddMember(ctx, member.Member{Address: address, DisplayName: displayName, Username: username}, operator)
 			return err
 		}
 	}
@@ -62,13 +61,13 @@ func TestRosterSentinels_MatchFromOutside(t *testing.T) {
 		write func() error
 		want  error
 	}{
-		{"an unknown id", func() error { return roster.RemoveMember(ctx, identity.UserID{0x0b, 0x5e}, operator, logger) }, member.ErrMemberNotFound},
-		{"the last admin", func() error { return roster.DemoteMember(ctx, admin.ID, operator, logger) }, member.ErrNoAdmin},
+		{"an unknown id", func() error { return roster.RemoveMember(ctx, identity.UserID{0x0b, 0x5e}, operator) }, member.ErrMemberNotFound},
+		{"the last admin", func() error { return roster.DemoteMember(ctx, admin.ID, operator) }, member.ErrNoAdmin},
 		{"a non-admin actor", func() error {
 			return roster.RemoveMember(ctx, admin.ID, identity.NetworkActor(identity.Identity{
 				Address: plain.Address, UserID: plain.ID, Username: plain.Username,
 				Channel: identity.ChannelCookie,
-			}, time.Now(), "192.0.2.1"), logger)
+			}, time.Now(), "192.0.2.1"))
 		}, member.ErrActorNotAdmin},
 		{"a duplicate address", add("Member@example.com", "Again", "again"), member.ErrDuplicateAddress},
 		{"a duplicate username", add("new@example.com", "New", "MEMBER"), member.ErrDuplicateUsername},

@@ -41,14 +41,16 @@ const epochRecordFieldCount = 2
 // credential carries.
 type EpochStore struct {
 	authDir *Dir
+	logger  *slog.Logger
 
 	// mu serializes each bump's read of the stored epoch with its write.
 	mu sync.Mutex
 }
 
-// NewEpochStore returns the revocation-epoch store under authDir.
-func NewEpochStore(authDir *Dir) *EpochStore {
-	return &EpochStore{authDir: authDir}
+// NewEpochStore returns the revocation-epoch store under authDir. It
+// logs a refused backward bump through logger.
+func NewEpochStore(authDir *Dir, logger *slog.Logger) *EpochStore {
+	return &EpochStore{authDir: authDir, logger: logger}
 }
 
 // bump revokes every credential for address anchored or minted at or
@@ -72,10 +74,10 @@ func (e *EpochStore) bump(address string, now time.Time) error {
 // already refuses every credential this bump would. A session anchored
 // after that epoch but before the clock stepped back survives, since no
 // bump at the stepped-back time can reach it.
-func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time, logger *slog.Logger) error {
+func (e *EpochStore) Revoke(ctx context.Context, address string, at time.Time) error {
 	err := e.bump(address, at)
 	if errors.Is(err, errEpochBackward) {
-		logger.Log(ctx, slog.LevelWarn, "revocation epoch is later than the clock; the write commits on the stored epoch", "address", address)
+		e.logger.Log(ctx, slog.LevelWarn, "revocation epoch is later than the clock; the write commits on the stored epoch", "address", address)
 		return nil
 	}
 	return err

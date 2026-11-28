@@ -52,7 +52,7 @@ func newVerifierFixtureReading(t *testing.T, lifetime, absoluteCap settings.Read
 	stateDir := t.TempDir()
 	_, users := newRosterOver(t, rows...)
 	epoch := newEpochStore(t, stateDir)
-	roster := member.NewRoster(users, epoch, fixedNow(rosterNow))
+	roster := member.NewRoster(users, epoch, fixedNow(rosterNow), discardLogger())
 
 	seam := NewMagicLinkVerifier(roster, epoch, []byte(currentFixture), []byte(previousFixture), lifetime, absoluteCap)
 	return verifierFixture{roster: roster, users: users, epoch: epoch, seam: seam, dir: stateDir}
@@ -295,7 +295,7 @@ func TestMagicLinkVerifier_VerifyIdentity_UnreadableEpochDenies(t *testing.T) {
 func TestMagicLinkVerifier_VerifyIdentity_UsersTable(t *testing.T) {
 	h := newUsersStore(t)
 	insertUsers(t, h, userRow{id: aliceID, address: "alice@example.com", displayName: "Alice", username: "ally", createdAt: 100})
-	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
+	seam := NewMagicLinkVerifier(member.NewRoster(h, nil, nil, nil), newEpochStore(t, t.TempDir()), []byte(currentFixture), []byte(previousFixture), fixed(verifierLifetime), fixed(verifierCap))
 	value, _, err := MintSession([]byte(currentFixture), "alice@example.com", verifierBirth, verifierLifetime, verifierCap)
 	if err != nil {
 		t.Fatalf("MintSession: %v", err)

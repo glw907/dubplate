@@ -507,7 +507,7 @@ func TestStallMailGoesToLiveAdminsOnly(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = h.Close() })
 
-	got, err := liveAdminAddresses(member.NewRoster(h, nil, nil))(t.Context())
+	got, err := liveAdminAddresses(member.NewRoster(h, nil, nil, nil))(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
